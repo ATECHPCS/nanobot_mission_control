@@ -503,7 +503,23 @@ async function performHealthCheck() {
 }
 
 async function getCapabilities() {
-  const gateway = await isPortOpen(config.gatewayHost, config.gatewayPort)
+  let configuredGateways = 0
+  try {
+    const db = getDatabase()
+    const table = db.prepare(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='gateways'"
+    ).get() as { name?: string } | undefined
+    if (table?.name) {
+      const row = db.prepare('SELECT COUNT(*) as c FROM gateways').get() as { c: number } | undefined
+      configuredGateways = row?.c ?? 0
+    }
+  } catch {
+    configuredGateways = 0
+  }
+
+  // Treat an explicit gateway configuration as gateway-capable, even if the
+  // local default port probe fails (common with remote /gw reverse-proxy setups).
+  const gateway = configuredGateways > 0 || await isPortOpen(config.gatewayHost, config.gatewayPort)
 
   const openclawHome = Boolean(
     (config.openclawStateDir && existsSync(config.openclawStateDir)) ||
