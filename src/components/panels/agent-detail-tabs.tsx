@@ -1264,9 +1264,13 @@ export function CreateAgentModal({
 // Config Tab Component for Agent Detail Modal
 export function ConfigTab({
   agent,
+  workspaceFiles,
+  onSaveWorkspaceFile,
   onSave
 }: {
   agent: Agent & { config?: any }
+  workspaceFiles?: { identityMd: string; agentMd: string }
+  onSaveWorkspaceFile?: (file: 'identity.md' | 'agent.md', content: string) => Promise<void>
   onSave: () => void
 }) {
   const [config, setConfig] = useState<any>(agent.config || {})
@@ -1279,11 +1283,20 @@ export function ConfigTab({
   const [newFallbackModel, setNewFallbackModel] = useState('')
   const [newAllowTool, setNewAllowTool] = useState('')
   const [newDenyTool, setNewDenyTool] = useState('')
+  const [identityMdInput, setIdentityMdInput] = useState('')
+  const [agentMdInput, setAgentMdInput] = useState('')
+  const [savingIdentityMd, setSavingIdentityMd] = useState(false)
+  const [savingAgentMd, setSavingAgentMd] = useState(false)
 
   useEffect(() => {
     setConfig(agent.config || {})
     setJsonInput(JSON.stringify(agent.config || {}, null, 2))
   }, [agent.config])
+
+  useEffect(() => {
+    setIdentityMdInput(String(workspaceFiles?.identityMd || ''))
+    setAgentMdInput(String(workspaceFiles?.agentMd || ''))
+  }, [workspaceFiles?.identityMd, workspaceFiles?.agentMd])
 
   useEffect(() => {
     const loadAvailableModels = async () => {
@@ -1359,6 +1372,28 @@ export function ConfigTab({
       existing.splice(index, 1)
       return { ...prev, tools: { ...tools, [list]: existing } }
     })
+  }
+
+  const saveWorkspaceFile = async (file: 'identity.md' | 'agent.md') => {
+    if (!onSaveWorkspaceFile) return
+    const content = file === 'identity.md' ? identityMdInput : agentMdInput
+    if (file === 'identity.md') {
+      setSavingIdentityMd(true)
+    } else {
+      setSavingAgentMd(true)
+    }
+    setError(null)
+    try {
+      await onSaveWorkspaceFile(file, content)
+    } catch (err: any) {
+      setError(err?.message || `Failed to save ${file}`)
+    } finally {
+      if (file === 'identity.md') {
+        setSavingIdentityMd(false)
+      } else {
+        setSavingAgentMd(false)
+      }
+    }
   }
 
   const handleSave = async () => {
@@ -1605,6 +1640,70 @@ export function ConfigTab({
                 )}
               </>
             )}
+          </div>
+
+          {/* Workspace files */}
+          <div className="bg-surface-1/50 rounded-lg p-4 space-y-4">
+            <h5 className="text-sm font-medium text-foreground">Workspace Files</h5>
+            <p className="text-xs text-muted-foreground">
+              These editors read/write the real workspace files for this agent.
+            </p>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs text-muted-foreground font-medium">identity.md</label>
+                {editing && onSaveWorkspaceFile && (
+                  <button
+                    onClick={() => saveWorkspaceFile('identity.md')}
+                    disabled={savingIdentityMd}
+                    className="px-2.5 py-1 text-2xs bg-primary text-primary-foreground rounded hover:bg-primary/90 disabled:opacity-50 transition-smooth"
+                  >
+                    {savingIdentityMd ? 'Saving...' : 'Save identity.md'}
+                  </button>
+                )}
+              </div>
+              {editing ? (
+                <textarea
+                  rows={6}
+                  value={identityMdInput}
+                  onChange={(e) => setIdentityMdInput(e.target.value)}
+                  className="w-full bg-surface-1 text-foreground border border-border rounded-md px-3 py-2 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
+                  placeholder="identity.md content..."
+                />
+              ) : (
+                <pre className="bg-surface-1 rounded p-3 text-xs text-muted-foreground overflow-auto whitespace-pre-wrap min-h-[96px]">
+                  {identityMdInput || 'identity.md not found or empty'}
+                </pre>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs text-muted-foreground font-medium">agent.md</label>
+                {editing && onSaveWorkspaceFile && (
+                  <button
+                    onClick={() => saveWorkspaceFile('agent.md')}
+                    disabled={savingAgentMd}
+                    className="px-2.5 py-1 text-2xs bg-primary text-primary-foreground rounded hover:bg-primary/90 disabled:opacity-50 transition-smooth"
+                  >
+                    {savingAgentMd ? 'Saving...' : 'Save agent.md'}
+                  </button>
+                )}
+              </div>
+              {editing ? (
+                <textarea
+                  rows={8}
+                  value={agentMdInput}
+                  onChange={(e) => setAgentMdInput(e.target.value)}
+                  className="w-full bg-surface-1 text-foreground border border-border rounded-md px-3 py-2 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
+                  placeholder="agent.md content..."
+                />
+              ) : (
+                <pre className="bg-surface-1 rounded p-3 text-xs text-muted-foreground overflow-auto whitespace-pre-wrap min-h-[120px]">
+                  {agentMdInput || 'agent.md not found or empty'}
+                </pre>
+              )}
+            </div>
           </div>
 
           {/* Sandbox */}

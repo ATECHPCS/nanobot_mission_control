@@ -506,6 +506,7 @@ function AgentDetailModalPhase3({
   onStatusUpdate: (name: string, status: Agent['status'], activity?: string) => Promise<void>
   onWakeAgent: (name: string, sessionKey: string) => Promise<void>
 }) {
+  const [agentState, setAgentState] = useState<Agent & { config?: any; working_memory?: string }>(agent as Agent & { config?: any; working_memory?: string })
   const [activeTab, setActiveTab] = useState<'overview' | 'soul' | 'memory' | 'config' | 'tasks' | 'activity'>('overview')
   const [editing, setEditing] = useState(false)
   const [formData, setFormData] = useState({
@@ -514,9 +515,71 @@ function AgentDetailModalPhase3({
     soul_content: agent.soul_content || '',
     working_memory: agent.working_memory || ''
   })
+  const [workspaceFiles, setWorkspaceFiles] = useState<{ identityMd: string; agentMd: string }>({
+    identityMd: '',
+    agentMd: '',
+  })
   const [soulTemplates, setSoulTemplates] = useState<SoulTemplate[]>([])
   const [heartbeatData, setHeartbeatData] = useState<HeartbeatResponse | null>(null)
   const [loadingHeartbeat, setLoadingHeartbeat] = useState(false)
+
+  useEffect(() => {
+    setAgentState(agent as Agent & { config?: any; working_memory?: string })
+    setFormData({
+      role: agent.role,
+      session_key: agent.session_key || '',
+      soul_content: agent.soul_content || '',
+      working_memory: (agent as any).working_memory || '',
+    })
+  }, [agent])
+
+  useEffect(() => {
+    const loadCanonicalAgentData = async () => {
+      try {
+        const [agentRes, soulRes, memoryRes, filesRes] = await Promise.all([
+          fetch(`/api/agents/${agent.id}`),
+          fetch(`/api/agents/${agent.id}/soul`),
+          fetch(`/api/agents/${agent.id}/memory`),
+          fetch(`/api/agents/${agent.id}/files`),
+        ])
+
+        if (agentRes.ok) {
+          const payload = await agentRes.json()
+          if (payload?.agent) {
+            const freshAgent = payload.agent as Agent & { config?: any; working_memory?: string }
+            setAgentState((prev) => ({ ...prev, ...freshAgent }))
+            setFormData((prev) => ({
+              ...prev,
+              role: freshAgent.role || prev.role,
+              session_key: freshAgent.session_key || '',
+            }))
+          }
+        }
+
+        if (soulRes.ok) {
+          const payload = await soulRes.json()
+          setFormData((prev) => ({ ...prev, soul_content: String(payload?.soul_content || '') }))
+        }
+
+        if (memoryRes.ok) {
+          const payload = await memoryRes.json()
+          setFormData((prev) => ({ ...prev, working_memory: String(payload?.working_memory || '') }))
+        }
+
+        if (filesRes.ok) {
+          const payload = await filesRes.json()
+          setWorkspaceFiles({
+            identityMd: String(payload?.files?.['identity.md']?.content || ''),
+            agentMd: String(payload?.files?.['agent.md']?.content || ''),
+          })
+        }
+      } catch (error) {
+        log.error('Failed to load canonical agent data:', error)
+      }
+    }
+
+    loadCanonicalAgentData()
+  }, [agent.id])
 
   const formatLastSeen = (timestamp?: number) => {
     if (!timestamp) return 'Never'
@@ -572,7 +635,7 @@ function AgentDetailModalPhase3({
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: agent.name,
+          name: agentState.name,
           ...formData
         })
       })
@@ -588,7 +651,7 @@ function AgentDetailModalPhase3({
 
   const handleSoulSave = async (content: string, templateName?: string) => {
     try {
-      const response = await fetch(`/api/agents/${agent.name}/soul`, {
+      const response = await fetch(`/api/agents/${agentState.id}/soul`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -600,6 +663,7 @@ function AgentDetailModalPhase3({
       if (!response.ok) throw new Error('Failed to update SOUL')
       
       setFormData(prev => ({ ...prev, soul_content: content }))
+      setAgentState(prev => ({ ...prev, soul_content: content }))
       onUpdate()
     } catch (error) {
       log.error('Failed to update SOUL:', error)
@@ -608,7 +672,7 @@ function AgentDetailModalPhase3({
 
   const handleMemorySave = async (content: string, append: boolean = false) => {
     try {
-      const response = await fetch(`/api/agents/${agent.name}/memory`, {
+      const response = await fetch(`/api/agents/${agentState.id}/memory`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -621,10 +685,27 @@ function AgentDetailModalPhase3({
       
       const data = await response.json()
       setFormData(prev => ({ ...prev, working_memory: data.working_memory }))
+      setAgentState(prev => ({ ...prev, working_memory: data.working_memory }))
       onUpdate()
     } catch (error) {
       log.error('Failed to update memory:', error)
     }
+  }
+
+  const handleWorkspaceFileSave = async (file: 'identity.md' | 'agent.md', content: string) => {
+    const response = await fetch(`/api/agents/${agentState.id}/files`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file, content }),
+    })
+    const payload = await response.json().catch(() => ({}))
+    if (!response.ok) {
+      throw new Error(payload?.error || `Failed to save ${file}`)
+    }
+    setWorkspaceFiles((prev) => ({
+      ...prev,
+      ...(file === 'identity.md' ? { identityMd: content } : { agentMd: content }),
+    }))
   }
 
   const tabs = [
@@ -651,17 +732,17 @@ function AgentDetailModalPhase3({
             <div className="flex items-start gap-3 min-w-0">
               <AgentAvatar name={agent.name} size="md" />
               <div className="min-w-0">
-                <h3 className="text-2xl font-bold text-foreground leading-tight truncate">{agent.name}</h3>
-                <p className="text-muted-foreground mt-0.5 truncate">{agent.role}</p>
+                <h3 className="text-2xl font-bold text-foreground leading-tight truncate">{agentState.name}</h3>
+                <p className="text-muted-foreground mt-0.5 truncate">{agentState.role}</p>
                 <div className="flex flex-wrap items-center gap-2 mt-3">
-                  <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border ${statusBadgeStyles[agent.status]}`}>
-                    <span className={`w-2 h-2 rounded-full ${statusColors[agent.status]}`} />
-                    {agent.status}
+                  <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border ${statusBadgeStyles[agentState.status]}`}>
+                    <span className={`w-2 h-2 rounded-full ${statusColors[agentState.status]}`} />
+                    {agentState.status}
                   </span>
                   <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border border-border bg-surface-1 text-muted-foreground">
-                    Last seen {formatLastSeen(agent.last_seen)}
+                    Last seen {formatLastSeen(agentState.last_seen)}
                   </span>
-                  {agent.session_key && (
+                  {agentState.session_key && (
                     <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-300">
                       Session active
                     </span>
@@ -703,7 +784,7 @@ function AgentDetailModalPhase3({
         <div className="flex-1 overflow-y-auto">
           {activeTab === 'overview' && (
             <OverviewTab
-              agent={agent}
+              agent={agentState}
               editing={editing}
               formData={formData}
               setFormData={setFormData}
@@ -720,7 +801,7 @@ function AgentDetailModalPhase3({
           
           {activeTab === 'soul' && (
             <SoulTab
-              agent={agent}
+              agent={agentState}
               soulContent={formData.soul_content}
               templates={soulTemplates}
               onSave={handleSoulSave}
@@ -729,22 +810,27 @@ function AgentDetailModalPhase3({
           
           {activeTab === 'memory' && (
             <MemoryTab
-              agent={agent}
+              agent={agentState}
               workingMemory={formData.working_memory}
               onSave={handleMemorySave}
             />
           )}
           
           {activeTab === 'tasks' && (
-            <TasksTab agent={agent} />
+            <TasksTab agent={agentState} />
           )}
           
           {activeTab === 'config' && (
-            <ConfigTab agent={agent} onSave={onUpdate} />
+            <ConfigTab
+              agent={agentState}
+              workspaceFiles={workspaceFiles}
+              onSaveWorkspaceFile={handleWorkspaceFileSave}
+              onSave={onUpdate}
+            />
           )}
 
           {activeTab === 'activity' && (
-            <ActivityTab agent={agent} />
+            <ActivityTab agent={agentState} />
           )}
         </div>
       </div>
