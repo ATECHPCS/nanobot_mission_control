@@ -187,6 +187,7 @@ function formatTokens(n: number): string {
 function formatAge(timestamp: number): string {
   if (!timestamp) return '-'
   const diff = Date.now() - timestamp
+  if (diff <= 0) return 'now'
   const mins = Math.floor(diff / 60000)
   const hours = Math.floor(mins / 60)
   const days = Math.floor(hours / 24)
