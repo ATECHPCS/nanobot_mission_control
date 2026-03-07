@@ -19,7 +19,11 @@ export function UpdateBanner() {
     setErrorMsg(null)
 
     try {
-      const res = await fetch('/api/releases/update', { method: 'POST' })
+      const res = await fetch('/api/releases/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetVersion: updateAvailable!.latestVersion }),
+      })
       const data = await res.json()
 
       if (!res.ok) {

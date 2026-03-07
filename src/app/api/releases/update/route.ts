@@ -34,6 +34,19 @@ export async function POST(request: Request) {
   const steps: { step: string; output: string }[] = []
 
   try {
+    // Parse target version from request body
+    const body = await request.json().catch(() => ({}))
+    const targetVersion: string | undefined = body.targetVersion
+    if (!targetVersion) {
+      return NextResponse.json(
+        { error: 'Missing targetVersion in request body' },
+        { status: 400 }
+      )
+    }
+
+    // Normalize to tag format (e.g. "1.2.0" -> "v1.2.0")
+    const tag = targetVersion.startsWith('v') ? targetVersion : `v${targetVersion}`
+
     // 1. Check for uncommitted changes
     const status = git(['status', '--porcelain'], cwd)
     if (status) {
@@ -47,16 +60,23 @@ export async function POST(request: Request) {
       )
     }
 
-    // 2. Detect current branch
-    const branch = git(['rev-parse', '--abbrev-ref', 'HEAD'], cwd)
-
-    // 3. Fetch latest
-    const fetchOut = git(['fetch', 'origin'], cwd)
+    // 2. Fetch tags and release code from origin
+    const fetchOut = git(['fetch', 'origin', '--tags', '--force'], cwd)
     steps.push({ step: 'git fetch', output: fetchOut || 'OK' })
 
-    // 4. Pull
-    const pullOut = git(['pull', 'origin', branch], cwd)
-    steps.push({ step: 'git pull', output: pullOut })
+    // 3. Verify the tag exists
+    try {
+      git(['rev-parse', '--verify', `refs/tags/${tag}`], cwd)
+    } catch {
+      return NextResponse.json(
+        { error: `Release tag ${tag} not found in remote` },
+        { status: 404 }
+      )
+    }
+
+    // 4. Checkout the release tag
+    const checkoutOut = git(['checkout', tag], cwd)
+    steps.push({ step: `git checkout ${tag}`, output: checkoutOut })
 
     // 5. Install dependencies
     const installOut = pnpm(['install', '--frozen-lockfile'], cwd)
@@ -68,7 +88,7 @@ export async function POST(request: Request) {
 
     // 7. Read new version from package.json
     const newPkg = JSON.parse(readFileSync(join(cwd, 'package.json'), 'utf-8'))
-    const newVersion: string = newPkg.version ?? APP_VERSION
+    const newVersion: string = newPkg.version ?? targetVersion
 
     // 8. Log to audit_log
     try {
@@ -81,7 +101,7 @@ export async function POST(request: Request) {
         JSON.stringify({
           previousVersion: APP_VERSION,
           newVersion,
-          branch,
+          tag,
         })
       )
     } catch {
@@ -92,7 +112,7 @@ export async function POST(request: Request) {
       success: true,
       previousVersion: APP_VERSION,
       newVersion,
-      branch,
+      tag,
       steps,
       restartRequired: true,
     })

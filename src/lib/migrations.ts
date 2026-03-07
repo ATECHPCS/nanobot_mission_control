@@ -7,7 +7,7 @@ export type Migration = {
   up: (db: Database.Database) => void
 }
 
-// Plugin hook: Pro can register additional migrations without modifying this file.
+// Plugin hook: extensions can register additional migrations without modifying this file.
 const extraMigrations: Migration[] = []
 export function registerMigrations(newMigrations: Migration[]): void {
   extraMigrations.push(...newMigrations)

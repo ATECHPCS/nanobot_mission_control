@@ -24,7 +24,7 @@ Manage agent fleets, track tasks, monitor costs, and orchestrate workflows — a
 
 Running AI agents at scale means juggling sessions, tasks, costs, and reliability across multiple models and channels. Mission Control gives you:
 
-- **28 panels** — Tasks, agents, logs, tokens, memory, cron, alerts, webhooks, pipelines, and more
+- **32 panels** — Tasks, agents, logs, tokens, memory, cron, alerts, webhooks, pipelines, and more
 - **Real-time everything** — WebSocket + SSE push updates, smart polling that pauses when you're away
 - **Zero external dependencies** — SQLite database, single `pnpm start` to run, no Redis/Postgres/Docker required
 - **Role-based access** — Viewer, operator, and admin roles with session + API key auth
@@ -65,7 +65,9 @@ If `AUTH_PASS` contains `#`, quote it (e.g. `AUTH_PASS="my#password"`) or use `A
 - Ed25519 device identity for secure gateway handshake
 - Agent SOUL system with workspace file sync and templates
 - Agent inter-agent messaging and comms
-- Update available banner with GitHub release check
+- Update available banner with GitHub release check and one-click self-update
+- Framework adapter layer for multi-agent registration (OpenClaw, CrewAI, LangGraph, AutoGen, Claude SDK, generic)
+- Multi-project task organization with per-project ticket prefixes
 
 ### Known Limitations
 
@@ -114,15 +116,18 @@ Inter-agent communication via the comms API. Agents can send messages to each ot
 Outbound webhooks with delivery history, configurable alert rules with cooldowns, and multi-gateway connection management. Optional 1Password CLI integration for secret management.
 
 ### Workspace Management
-Workspaces (tenant instances) are created and managed through the **Super Admin** panel, accessible from the sidebar under **Admin > Super Admin**. From there, admins can:
+Workspaces (tenant instances) are managed via the `/api/super/*` API endpoints. Admins can:
 - **Create** new client instances (slug, display name, Linux user, gateway port, plan tier)
 - **Monitor** provisioning jobs and their step-by-step progress
 - **Decommission** tenants with optional cleanup of state directories and Linux users
 
-Each workspace gets its own isolated environment with a dedicated OpenClaw gateway, state directory, and workspace root. See the [Super Admin API](#api-overview) endpoints under `/api/super/*` for programmatic access.
+Each workspace gets its own isolated environment with a dedicated OpenClaw gateway, state directory, and workspace root.
 
 ### Update Checker
-Automatic GitHub release check notifies you when a new version is available, displayed as a banner in the dashboard.
+Automatic GitHub release check notifies you when a new version is available, displayed as a banner in the dashboard. Admins can trigger a one-click update directly from the banner — the server runs `git pull`, `pnpm install`, and `pnpm build`, then prompts for a restart. Dirty working trees are rejected, and all updates are logged to the audit trail.
+
+### Framework Adapters
+Built-in adapter layer for multi-agent registration across frameworks. Supported adapters: OpenClaw, CrewAI, LangGraph, AutoGen, Claude SDK, and a generic fallback. Each adapter normalizes agent registration, heartbeats, and task reporting to a common interface.
 
 ## Architecture
 
@@ -133,22 +138,23 @@ mission-control/
 │   ├── app/
 │   │   ├── page.tsx           # SPA shell — routes all panels
 │   │   ├── login/page.tsx     # Login page
-│   │   └── api/               # 66 REST API routes
+│   │   └── api/               # 95 REST API routes
 │   ├── components/
 │   │   ├── layout/            # NavRail, HeaderBar, LiveFeed
 │   │   ├── dashboard/         # Overview dashboard
-│   │   ├── panels/            # 28 feature panels
+│   │   ├── panels/            # 32 feature panels
 │   │   └── chat/              # Agent chat UI
 │   ├── lib/
 │   │   ├── auth.ts            # Session + API key auth, RBAC
 │   │   ├── db.ts              # SQLite (better-sqlite3, WAL mode)
 │   │   ├── claude-sessions.ts  # Local Claude Code session scanner
-│   │   ├── migrations.ts      # 21 schema migrations
+│   │   ├── migrations.ts      # 30 schema migrations
 │   │   ├── scheduler.ts       # Background task scheduler
 │   │   ├── webhooks.ts        # Outbound webhook delivery
 │   │   ├── websocket.ts       # Gateway WebSocket client
 │   │   ├── device-identity.ts # Ed25519 device identity for gateway auth
-│   │   └── agent-sync.ts      # OpenClaw config → MC database sync
+│   │   ├── agent-sync.ts      # OpenClaw config → MC database sync
+│   │   └── adapters/          # Framework adapters (openclaw, crewai, langgraph, autogen, claude-sdk, generic)
 │   └── store/index.ts         # Zustand state management
 └── .data/                     # Runtime data (SQLite DB, token logs)
 ```
@@ -297,7 +303,7 @@ All endpoints require authentication unless noted. Full reference below.
 </details>
 
 <details>
-<summary><strong>Super Admin (Workspace/Tenant Management)</strong></summary>
+<summary><strong>Workspace/Tenant Management</strong></summary>
 
 | Method | Path | Role | Description |
 |--------|------|------|-------------|
@@ -402,15 +408,11 @@ See [`.env.example`](.env.example) for the complete list. Key variables:
 
 ### Workspace Creation Flow
 
-To add a new workspace/client instance in the UI:
+To add a new workspace/client instance, use the `/api/super/tenants` endpoint or the Workspaces panel (if enabled):
 
-1. Open `Workspaces` from the left navigation.
-2. Expand `Show Create Client Instance`.
-3. Fill tenant/workspace fields (`slug`, `display_name`, optional ports/gateway owner).
-4. Click `Create + Queue`.
-5. Approve/run the generated provisioning job in the same panel.
-
-`Workspaces` and `Super Admin` currently point to the same provisioning control plane.
+1. Provide tenant/workspace fields (`slug`, `display_name`, optional ports/gateway owner).
+2. The system queues a bootstrap provisioning job.
+3. Approve/run the provisioning job via `/api/super/provision-jobs/[id]/action`.
 
 ### Projects and Ticket Prefixes
 
@@ -529,8 +531,11 @@ See [open issues](https://github.com/builderz-labs/mission-control/issues) for p
 
 **Up next:**
 
+- [x] Workspace isolation for multi-team usage ([#75](https://github.com/builderz-labs/mission-control/issues/75))
+- [x] Framework adapter layer — multi-agent registration across OpenClaw, CrewAI, LangGraph, AutoGen, Claude SDK, and generic
+- [x] Self-update mechanism — admin-only one-click update with audit logging
+- [x] Multi-project task organization with per-project ticket prefixes
 - [ ] Agent-agnostic gateway support — connect any orchestration framework (OpenClaw, ZeroClaw, OpenFang, NeoBot, IronClaw, etc.), not just OpenClaw
-- [ ] Workspace isolation for multi-team usage ([#75](https://github.com/builderz-labs/mission-control/issues/75))
 - [ ] **[Flight Deck](https://github.com/splitlabs/flight-deck)** — native desktop companion app (Tauri v2) with real PTY terminal grid, stall inbox with native OS notifications, and system tray HUD. Currently in private beta.
 - [ ] First-class per-agent cost breakdowns — dedicated panel with per-agent token usage and spend (currently derivable from per-session data)
 - [ ] OAuth approval UI improvements

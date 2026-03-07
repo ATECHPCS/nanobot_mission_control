@@ -2,7 +2,7 @@ import { randomBytes, timingSafeEqual } from 'crypto'
 import { getDatabase } from './db'
 import { hashPassword, verifyPassword } from './password'
 
-// Plugin hook: Pro can register a custom API key resolver without modifying this file.
+// Plugin hook: extensions can register a custom API key resolver without modifying this file.
 type AuthResolverHook = (apiKey: string, agentName: string | null) => User | null
 let _authResolverHook: AuthResolverHook | null = null
 export function registerAuthResolver(hook: AuthResolverHook): void {
