@@ -25,7 +25,13 @@ const navGroups: NavGroup[] = [
     id: 'core',
     items: [
       { id: 'overview', label: 'Overview', icon: <OverviewIcon />, priority: true },
-      { id: 'agents', label: 'Agents', icon: <AgentsIcon />, priority: true },
+      {
+        id: 'agents', label: 'Agents', icon: <AgentsIcon />, priority: true,
+        children: [
+          { id: 'agent-costs', label: 'Agent Costs', icon: <AgentCostsIcon />, priority: false },
+          { id: 'memory', label: 'Memory', icon: <MemoryIcon />, priority: false },
+        ],
+      },
       { id: 'tasks', label: 'Tasks', icon: <TasksIcon />, priority: true },
       { id: 'chat', label: 'Chat', icon: <ChatIcon />, priority: false },
       { id: 'skills', label: 'Skills', icon: <SkillsIcon />, priority: false },
@@ -39,13 +45,6 @@ const navGroups: NavGroup[] = [
       { id: 'activity', label: 'Activity', icon: <ActivityIcon />, priority: true },
       { id: 'logs', label: 'Logs', icon: <LogsIcon />, priority: false },
       { id: 'tokens', label: 'Tokens', icon: <TokensIcon />, priority: false },
-      {
-        id: 'agent-observe', label: 'Agents', icon: <AgentsIcon />, priority: false,
-        children: [
-          { id: 'agent-costs', label: 'Agent Costs', icon: <AgentCostsIcon />, priority: false },
-          { id: 'memory', label: 'Memory', icon: <MemoryIcon />, priority: false },
-        ],
-      },
     ],
   },
   {

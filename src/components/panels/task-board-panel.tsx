@@ -1140,20 +1140,76 @@ function TaskDetailModal({
     }
   }
 
-  const renderComment = (comment: Comment, depth: number = 0) => (
-    <div key={comment.id} className={`border-l-2 border-border pl-3 ${depth > 0 ? 'ml-4' : ''}`}>
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span className="font-medium text-foreground/80">{comment.author}</span>
-        <span>{new Date(comment.created_at * 1000).toLocaleString()}</span>
-      </div>
-      <div className="text-sm text-foreground/90 mt-1 whitespace-pre-wrap">{comment.content}</div>
-      {comment.replies && comment.replies.length > 0 && (
-        <div className="mt-3 space-y-3">
-          {comment.replies.map(reply => renderComment(reply, depth + 1))}
+  const parseCommentContent = (raw: string): { text: string; meta?: { model?: string; provider?: string; durationMs?: number; tokens?: number } } => {
+    // Strip ANSI escape codes
+    const stripped = raw.replace(/\x1b\[[0-9;]*m/g, '').replace(/\[3[0-9]m/g, '').replace(/\[39m/g, '')
+
+    // Try to parse as JSON payload (OpenClaw agent result format)
+    try {
+      const parsed = JSON.parse(stripped)
+      if (parsed && typeof parsed === 'object') {
+        let text = ''
+        let meta: { model?: string; provider?: string; durationMs?: number; tokens?: number } | undefined
+
+        // Extract text from payloads array
+        if (Array.isArray(parsed.payloads)) {
+          text = parsed.payloads
+            .map((p: any) => (typeof p === 'string' ? p : p?.text || '').trim())
+            .filter(Boolean)
+            .join('\n')
+        }
+
+        // Extract compact meta
+        if (parsed.meta?.agentMeta) {
+          const am = parsed.meta.agentMeta
+          meta = {
+            model: am.model,
+            provider: am.provider,
+            durationMs: parsed.meta.durationMs,
+            tokens: am.usage?.total,
+          }
+        }
+
+        if (text) return { text, meta }
+      }
+    } catch {
+      // Not JSON — treat as plain text
+    }
+
+    // Clean up any remaining ANSI prefixes from log lines
+    const cleaned = stripped
+      .split('\n')
+      .map(line => line.replace(/^\[[\w/-]+\]\s*/, '').trim())
+      .filter(line => line && !line.startsWith('{') && !line.startsWith('"'))
+      .join('\n')
+
+    return { text: cleaned || stripped }
+  }
+
+  const renderComment = (comment: Comment, depth: number = 0) => {
+    const { text, meta } = parseCommentContent(comment.content)
+    return (
+      <div key={comment.id} className={`border-l-2 border-border pl-3 ${depth > 0 ? 'ml-4' : ''}`}>
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-foreground/80">{comment.author}</span>
+            {meta && (
+              <span className="px-1.5 py-0.5 rounded bg-secondary text-[10px] text-muted-foreground">
+                {meta.model}{meta.tokens ? ` · ${meta.tokens.toLocaleString()} tok` : ''}{meta.durationMs ? ` · ${(meta.durationMs / 1000).toFixed(1)}s` : ''}
+              </span>
+            )}
+          </div>
+          <span>{new Date(comment.created_at * 1000).toLocaleString()}</span>
         </div>
-      )}
-    </div>
-  )
+        <div className="text-sm text-foreground/90 mt-1 whitespace-pre-wrap">{text}</div>
+        {comment.replies && comment.replies.length > 0 && (
+          <div className="mt-3 space-y-3">
+            {comment.replies.map(reply => renderComment(reply, depth + 1))}
+          </div>
+        )}
+      </div>
+    )
+  }
 
   const dialogRef = useFocusTrap(onClose)
 

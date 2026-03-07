@@ -109,8 +109,30 @@ export async function POST(
 
     const result = await validateBody(request, createCommentSchema);
     if ('error' in result) return result.error;
-    const { content, author = 'system', parent_id } = result.data;
-    
+    const { content: rawContent, author = 'system', parent_id } = result.data;
+
+    // Normalize agent payload JSON — extract text from OpenClaw result format
+    let content = rawContent;
+    try {
+      const stripped = rawContent.replace(/\x1b\[[0-9;]*m/g, '').replace(/\[3[0-9]m/g, '').replace(/\[39m/g, '');
+      const parsed = JSON.parse(stripped);
+      if (parsed && typeof parsed === 'object' && Array.isArray(parsed.payloads)) {
+        const text = parsed.payloads
+          .map((p: any) => (typeof p === 'string' ? p : p?.text || '').trim())
+          .filter(Boolean)
+          .join('\n');
+        if (text) {
+          const meta = parsed.meta?.agentMeta;
+          const metaLine = meta
+            ? `\n\n_${[meta.model, meta.usage?.total ? `${meta.usage.total} tokens` : '', parsed.meta?.durationMs ? `${(parsed.meta.durationMs / 1000).toFixed(1)}s` : ''].filter(Boolean).join(' · ')}_`
+            : '';
+          content = text + metaLine;
+        }
+      }
+    } catch {
+      // Not JSON — keep original content
+    }
+
     // Verify task exists
     const task = db
       .prepare('SELECT * FROM tasks WHERE id = ? AND workspace_id = ?')
