@@ -396,7 +396,7 @@ export function MemoryBrowserPanel() {
       <div className="flex flex-1 min-h-0">
         {/* Sidebar — file explorer */}
         {sidebarOpen && (
-          <div className="w-60 shrink-0 border-r border-border bg-[hsl(var(--surface-0))] flex flex-col">
+          <div className="w-60 shrink-0 border-r border-border bg-[hsl(var(--surface-0))] flex flex-col min-h-0">
             {/* Search */}
             <div className="p-2">
               <input
@@ -481,7 +481,7 @@ export function MemoryBrowserPanel() {
         {/* Main content area */}
         <div className="flex-1 min-w-0 flex flex-col bg-[hsl(var(--surface-0))]">
           {activeView === 'graph' && !isLocal ? (
-            <div className="flex-1 p-4 overflow-auto">
+            <div className="flex-1 p-4 overflow-auto flex flex-col">
               <MemoryGraph />
             </div>
           ) : (
@@ -548,7 +548,7 @@ export function MemoryBrowserPanel() {
               {/* Content */}
               <div className="flex-1 overflow-auto">
                 {isLoading ? (
-                  <div className="flex items-center justify-center h-32">
+                  <div className="flex items-center justify-center h-full">
                     <div className="animate-spin rounded-full h-4 w-4 border-b border-primary" />
                   </div>
                 ) : memoryContent != null && selectedMemoryFile ? (

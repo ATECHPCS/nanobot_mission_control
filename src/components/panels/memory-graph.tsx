@@ -520,6 +520,7 @@ export function MemoryGraph() {
     const resize = () => {
       const dpr = window.devicePixelRatio || 1
       const rect = container.getBoundingClientRect()
+      if (rect.width === 0 || rect.height === 0) return
       canvas.width = rect.width * dpr
       canvas.height = rect.height * dpr
       canvas.style.width = `${rect.width}px`
@@ -530,6 +531,9 @@ export function MemoryGraph() {
     const observer = new ResizeObserver(resize)
     observer.observe(container)
     resize()
+
+    // Re-measure after paint in case initial observe fired before layout settled
+    requestAnimationFrame(() => resize())
 
     return () => observer.disconnect()
   }, [draw])
@@ -776,7 +780,7 @@ export function MemoryGraph() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center h-full">
         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
         <span className="ml-3 text-muted-foreground">Loading memory graph...</span>
       </div>
@@ -785,7 +789,7 @@ export function MemoryGraph() {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
+      <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
         <span className="text-red-400 mb-2">Failed to load memory graph</span>
         <span className="text-sm">{error}</span>
         <Button onClick={fetchData} className="mt-4" variant="secondary" size="sm">
@@ -797,7 +801,7 @@ export function MemoryGraph() {
 
   if (!agents.length) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
+      <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
         <span>No memory databases found</span>
         <span className="text-xs mt-1">OpenClaw memory SQLite files not detected</span>
       </div>
@@ -805,7 +809,7 @@ export function MemoryGraph() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4 h-full">
       {/* Controls bar */}
       <div className="flex items-center gap-3 flex-wrap">
         <div className="flex items-center gap-2">
@@ -879,8 +883,8 @@ export function MemoryGraph() {
       {/* Graph canvas */}
       <div
         ref={containerRef}
-        className="border border-border rounded-lg overflow-hidden relative bg-[hsl(var(--surface-0))]"
-        style={{ height: '500px' }}
+        className="border border-border rounded-lg overflow-hidden relative bg-[hsl(var(--surface-0))] flex-1 min-h-0"
+        style={{ minHeight: '400px' }}
       >
         <canvas
           ref={canvasRef}

@@ -234,7 +234,7 @@ export default function Home() {
         <LocalModeBanner />
         <UpdateBanner />
         <main id="main-content" className="flex-1 overflow-auto pb-16 md:pb-0" role="main">
-          <div aria-live="polite">
+          <div aria-live="polite" className="flex flex-col min-h-full">
             <ErrorBoundary key={activeTab}>
               <ContentRouter tab={activeTab} />
             </ErrorBoundary>
