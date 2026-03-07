@@ -200,13 +200,28 @@ export function destroyAllUserSessions(userId: number): void {
   db.prepare('DELETE FROM user_sessions WHERE user_id = ?').run(userId)
 }
 
+// Dummy hash used for constant-time rejection when user doesn't exist.
+// This ensures authenticateUser takes the same time whether or not the username is valid,
+// preventing timing-based username enumeration.
+const DUMMY_HASH = '0000000000000000000000000000000000000000000000000000000000000000:0000000000000000000000000000000000000000000000000000000000000000'
+
 // User management
 export function authenticateUser(username: string, password: string): User | null {
   const db = getDatabase()
   const row = db.prepare('SELECT * FROM users WHERE username = ?').get(username) as UserQueryRow | undefined
-  if (!row) return null
-  if ((row.provider || 'local') !== 'local') return null
-  if ((row.is_approved ?? 1) !== 1) return null
+  if (!row) {
+    // Always run verifyPassword to prevent timing-based username enumeration
+    verifyPassword(password, DUMMY_HASH)
+    return null
+  }
+  if ((row.provider || 'local') !== 'local') {
+    verifyPassword(password, DUMMY_HASH)
+    return null
+  }
+  if ((row.is_approved ?? 1) !== 1) {
+    verifyPassword(password, DUMMY_HASH)
+    return null
+  }
   if (!verifyPassword(password, row.password_hash)) return null
   return {
     id: row.id,

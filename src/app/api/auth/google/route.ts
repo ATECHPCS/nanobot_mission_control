@@ -1,9 +1,10 @@
 import { randomBytes } from 'crypto'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createSession } from '@/lib/auth'
 import { getDatabase, logAuditEvent } from '@/lib/db'
 import { verifyGoogleIdToken } from '@/lib/google-auth'
 import { getMcSessionCookieOptions } from '@/lib/session-cookie'
+import { loginLimiter } from '@/lib/rate-limit'
 
 function upsertAccessRequest(input: {
   email: string
@@ -25,7 +26,10 @@ function upsertAccessRequest(input: {
   `).run(input.email.toLowerCase(), input.providerUserId, input.displayName, input.avatarUrl || null)
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const rateCheck = loginLimiter(request)
+  if (rateCheck) return rateCheck
+
   try {
     const body = await request.json().catch(() => ({}))
     const credential = String(body?.credential || '')

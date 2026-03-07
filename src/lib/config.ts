@@ -2,6 +2,12 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
+/** Clamp a number to [min, max], falling back to `fallback` if NaN. */
+function clampInt(value: number, min: number, max: number, fallback: number): number {
+  if (isNaN(value)) return fallback
+  return Math.max(min, Math.min(max, Math.floor(value)))
+}
+
 const defaultDataDir = path.join(process.cwd(), '.data')
 const defaultOpenClawStateDir = path.join(os.homedir(), '.openclaw')
 const explicitOpenClawConfigPath =
@@ -57,7 +63,7 @@ export const config = {
   openclawBin: process.env.OPENCLAW_BIN || 'openclaw',
   clawdbotBin: process.env.CLAWDBOT_BIN || 'clawdbot',
   gatewayHost: process.env.OPENCLAW_GATEWAY_HOST || '127.0.0.1',
-  gatewayPort: Number(process.env.OPENCLAW_GATEWAY_PORT || '18789'),
+  gatewayPort: clampInt(Number(process.env.OPENCLAW_GATEWAY_PORT || '18789'), 1, 65535, 18789),
   logsDir:
     process.env.OPENCLAW_LOG_DIR ||
     (openclawStateDir ? path.join(openclawStateDir, 'logs') : ''),
@@ -71,15 +77,15 @@ export const config = {
     process.env.OPENCLAW_SOUL_TEMPLATES_DIR ||
     (openclawStateDir ? path.join(openclawStateDir, 'templates', 'souls') : ''),
   homeDir: os.homedir(),
-  // Data retention (days). 0 = keep forever.
+  // Data retention (days). 0 = keep forever. Negative values are clamped to 0.
   retention: {
-    activities: Number(process.env.MC_RETAIN_ACTIVITIES_DAYS || '90'),
-    auditLog: Number(process.env.MC_RETAIN_AUDIT_DAYS || '365'),
-    logs: Number(process.env.MC_RETAIN_LOGS_DAYS || '30'),
-    notifications: Number(process.env.MC_RETAIN_NOTIFICATIONS_DAYS || '60'),
-    pipelineRuns: Number(process.env.MC_RETAIN_PIPELINE_RUNS_DAYS || '90'),
-    tokenUsage: Number(process.env.MC_RETAIN_TOKEN_USAGE_DAYS || '90'),
-    gatewaySessions: Number(process.env.MC_RETAIN_GATEWAY_SESSIONS_DAYS || '90'),
+    activities: clampInt(Number(process.env.MC_RETAIN_ACTIVITIES_DAYS || '90'), 0, 3650, 90),
+    auditLog: clampInt(Number(process.env.MC_RETAIN_AUDIT_DAYS || '365'), 0, 3650, 365),
+    logs: clampInt(Number(process.env.MC_RETAIN_LOGS_DAYS || '30'), 0, 3650, 30),
+    notifications: clampInt(Number(process.env.MC_RETAIN_NOTIFICATIONS_DAYS || '60'), 0, 3650, 60),
+    pipelineRuns: clampInt(Number(process.env.MC_RETAIN_PIPELINE_RUNS_DAYS || '90'), 0, 3650, 90),
+    tokenUsage: clampInt(Number(process.env.MC_RETAIN_TOKEN_USAGE_DAYS || '90'), 0, 3650, 90),
+    gatewaySessions: clampInt(Number(process.env.MC_RETAIN_GATEWAY_SESSIONS_DAYS || '90'), 0, 3650, 90),
   },
 }
 
