@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { useMissionControl } from '@/store'
+import { useMissionControl, type ConnectionStatus } from '@/store'
+import { extractWsHost } from '@/lib/agent-card-helpers'
 import { useWebSocket } from '@/lib/websocket'
 import { useNavigateToPanel, usePrefetchPanel } from '@/lib/navigation'
 import { Button } from '@/components/ui/button'
@@ -530,12 +531,13 @@ function ConnectionBadge({
   connection,
   onReconnect,
 }: {
-  connection: { isConnected: boolean; reconnectAttempts: number; latency?: number }
+  connection: ConnectionStatus
   onReconnect: () => void
 }) {
   const { dashboardMode } = useMissionControl()
   const isLocal = dashboardMode === 'local'
   const isReconnecting = !connection.isConnected && connection.reconnectAttempts > 0
+  const [showTooltip, setShowTooltip] = useState(false)
 
   if (isLocal) {
     return (
@@ -549,38 +551,96 @@ function ConnectionBadge({
 
   let dotClass: string
   let label: string
+  let borderClass: string
 
   if (connection.isConnected) {
     dotClass = 'bg-green-500'
     label = connection.latency != null ? `${connection.latency}ms` : 'Online'
+    borderClass = 'border-green-500/30'
   } else if (isReconnecting) {
     dotClass = 'bg-amber-500 animate-pulse'
-    label = `Connecting... (${connection.reconnectAttempts})`
+    label = `Retry ${connection.reconnectAttempts}`
+    borderClass = 'border-amber-500/30'
   } else {
     dotClass = 'bg-red-500 animate-pulse'
-    label = 'Disconnected'
+    label = 'Offline'
+    borderClass = 'border-red-500/30'
   }
 
+  const wsHost = extractWsHost(connection.url)
+
   return (
-    <Button
-      variant="ghost"
-      size="xs"
-      onClick={!connection.isConnected ? onReconnect : undefined}
-      className={`gap-1.5 ${
-        connection.isConnected
-          ? 'cursor-default hover:bg-transparent'
-          : ''
-      }`}
-      title={connection.isConnected ? 'Gateway connected' : 'Click to reconnect'}
+    <div
+      className="relative"
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
     >
-      <span className="text-muted-foreground">Gateway</span>
-      <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
-      <span className={`font-medium font-mono-tight ${
-        connection.isConnected ? 'text-green-400' : isReconnecting ? 'text-amber-400' : 'text-red-400'
-      }`}>
-        {label}
-      </span>
-    </Button>
+      <Button
+        variant="ghost"
+        size="xs"
+        onClick={!connection.isConnected ? onReconnect : undefined}
+        className={`gap-1.5 border ${borderClass} ${
+          connection.isConnected
+            ? 'cursor-default hover:bg-transparent'
+            : ''
+        }`}
+      >
+        <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
+        <span className="text-muted-foreground">GW</span>
+        <span className={`font-medium font-mono-tight ${
+          connection.isConnected ? 'text-green-400' : isReconnecting ? 'text-amber-400' : 'text-red-400'
+        }`}>
+          {label}
+        </span>
+      </Button>
+
+      {showTooltip && (
+        <div className="absolute top-full right-0 mt-1.5 z-50 w-56 rounded-lg border border-border bg-card/95 backdrop-blur-md p-3 shadow-xl text-xs">
+          <div className="font-medium text-foreground mb-2">Gateway Connection</div>
+          <div className="space-y-1.5 text-muted-foreground">
+            <div className="flex justify-between">
+              <span>Status</span>
+              <span className={connection.isConnected ? 'text-green-400' : isReconnecting ? 'text-amber-400' : 'text-red-400'}>
+                {connection.isConnected ? 'Connected' : isReconnecting ? 'Reconnecting' : 'Disconnected'}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span>Host</span>
+              <span className="font-mono text-foreground/80 truncate ml-2">{wsHost}</span>
+            </div>
+            {connection.latency != null && (
+              <div className="flex justify-between">
+                <span>Latency</span>
+                <span className="font-mono text-foreground/80">{connection.latency}ms</span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span>WebSocket</span>
+              <span className={connection.isConnected ? 'text-green-400' : 'text-red-400'}>
+                {connection.isConnected ? 'Live' : 'Down'}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span>SSE</span>
+              <span className={connection.sseConnected ? 'text-green-400' : 'text-muted-foreground/50'}>
+                {connection.sseConnected ? 'Live' : 'Off'}
+              </span>
+            </div>
+            {!connection.isConnected && connection.reconnectAttempts > 0 && (
+              <div className="flex justify-between">
+                <span>Retries</span>
+                <span className="text-amber-400">{connection.reconnectAttempts}</span>
+              </div>
+            )}
+          </div>
+          {!connection.isConnected && (
+            <div className="mt-2 pt-2 border-t border-border/40 text-muted-foreground/60 text-[10px]">
+              Click badge to reconnect
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   )
 }
 
