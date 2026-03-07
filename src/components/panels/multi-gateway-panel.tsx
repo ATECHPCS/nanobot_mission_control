@@ -47,9 +47,19 @@ interface GatewayHealthProbe {
   error?: string
 }
 
+interface DiscoveredGateway {
+  user: string
+  port: number
+  bind: string
+  mode: string
+  active: boolean
+  tailscale?: { mode: string }
+}
+
 export function MultiGatewayPanel() {
   const [gateways, setGateways] = useState<Gateway[]>([])
   const [directConnections, setDirectConnections] = useState<DirectConnection[]>([])
+  const [discoveredGateways, setDiscoveredGateways] = useState<DiscoveredGateway[]>([])
   const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
   const [probing, setProbing] = useState<number | null>(null)
@@ -74,7 +84,15 @@ export function MultiGatewayPanel() {
     } catch { /* ignore */ }
   }, [])
 
-  useEffect(() => { fetchGateways(); fetchDirectConnections() }, [fetchGateways, fetchDirectConnections])
+  const fetchDiscovered = useCallback(async () => {
+    try {
+      const res = await fetch('/api/gateways/discover')
+      const data = await res.json()
+      setDiscoveredGateways(data.gateways || [])
+    } catch { /* ignore */ }
+  }, [])
+
+  useEffect(() => { fetchGateways(); fetchDirectConnections(); fetchDiscovered() }, [fetchGateways, fetchDirectConnections, fetchDiscovered])
 
   const gatewayMatchesConnection = useCallback((gw: Gateway): boolean => {
     const url = connection.url
@@ -245,6 +263,89 @@ export function MultiGatewayPanel() {
               onProbe={() => probeGateway(gw)}
             />
           ))}
+        </div>
+      )}
+
+      {/* Discovered OS-Level Gateways */}
+      {discoveredGateways.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h3 className="text-sm font-semibold text-foreground">Discovered Gateways</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                OpenClaw gateways found on this machine
+              </p>
+            </div>
+            <Button
+              onClick={fetchDiscovered}
+              variant="secondary"
+              size="xs"
+              className="text-2xs"
+            >
+              Refresh
+            </Button>
+          </div>
+          <div className="space-y-2">
+            {discoveredGateways.map(dg => {
+              const isRegistered = gateways.some(gw => gw.port === dg.port)
+              return (
+                <div key={`${dg.user}-${dg.port}`} className="bg-card border border-border rounded-lg p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${dg.active ? 'bg-green-500' : 'bg-red-500'}`} />
+                        <span className="text-sm font-semibold text-foreground">{dg.user}</span>
+                        <span className={`text-2xs px-1.5 py-0.5 rounded font-medium ${
+                          dg.active
+                            ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                            : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                        }`}>
+                          {dg.active ? 'RUNNING' : 'STOPPED'}
+                        </span>
+                        {isRegistered && (
+                          <span className="text-2xs px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-medium">
+                            REGISTERED
+                          </span>
+                        )}
+                        {dg.tailscale?.mode && (
+                          <span className="text-2xs px-1.5 py-0.5 rounded bg-violet-500/20 text-violet-400 border border-violet-500/30 font-medium">
+                            TS:{dg.tailscale.mode}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-4 mt-1.5 text-xs text-muted-foreground">
+                        <span className="font-mono">127.0.0.1:{dg.port}</span>
+                        <span>Bind: {dg.bind}</span>
+                        <span>Mode: {dg.mode}</span>
+                      </div>
+                    </div>
+                    {!isRegistered && (
+                      <Button
+                        onClick={async () => {
+                          await fetch('/api/gateways', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              name: dg.user,
+                              host: '127.0.0.1',
+                              port: dg.port,
+                              is_primary: false,
+                            }),
+                          })
+                          fetchGateways()
+                        }}
+                        variant="secondary"
+                        size="xs"
+                        className="text-2xs"
+                      >
+                        Register
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
 
