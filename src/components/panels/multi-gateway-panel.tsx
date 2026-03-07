@@ -266,8 +266,8 @@ export function MultiGatewayPanel() {
         </div>
       )}
 
-      {/* Discovered OS-Level Gateways */}
-      {discoveredGateways.length > 0 && (
+      {/* Discovered OS-Level Gateways (exclude already-registered ones) */}
+      {discoveredGateways.filter(dg => !gateways.some(gw => gw.port === dg.port)).length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-3">
             <div>
@@ -286,9 +286,9 @@ export function MultiGatewayPanel() {
             </Button>
           </div>
           <div className="space-y-2">
-            {discoveredGateways.map(dg => {
-              const isRegistered = gateways.some(gw => gw.port === dg.port)
-              return (
+            {discoveredGateways
+              .filter(dg => !gateways.some(gw => gw.port === dg.port))
+              .map(dg => (
                 <div key={`${dg.user}-${dg.port}`} className="bg-card border border-border rounded-lg p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
@@ -302,11 +302,6 @@ export function MultiGatewayPanel() {
                         }`}>
                           {dg.active ? 'RUNNING' : 'STOPPED'}
                         </span>
-                        {isRegistered && (
-                          <span className="text-2xs px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-medium">
-                            REGISTERED
-                          </span>
-                        )}
                         {dg.tailscale?.mode && (
                           <span className="text-2xs px-1.5 py-0.5 rounded bg-violet-500/20 text-violet-400 border border-violet-500/30 font-medium">
                             TS:{dg.tailscale.mode}
@@ -319,32 +314,30 @@ export function MultiGatewayPanel() {
                         <span>Mode: {dg.mode}</span>
                       </div>
                     </div>
-                    {!isRegistered && (
-                      <Button
-                        onClick={async () => {
-                          await fetch('/api/gateways', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                              name: dg.user,
-                              host: '127.0.0.1',
-                              port: dg.port,
-                              is_primary: false,
-                            }),
-                          })
-                          fetchGateways()
-                        }}
-                        variant="secondary"
-                        size="xs"
-                        className="text-2xs"
-                      >
-                        Register
-                      </Button>
-                    )}
+                    <Button
+                      onClick={async () => {
+                        await fetch('/api/gateways', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            name: dg.user,
+                            host: '127.0.0.1',
+                            port: dg.port,
+                            is_primary: false,
+                          }),
+                        })
+                        fetchGateways()
+                        fetchDiscovered()
+                      }}
+                      variant="secondary"
+                      size="xs"
+                      className="text-2xs"
+                    >
+                      Register
+                    </Button>
                   </div>
                 </div>
-              )
-            })}
+              ))}
           </div>
         </div>
       )}

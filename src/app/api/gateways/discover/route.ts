@@ -1,21 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { readdirSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { readFileSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { requireRole } from '@/lib/auth'
 
 interface DiscoveredGateway {
   user: string
   port: number
-  bind: string
-  mode: string
   active: boolean
-  tailscale?: { mode: string }
+  description: string
 }
 
 /**
  * GET /api/gateways/discover
- * Scans OS-level users for OpenClaw gateway configs and checks if they're running.
+ * Discovers OpenClaw gateways via systemd services and port scanning.
+ * Does not require filesystem access to other users' configs.
  */
 export async function GET(request: NextRequest) {
   const auth = requireRole(request, 'viewer')
@@ -23,47 +21,77 @@ export async function GET(request: NextRequest) {
 
   const discovered: DiscoveredGateway[] = []
 
-  // Scan /home/* for openclaw configs
-  let homeDirs: string[] = []
+  // Parse systemd services for openclaw-gateway instances
   try {
-    homeDirs = readdirSync('/home', { withFileTypes: true })
-      .filter(d => d.isDirectory())
-      .map(d => d.name)
-  } catch {
-    return NextResponse.json({ gateways: [] })
-  }
+    const output = execFileSync('systemctl', [
+      'list-units', '--type=service', '--plain', '--no-legend', '--no-pager',
+    ], { encoding: 'utf-8', timeout: 3000 })
 
-  for (const user of homeDirs) {
-    const configPath = join('/home', user, '.openclaw', 'openclaw.json')
-    try {
-      const raw = readFileSync(configPath, 'utf-8')
-      const config = JSON.parse(raw)
-      const gw = config?.gateway
-      if (!gw || typeof gw.port !== 'number') continue
+    const gwLines = output.split('\n').filter(l => l.includes('openclaw') && l.includes('gateway'))
 
-      // Check if the gateway is actually listening on its port
-      let active = false
-      try {
-        const result = execFileSync('ss', ['-ltn', `sport = :${gw.port}`], {
-          encoding: 'utf-8',
-          timeout: 2000,
-        })
-        active = result.includes('LISTEN')
-      } catch {
-        active = false
+    for (const line of gwLines) {
+      // e.g. "openclaw-gateway@quant.service loaded active running OpenClaw Gateway (quant)"
+      const parts = line.trim().split(/\s+/)
+      const serviceName = parts[0] || ''
+      const state = parts[2] || '' // active/inactive
+      const description = parts.slice(4).join(' ') // "OpenClaw Gateway (quant)"
+
+      // Extract user from service name
+      let user = ''
+      const templateMatch = serviceName.match(/openclaw-gateway@(\w+)\.service/)
+      if (templateMatch) {
+        user = templateMatch[1]
+      } else {
+        // Custom service name like "openclaw-leads-gateway.service"
+        const customMatch = serviceName.match(/openclaw-(\w+)-gateway\.service/)
+        if (customMatch) user = customMatch[1]
       }
+      if (!user) continue
+
+      // Find the port by checking what openclaw-gateway processes are listening on
+      let port = 0
+      try {
+        const configPath = `/home/${user}/.openclaw/openclaw.json`
+        const raw = readFileSync(configPath, 'utf-8')
+        const config = JSON.parse(raw)
+        if (typeof config?.gateway?.port === 'number') port = config.gateway.port
+      } catch {
+        // Can't read config — try to detect from ss output
+      }
+
+      // If we couldn't read config, try finding port via ss for the service PID
+      if (!port) {
+        try {
+          const pidOutput = execFileSync('systemctl', [
+            'show', serviceName, '--property=ExecMainPID', '--value',
+          ], { encoding: 'utf-8', timeout: 2000 }).trim()
+          const pid = parseInt(pidOutput, 10)
+          if (pid > 0) {
+            const ssOutput = execFileSync('ss', ['-ltnp'], {
+              encoding: 'utf-8', timeout: 2000,
+            })
+            const pidPattern = `pid=${pid},`
+            for (const ssLine of ssOutput.split('\n')) {
+              if (ssLine.includes(pidPattern)) {
+                const portMatch = ssLine.match(/:(\d+)\s/)
+                if (portMatch) { port = parseInt(portMatch[1], 10); break }
+              }
+            }
+          }
+        } catch { /* ignore */ }
+      }
+
+      if (!port) continue
 
       discovered.push({
         user,
-        port: gw.port,
-        bind: gw.bind || 'unknown',
-        mode: gw.mode || 'unknown',
-        active,
-        ...(gw.tailscale?.mode ? { tailscale: { mode: gw.tailscale.mode } } : {}),
+        port,
+        active: state === 'active',
+        description: description.replace(/[()]/g, '').trim(),
       })
-    } catch {
-      // No config or unreadable — skip
     }
+  } catch {
+    // systemctl not available or failed — fall back silently
   }
 
   return NextResponse.json({ gateways: discovered })

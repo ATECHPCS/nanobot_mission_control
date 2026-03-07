@@ -93,6 +93,7 @@ export function GitHubSyncPanel() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'test', integrationId: 'github' }),
+        signal: AbortSignal.timeout(8000),
       })
       const data = await res.json()
       setTokenStatus({
@@ -111,6 +112,7 @@ export function GitHubSyncPanel() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'status' }),
+        signal: AbortSignal.timeout(8000),
       })
       if (res.ok) {
         const data = await res.json()
@@ -122,7 +124,7 @@ export function GitHubSyncPanel() {
   // Fetch linked tasks
   const fetchLinkedTasks = useCallback(async () => {
     try {
-      const res = await fetch('/api/tasks?limit=200')
+      const res = await fetch('/api/tasks?limit=200', { signal: AbortSignal.timeout(8000) })
       if (res.ok) {
         const data = await res.json()
         const linked = (data.tasks || []).filter(
@@ -136,7 +138,7 @@ export function GitHubSyncPanel() {
   // Fetch projects for two-way sync
   const fetchProjects = useCallback(async () => {
     try {
-      const res = await fetch('/api/projects')
+      const res = await fetch('/api/projects', { signal: AbortSignal.timeout(8000) })
       if (res.ok) {
         const data = await res.json()
         setProjects(data.projects || [])
@@ -147,7 +149,7 @@ export function GitHubSyncPanel() {
   // Fetch agents for assign dropdown
   const fetchAgents = useCallback(async () => {
     try {
-      const res = await fetch('/api/agents')
+      const res = await fetch('/api/agents', { signal: AbortSignal.timeout(8000) })
       if (res.ok) {
         const data = await res.json()
         setAgents((data.agents || []).map((a: any) => ({ name: a.name })))
@@ -156,7 +158,7 @@ export function GitHubSyncPanel() {
   }, [])
 
   useEffect(() => {
-    Promise.all([checkToken(), fetchSyncHistory(), fetchLinkedTasks(), fetchAgents(), fetchProjects()])
+    Promise.allSettled([checkToken(), fetchSyncHistory(), fetchLinkedTasks(), fetchAgents(), fetchProjects()])
       .finally(() => setLoading(false))
   }, [checkToken, fetchSyncHistory, fetchLinkedTasks, fetchAgents, fetchProjects])
 
@@ -287,8 +289,8 @@ export function GitHubSyncPanel() {
 
   if (loading) {
     return (
-      <div className="p-6 flex items-center gap-2">
-        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="p-6 flex flex-col items-center justify-center gap-3 min-h-[200px]">
+        <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
         <span className="text-sm text-muted-foreground">Loading GitHub sync...</span>
       </div>
     )
@@ -320,6 +322,22 @@ export function GitHubSyncPanel() {
           </span>
         </div>
       </div>
+
+      {/* Not configured notice */}
+      {tokenStatus && !tokenStatus.connected && (
+        <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
+          <div className="flex items-start gap-3">
+            <span className="text-amber-400 text-lg mt-0.5">!</span>
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-foreground">GitHub token not configured</p>
+              <p className="text-xs text-muted-foreground">
+                Set <code className="px-1 py-0.5 rounded bg-secondary text-foreground font-mono text-2xs">GITHUB_TOKEN</code> in
+                Integrations to enable issue sync. You can still browse sync history and linked tasks below.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Feedback */}
       {feedback && (
@@ -570,11 +588,11 @@ export function GitHubSyncPanel() {
       )}
 
       {/* Sync History */}
-      {syncHistory.length > 0 && (
-        <div className="rounded-lg border border-border bg-card overflow-hidden">
-          <div className="px-4 py-3 border-b border-border">
-            <h3 className="text-sm font-medium text-foreground">Sync History</h3>
-          </div>
+      <div className="rounded-lg border border-border bg-card overflow-hidden">
+        <div className="px-4 py-3 border-b border-border">
+          <h3 className="text-sm font-medium text-foreground">Sync History</h3>
+        </div>
+        {syncHistory.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
@@ -609,17 +627,21 @@ export function GitHubSyncPanel() {
               </tbody>
             </table>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="px-4 py-6 text-center text-xs text-muted-foreground">
+            No sync history yet. Import issues above to get started.
+          </div>
+        )}
+      </div>
 
       {/* Linked Tasks */}
-      {linkedTasks.length > 0 && (
-        <div className="rounded-lg border border-border bg-card overflow-hidden">
-          <div className="px-4 py-3 border-b border-border">
-            <h3 className="text-sm font-medium text-foreground">
-              Linked Tasks ({linkedTasks.length})
-            </h3>
-          </div>
+      <div className="rounded-lg border border-border bg-card overflow-hidden">
+        <div className="px-4 py-3 border-b border-border">
+          <h3 className="text-sm font-medium text-foreground">
+            Linked Tasks{linkedTasks.length > 0 ? ` (${linkedTasks.length})` : ''}
+          </h3>
+        </div>
+        {linkedTasks.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
@@ -674,8 +696,12 @@ export function GitHubSyncPanel() {
               </tbody>
             </table>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="px-4 py-6 text-center text-xs text-muted-foreground">
+            No tasks linked to GitHub issues yet.
+          </div>
+        )}
+      </div>
     </div>
   )
 }
