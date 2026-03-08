@@ -69,6 +69,7 @@ export function OverviewTab({
   formData,
   setFormData,
   onSave,
+  saveBusy,
   onStatusUpdate,
   onWakeAgent,
   onEdit,
@@ -82,6 +83,7 @@ export function OverviewTab({
   formData: any
   setFormData: (data: any) => void
   onSave: () => Promise<void>
+  saveBusy?: boolean
   onStatusUpdate: (name: string, status: Agent['status'], activity?: string) => Promise<void>
   onWakeAgent: (name: string, sessionKey: string) => Promise<void>
   onEdit: () => void
@@ -267,8 +269,17 @@ export function OverviewTab({
           <div className="flex gap-2 pt-1">
             {editing ? (
               <>
-                <Button onClick={onSave} size="sm">Save</Button>
-                <Button onClick={onCancel} variant="secondary" size="sm">Cancel</Button>
+                <Button onClick={onSave} size="sm" disabled={saveBusy}>
+                  {saveBusy ? (
+                    <span className="flex items-center gap-1.5">
+                      <svg className="w-3 h-3 animate-spin" viewBox="0 0 16 16" fill="none">
+                        <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="8" />
+                      </svg>
+                      Saving...
+                    </span>
+                  ) : 'Save'}
+                </Button>
+                <Button onClick={onCancel} variant="secondary" size="sm" disabled={saveBusy}>Cancel</Button>
               </>
             ) : (
               <Button onClick={onEdit} variant="secondary" size="sm">Edit</Button>

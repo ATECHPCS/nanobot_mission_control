@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { useSmartPoll } from '@/lib/use-smart-poll'
 import { createClientLogger } from '@/lib/client-logger'
@@ -586,6 +586,22 @@ function AgentDetailModalPhase3({
   const [loadingHeartbeat, setLoadingHeartbeat] = useState(false)
   const [deleteBusy, setDeleteBusy] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [showDeleteMenu, setShowDeleteMenu] = useState(false)
+  const [saveBusy, setSaveBusy] = useState(false)
+  const deleteMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (deleteBusy) return
+      if (deleteMenuRef.current && !deleteMenuRef.current.contains(e.target as Node)) {
+        setShowDeleteMenu(false)
+      }
+    }
+    if (showDeleteMenu) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showDeleteMenu, deleteBusy])
 
   useEffect(() => {
     setAgentState(agent as Agent & { config?: any; working_memory?: string })
@@ -696,6 +712,7 @@ function AgentDetailModalPhase3({
   }
 
   const handleSave = async () => {
+    setSaveBusy(true)
     try {
       const response = await fetch('/api/agents', {
         method: 'PUT',
@@ -707,11 +724,13 @@ function AgentDetailModalPhase3({
       })
 
       if (!response.ok) throw new Error('Failed to update agent')
-      
+
       setEditing(false)
       onUpdate()
     } catch (error) {
       log.error('Failed to update agent:', error)
+    } finally {
+      setSaveBusy(false)
     }
   }
 
@@ -835,33 +854,50 @@ function AgentDetailModalPhase3({
               </div>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="relative group">
+              <div className="relative" ref={deleteMenuRef}>
                 <Button
                   variant="ghost"
                   size="icon-sm"
                   className="text-muted-foreground hover:text-rose-400"
                   title="Delete agent"
+                  onClick={() => setShowDeleteMenu(prev => !prev)}
                 >
                   <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M2 4h12M5.33 4V2.67a1.33 1.33 0 0 1 1.34-1.34h2.66a1.33 1.33 0 0 1 1.34 1.34V4M12.67 4v9.33a1.33 1.33 0 0 1-1.34 1.34H4.67a1.33 1.33 0 0 1-1.34-1.34V4" />
                   </svg>
                 </Button>
-                <div className="absolute right-0 top-full mt-1 hidden group-hover:flex flex-col gap-1 bg-card border border-border rounded-md shadow-xl p-1.5 z-10 min-w-[180px]">
-                  <button
-                    onClick={() => handleDelete(false)}
-                    disabled={deleteBusy}
-                    className="text-left text-xs px-2.5 py-1.5 rounded text-rose-300 hover:bg-rose-500/10 transition-colors disabled:opacity-50"
-                  >
-                    {deleteBusy ? 'Deleting...' : 'Delete agent'}
-                  </button>
-                  <button
-                    onClick={() => handleDelete(true)}
-                    disabled={deleteBusy}
-                    className="text-left text-xs px-2.5 py-1.5 rounded text-rose-400 hover:bg-rose-500/10 transition-colors disabled:opacity-50"
-                  >
-                    {deleteBusy ? 'Deleting...' : 'Delete agent + workspace'}
-                  </button>
-                </div>
+                {showDeleteMenu && (
+                  <div className="absolute right-0 top-full mt-1 flex flex-col gap-1 bg-card border border-border rounded-md shadow-xl p-1.5 z-10 min-w-[180px]">
+                    <button
+                      onClick={() => handleDelete(false)}
+                      disabled={deleteBusy}
+                      className="text-left text-xs px-2.5 py-1.5 rounded text-rose-300 hover:bg-rose-500/10 transition-colors disabled:opacity-50"
+                    >
+                      {deleteBusy ? (
+                        <span className="flex items-center gap-1.5">
+                          <svg className="w-3 h-3 animate-spin" viewBox="0 0 16 16" fill="none">
+                            <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="8" />
+                          </svg>
+                          Deleting...
+                        </span>
+                      ) : 'Delete agent'}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(true)}
+                      disabled={deleteBusy}
+                      className="text-left text-xs px-2.5 py-1.5 rounded text-rose-400 hover:bg-rose-500/10 transition-colors disabled:opacity-50"
+                    >
+                      {deleteBusy ? (
+                        <span className="flex items-center gap-1.5">
+                          <svg className="w-3 h-3 animate-spin" viewBox="0 0 16 16" fill="none">
+                            <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="8" />
+                          </svg>
+                          Deleting...
+                        </span>
+                      ) : 'Delete agent + workspace'}
+                    </button>
+                  </div>
+                )}
               </div>
               <Button
                 onClick={onClose}
@@ -910,6 +946,7 @@ function AgentDetailModalPhase3({
               formData={formData}
               setFormData={setFormData}
               onSave={handleSave}
+              saveBusy={saveBusy}
               onStatusUpdate={onStatusUpdate}
               onWakeAgent={onWakeAgent}
               onEdit={() => setEditing(true)}
