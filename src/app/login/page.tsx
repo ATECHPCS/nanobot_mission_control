@@ -66,8 +66,13 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
 
+    // Read DOM values directly to handle browser autofill (which doesn't fire onChange)
+    const form = e.target as HTMLFormElement
+    const formUsername = (form.elements.namedItem('username') as HTMLInputElement)?.value || username
+    const formPassword = (form.elements.namedItem('password') as HTMLInputElement)?.value || password
+
     try {
-      await completeLogin('/api/auth/login', { username, password })
+      await completeLogin('/api/auth/login', { username: formUsername, password: formPassword })
     } catch {
       setError('Network error')
       setLoading(false)
