@@ -227,7 +227,7 @@ export default function LoginPage() {
 
           <Button
             type="submit"
-            disabled={loading || !username || !password}
+            disabled={loading}
             size="lg"
             className="w-full rounded-lg"
           >
