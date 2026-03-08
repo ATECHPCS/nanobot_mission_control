@@ -40,6 +40,13 @@ const STEPS = [
   { id: 'next-steps', title: 'Get Started' },
 ]
 
+/** Mode-aware Tailwind classes — local=amber, gateway=cyan */
+function modeColors(isGateway: boolean) {
+  return isGateway
+    ? { text: 'text-void-cyan', border: 'border-void-cyan/30', bg: 'bg-void-cyan', bgLight: 'bg-void-cyan/5', bgBtn: 'bg-void-cyan/20', hoverBg: 'hover:bg-void-cyan/30', hoverBorder: 'hover:border-void-cyan/30', hoverBgLight: 'hover:bg-void-cyan/10', dot: 'bg-void-cyan', dotDim: 'bg-void-cyan/40' }
+    : { text: 'text-void-amber', border: 'border-void-amber/30', bg: 'bg-void-amber', bgLight: 'bg-void-amber/5', bgBtn: 'bg-void-amber/20', hoverBg: 'hover:bg-void-amber/30', hoverBorder: 'hover:border-void-amber/30', hoverBgLight: 'hover:bg-void-amber/10', dot: 'bg-void-amber', dotDim: 'bg-void-amber/40' }
+}
+
 export function OnboardingWizard() {
   const { showOnboarding, setShowOnboarding, dashboardMode, gatewayAvailable } = useMissionControl()
   const navigateToPanel = useNavigateToPanel()
@@ -163,7 +170,7 @@ export function OnboardingWizard() {
         {/* Progress bar */}
         <div className="h-0.5 bg-surface-2">
           <div
-            className="h-full bg-void-cyan transition-all duration-500"
+            className={`h-full transition-all duration-500 ${isGateway ? 'bg-void-cyan' : 'bg-void-amber'}`}
             style={{ width: `${((step + 1) / totalSteps) * 100}%` }}
           />
         </div>
@@ -175,7 +182,11 @@ export function OnboardingWizard() {
               <div
                 key={i}
                 className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                  i === step ? 'bg-void-cyan' : i < step ? 'bg-void-cyan/40' : 'bg-surface-2'
+                  i === step
+                    ? (isGateway ? 'bg-void-cyan' : 'bg-void-amber')
+                    : i < step
+                      ? (isGateway ? 'bg-void-cyan/40' : 'bg-void-amber/40')
+                      : 'bg-surface-2'
                 }`}
               />
             ))}
@@ -193,13 +204,13 @@ export function OnboardingWizard() {
             <StepWelcome isGateway={isGateway} capabilities={capabilities} onNext={goNext} onSkip={skip} />
           )}
           {step === 1 && (
-            <StepCredentials status={credentialStatus} onNext={goNext} onBack={goBack} navigateToPanel={navigateToPanel} onClose={() => setShowOnboarding(false)} />
+            <StepCredentials isGateway={isGateway} status={credentialStatus} onNext={goNext} onBack={goBack} navigateToPanel={navigateToPanel} onClose={() => setShowOnboarding(false)} />
           )}
           {step === 2 && (
             <StepGateway isGateway={isGateway} capabilities={capabilities} onNext={goNext} onBack={goBack} navigateToPanel={navigateToPanel} onClose={() => setShowOnboarding(false)} />
           )}
           {step === 3 && (
-            <StepSecurity onNext={goNext} onBack={goBack} />
+            <StepSecurity isGateway={isGateway} onNext={goNext} onBack={goBack} />
           )}
           {step === 4 && (
             <StepNextSteps isGateway={isGateway} onFinish={finish} onBack={goBack} navigateToPanel={navigateToPanel} onClose={() => setShowOnboarding(false)} />
@@ -216,6 +227,8 @@ function StepWelcome({ isGateway, capabilities, onNext, onSkip }: {
   onNext: () => void
   onSkip: () => void
 }) {
+  const mc = modeColors(isGateway)
+
   return (
     <>
       <div className="flex-1 flex flex-col items-center justify-center text-center gap-4">
@@ -250,23 +263,57 @@ function StepWelcome({ isGateway, capabilities, onNext, onSkip }: {
           />
         </div>
 
-        {/* What you can do — mode-adaptive */}
-        <div className="w-full max-w-sm">
-          <p className="text-xs text-muted-foreground text-center mb-2">What you can do right now</p>
-          <div className="grid grid-cols-3 gap-2">
-            {isGateway ? (
-              <>
-                <CapabilityCard title="Orchestrate" desc="Coordinate multiple AI agents working together" />
-                <CapabilityCard title="Communicate" desc="Inter-agent messaging and wake/delegate commands" />
-                <CapabilityCard title="Extend" desc="Install skills from the marketplace to add capabilities" />
-              </>
-            ) : (
-              <>
-                <CapabilityCard title="Monitor" desc="Watch Claude Code sessions in real-time" />
-                <CapabilityCard title="Track" desc="Token usage, costs, and performance metrics" />
-                <CapabilityCard title="Manage" desc="Kanban task board for organizing agent work" />
-              </>
-            )}
+        {/* Mode cards — both visible, detected mode highlighted */}
+        <div className="w-full">
+          <p className="text-xs text-muted-foreground text-center mb-2">Available modes</p>
+          <div className="grid grid-cols-2 gap-3">
+            {/* Local mode card */}
+            <div className={`relative p-3 rounded-lg border text-left transition-colors ${
+              !isGateway
+                ? 'border-void-amber/40 bg-void-amber/5 border-l-2 border-l-void-amber'
+                : 'border-border/20 bg-surface-1/30 opacity-50'
+            }`}>
+              {!isGateway && (
+                <span className="absolute -top-2 right-2 text-2xs px-1.5 py-0.5 rounded-full bg-void-amber/20 text-void-amber border border-void-amber/30">
+                  Detected
+                </span>
+              )}
+              <p className={`text-xs font-medium mb-1.5 ${!isGateway ? 'text-void-amber' : 'text-muted-foreground'}`}>
+                Local Mode
+              </p>
+              <ul className={`text-2xs space-y-0.5 ${!isGateway ? 'text-muted-foreground' : 'text-muted-foreground/60'}`}>
+                <li>Monitor Claude Code sessions</li>
+                <li>Track token usage &amp; costs</li>
+                <li>Kanban task management</li>
+              </ul>
+              {isGateway && (
+                <p className="text-2xs text-muted-foreground/40 mt-1.5 italic">Active without gateway</p>
+              )}
+            </div>
+
+            {/* Gateway mode card */}
+            <div className={`relative p-3 rounded-lg border text-left transition-colors ${
+              isGateway
+                ? 'border-void-cyan/40 bg-void-cyan/5 border-l-2 border-l-void-cyan'
+                : 'border-border/20 bg-surface-1/30 opacity-50'
+            }`}>
+              {isGateway && (
+                <span className="absolute -top-2 right-2 text-2xs px-1.5 py-0.5 rounded-full bg-void-cyan/20 text-void-cyan border border-void-cyan/30">
+                  Detected
+                </span>
+              )}
+              <p className={`text-xs font-medium mb-1.5 ${isGateway ? 'text-void-cyan' : 'text-muted-foreground'}`}>
+                Gateway Mode
+              </p>
+              <ul className={`text-2xs space-y-0.5 ${isGateway ? 'text-muted-foreground' : 'text-muted-foreground/60'}`}>
+                <li>Orchestrate multiple agents</li>
+                <li>Inter-agent communication</li>
+                <li>Skills marketplace</li>
+              </ul>
+              {!isGateway && (
+                <p className="text-2xs text-muted-foreground/40 mt-1.5 italic">Available with gateway</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -274,7 +321,7 @@ function StepWelcome({ isGateway, capabilities, onNext, onSkip }: {
         <Button variant="ghost" size="sm" onClick={onSkip} className="text-xs text-muted-foreground">
           Skip setup
         </Button>
-        <Button onClick={onNext} size="sm" className="bg-void-cyan/20 text-void-cyan border border-void-cyan/30 hover:bg-void-cyan/30">
+        <Button onClick={onNext} size="sm" className={`${mc.bgBtn} ${mc.text} border ${mc.border} ${mc.hoverBg}`}>
           Get started
         </Button>
       </div>
@@ -291,28 +338,22 @@ function StatusChip({ ok, label }: { ok: boolean; label: string }) {
   )
 }
 
-function CapabilityCard({ title, desc }: { title: string; desc: string }) {
-  return (
-    <div className="p-2.5 rounded-lg bg-surface-1/50 border border-border/30 text-center">
-      <p className="text-xs font-medium text-foreground">{title}</p>
-      <p className="text-2xs text-muted-foreground mt-0.5">{desc}</p>
-    </div>
-  )
-}
-
 function StepCredentials({
+  isGateway,
   status,
   onNext,
   onBack,
   navigateToPanel,
   onClose,
 }: {
+  isGateway: boolean
   status: { authOk: boolean; apiKeyOk: boolean } | null
   onNext: () => void
   onBack: () => void
   navigateToPanel: (panel: string) => void
   onClose: () => void
 }) {
+  const mc = modeColors(isGateway)
   const allGood = status?.authOk && status?.apiKeyOk
 
   return (
@@ -372,7 +413,7 @@ function StepCredentials({
 
       <div className="flex items-center justify-between pt-4 border-t border-border/30">
         <Button variant="ghost" size="sm" onClick={onBack} className="text-xs text-muted-foreground">Back</Button>
-        <Button onClick={onNext} size="sm" className="bg-void-cyan/20 text-void-cyan border border-void-cyan/30 hover:bg-void-cyan/30">
+        <Button onClick={onNext} size="sm" className={`${mc.bgBtn} ${mc.text} border ${mc.border} ${mc.hoverBg}`}>
           {allGood ? 'Continue' : 'Continue anyway'}
         </Button>
       </div>
@@ -395,75 +436,85 @@ function StepGateway({
   navigateToPanel: (panel: string) => void
   onClose: () => void
 }) {
+  const mc = modeColors(isGateway)
+
   return (
     <>
       <div className="flex-1">
         <h2 className="text-lg font-semibold mb-1">Your Platform Features</h2>
         <p className="text-sm text-muted-foreground mb-4">
           {isGateway
-            ? 'Gateway connected — you have access to the full feature set. Here\'s everything available to you and your agents.'
-            : 'You\'re in local mode, which is great for monitoring Claude Code. Here\'s what\'s available now and what you\'d unlock with a gateway.'}
+            ? 'Gateway connected — full feature set unlocked. Both local and gateway features are active.'
+            : 'Local mode detected — monitoring features are active. Connect a gateway to unlock orchestration.'}
         </p>
 
-        {isGateway ? (
-          <div className="space-y-3">
-            <div className="flex items-start gap-3 p-3 rounded-lg border border-green-400/20 bg-green-400/5">
-              <span className="font-mono text-sm mt-0.5 text-green-400">[+]</span>
-              <div>
-                <p className="text-sm font-medium">Full Platform Unlocked</p>
-                <p className="text-xs text-muted-foreground">
-                  Gateway enables agent orchestration, inter-agent communication, and the complete skills ecosystem.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <FeatureItem label="Agent orchestration" desc="Register, wake, and delegate across agents" />
-              <FeatureItem label="Soul & personality" desc="Configure agent identity via SOUL files" />
-              <FeatureItem label="Working memory" desc="Per-agent scratchpad for context persistence" />
-              <FeatureItem label="Skills marketplace" desc="Install and manage agent capabilities" />
-              <FeatureItem label="Wake/delegate" desc="Trigger agents and hand off tasks" />
-              <FeatureItem label="Inter-agent comms" desc="Agents communicate and coordinate" />
-            </div>
-
-            {capabilities.agentCount === 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs border-void-cyan/30 text-void-cyan hover:bg-void-cyan/10"
-                onClick={() => { onClose(); navigateToPanel('agents') }}
-              >
-                Register your first agent
-              </Button>
+        <div className="grid grid-cols-2 gap-3">
+          {/* Local features column */}
+          <div className={`relative p-3 rounded-lg border space-y-1.5 ${
+            !isGateway
+              ? 'border-void-amber/40 bg-void-amber/5 border-l-2 border-l-void-amber'
+              : 'border-border/20 bg-surface-1/30 opacity-50'
+          }`}>
+            {!isGateway && (
+              <span className="absolute -top-2 right-2 text-2xs px-1.5 py-0.5 rounded-full bg-void-amber/20 text-void-amber border border-void-amber/30">
+                Active
+              </span>
             )}
+            <p className={`text-xs font-medium ${!isGateway ? 'text-void-amber' : 'text-muted-foreground'}`}>
+              Local Features
+            </p>
+            <ul className={`text-2xs space-y-1 ${!isGateway ? 'text-muted-foreground' : 'text-muted-foreground/60'}`}>
+              <li>Session monitoring — watch Claude Code in real-time</li>
+              <li>Task board — kanban-style work management</li>
+              <li>Cost tracking — token usage and spend per session</li>
+              <li>Session history — full log of past sessions</li>
+              <li>Security scanning — audit your installation</li>
+              <li>Diagnostics — health checks and system info</li>
+            </ul>
           </div>
-        ) : (
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-2">
-              <div className="p-3 rounded-lg bg-void-cyan/5 border border-void-cyan/20 space-y-1.5">
-                <p className="text-xs font-medium text-void-cyan">Available Now</p>
-                <ul className="text-2xs text-muted-foreground space-y-1">
-                  <li>Session monitoring — watch Claude Code in real-time</li>
-                  <li>Task board — kanban-style work management</li>
-                  <li>Cost tracking — token usage and spend per session</li>
-                  <li>Session history — full log of past sessions</li>
-                  <li>Security scanning — audit your installation</li>
-                  <li>Diagnostics — health checks and system info</li>
-                </ul>
-              </div>
-              <div className="p-3 rounded-lg bg-surface-1/50 border border-border/30 space-y-1.5">
-                <p className="text-xs font-medium text-muted-foreground">With Gateway</p>
-                <ul className="text-2xs text-muted-foreground space-y-1">
-                  <li>Agent orchestration — multi-agent coordination</li>
-                  <li>Soul/personality — configure agent identity</li>
-                  <li>Working memory — persistent agent context</li>
-                  <li>Skills marketplace — extend capabilities</li>
-                  <li>Wake/delegate — trigger agents on demand</li>
-                  <li>Webhooks — outbound event notifications</li>
-                </ul>
-              </div>
-            </div>
 
+          {/* Gateway features column */}
+          <div className={`relative p-3 rounded-lg border space-y-1.5 ${
+            isGateway
+              ? 'border-void-cyan/40 bg-void-cyan/5 border-l-2 border-l-void-cyan'
+              : 'border-border/20 bg-surface-1/30 opacity-50 pointer-events-none'
+          }`}>
+            {isGateway && (
+              <span className="absolute -top-2 right-2 text-2xs px-1.5 py-0.5 rounded-full bg-void-cyan/20 text-void-cyan border border-void-cyan/30">
+                Active
+              </span>
+            )}
+            {!isGateway && (
+              <span className="absolute -top-2 right-2 text-2xs px-1.5 py-0.5 rounded-full bg-surface-1 border border-border/30 text-muted-foreground/50">
+                Locked
+              </span>
+            )}
+            <p className={`text-xs font-medium ${isGateway ? 'text-void-cyan' : 'text-muted-foreground'}`}>
+              Gateway Features
+            </p>
+            <ul className={`text-2xs space-y-1 ${isGateway ? 'text-muted-foreground' : 'text-muted-foreground/60'}`}>
+              <li>Agent orchestration — multi-agent coordination</li>
+              <li>Soul/personality — configure agent identity</li>
+              <li>Working memory — persistent agent context</li>
+              <li>Skills marketplace — extend capabilities</li>
+              <li>Wake/delegate — trigger agents on demand</li>
+              <li>Webhooks — outbound event notifications</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="mt-3">
+          {isGateway && capabilities.agentCount === 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs border-void-cyan/30 text-void-cyan hover:bg-void-cyan/10"
+              onClick={() => { onClose(); navigateToPanel('agents') }}
+            >
+              Register your first agent
+            </Button>
+          )}
+          {!isGateway && (
             <Button
               variant="outline"
               size="sm"
@@ -478,13 +529,13 @@ function StepGateway({
             >
               {capabilities.claudeSessions > 0 ? 'View active sessions' : 'Configure Gateway'}
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <div className="flex items-center justify-between pt-4 border-t border-border/30">
         <Button variant="ghost" size="sm" onClick={onBack} className="text-xs text-muted-foreground">Back</Button>
-        <Button onClick={onNext} size="sm" className="bg-void-cyan/20 text-void-cyan border border-void-cyan/30 hover:bg-void-cyan/30">
+        <Button onClick={onNext} size="sm" className={`${mc.bgBtn} ${mc.text} border ${mc.border} ${mc.hoverBg}`}>
           Continue
         </Button>
       </div>
@@ -492,19 +543,9 @@ function StepGateway({
   )
 }
 
-function FeatureItem({ label, desc }: { label: string; desc?: string }) {
-  return (
-    <div className="flex items-start gap-2 px-2.5 py-1.5 rounded bg-surface-1/50 border border-border/30">
-      <span className="text-void-cyan text-xs font-mono mt-0.5 shrink-0">[+]</span>
-      <div className="min-w-0">
-        <span className="text-xs text-foreground">{label}</span>
-        {desc && <p className="text-2xs text-muted-foreground">{desc}</p>}
-      </div>
-    </div>
-  )
-}
+function StepSecurity({ isGateway, onNext, onBack }: { isGateway: boolean; onNext: () => void; onBack: () => void }) {
+  const mc = modeColors(isGateway)
 
-function StepSecurity({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
   return (
     <>
       <div className="flex-1 overflow-y-auto">
@@ -522,7 +563,7 @@ function StepSecurity({ onNext, onBack }: { onNext: () => void; onBack: () => vo
 
       <div className="flex items-center justify-between pt-4 border-t border-border/30">
         <Button variant="ghost" size="sm" onClick={onBack} className="text-xs text-muted-foreground">Back</Button>
-        <Button onClick={onNext} size="sm" className="bg-void-cyan/20 text-void-cyan border border-void-cyan/30 hover:bg-void-cyan/30">
+        <Button onClick={onNext} size="sm" className={`${mc.bgBtn} ${mc.text} border ${mc.border} ${mc.hoverBg}`}>
           Continue
         </Button>
       </div>
@@ -543,6 +584,7 @@ function StepNextSteps({
   navigateToPanel: (panel: string) => void
   onClose: () => void
 }) {
+  const mc = modeColors(isGateway)
   const goTo = (panel: string) => { onClose(); navigateToPanel(panel) }
 
   const primaryAction = isGateway
@@ -568,11 +610,11 @@ function StepNextSteps({
           {/* Primary CTA */}
           <button
             onClick={() => goTo(primaryAction.panel)}
-            className="w-full flex items-start gap-3 p-3 rounded-lg border border-void-cyan/30 bg-void-cyan/5 hover:bg-void-cyan/10 transition-colors text-left"
+            className={`w-full flex items-start gap-3 p-3 rounded-lg border ${mc.border} ${mc.bgLight} ${mc.hoverBgLight} transition-colors text-left`}
           >
-            <span className="text-void-cyan text-sm mt-0.5 font-mono">{'>'}</span>
+            <span className={`${mc.text} text-sm mt-0.5 font-mono`}>{'>'}</span>
             <div>
-              <p className="text-sm font-medium text-void-cyan">{primaryAction.label}</p>
+              <p className={`text-sm font-medium ${mc.text}`}>{primaryAction.label}</p>
               <p className="text-xs text-muted-foreground">{primaryAction.desc}</p>
             </div>
           </button>
@@ -582,9 +624,9 @@ function StepNextSteps({
             <button
               key={item.panel}
               onClick={() => goTo(item.panel)}
-              className="w-full flex items-start gap-3 p-3 rounded-lg border border-border/30 hover:border-void-cyan/30 hover:bg-surface-1/50 transition-colors text-left"
+              className={`w-full flex items-start gap-3 p-3 rounded-lg border border-border/30 ${mc.hoverBorder} hover:bg-surface-1/50 transition-colors text-left`}
             >
-              <span className="text-void-cyan text-sm mt-0.5">-{'>'}</span>
+              <span className={`${mc.text} text-sm mt-0.5`}>-{'>'}</span>
               <div>
                 <p className="text-sm font-medium">{item.label}</p>
                 <p className="text-xs text-muted-foreground">{item.desc}</p>
@@ -601,7 +643,7 @@ function StepNextSteps({
 
       <div className="flex items-center justify-between pt-4 border-t border-border/30">
         <Button variant="ghost" size="sm" onClick={onBack} className="text-xs text-muted-foreground">Back</Button>
-        <Button onClick={onFinish} size="sm" className="bg-void-cyan/20 text-void-cyan border border-void-cyan/30 hover:bg-void-cyan/30">
+        <Button onClick={onFinish} size="sm" className={`${mc.bgBtn} ${mc.text} border ${mc.border} ${mc.hoverBg}`}>
           Finish Setup
         </Button>
       </div>
