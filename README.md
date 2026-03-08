@@ -124,6 +124,7 @@ bash scripts/security-audit.sh
 - Four-layer agent eval framework (output, trace, component, drift detection)
 - Agent optimization endpoint with token efficiency, tool patterns, and fleet benchmarks
 - Hook profiles (minimal/standard/strict) for tunable security strictness
+- Guided onboarding wizard with credential setup, agent discovery, and security scan
 
 ### Known Limitations
 
@@ -179,6 +180,9 @@ Define agent personality, capabilities, and behavioral guidelines via SOUL markd
 
 ### Agent Messaging
 Session-threaded inter-agent communication via the comms API (`a2a:*`, `coord:*`, `session:*`) with coordinator inbox support and runtime tool-call visibility in the `agent-comms` feed.
+
+### Onboarding Wizard
+Guided first-run setup wizard that walks new users through five steps: Welcome (system capabilities detection), Credentials (verify AUTH_PASS and API_KEY strength), Agent Setup (gateway connection or local Claude Code discovery), Security Scan (automated configuration audit with pass/fail checks), and Get Started (quick links to key panels). Automatically appears on first login and can be re-launched from Settings. Progress is persisted per-user so you can resume where you left off.
 
 ### Security Audit & Agent Trust
 Dedicated security audit panel with real-time posture scoring (0-100), secret detection across agent messages, MCP tool call auditing, injection attempt tracking, and per-agent trust scores. Hook profiles (minimal/standard/strict) let operators tune security strictness per deployment. Auth failures, rate limit hits, and injection attempts are logged automatically as security events.
@@ -369,6 +373,7 @@ All endpoints require authentication unless noted. Full reference below.
 | `GET/PUT` | `/api/settings` | admin | App settings |
 | `GET/PUT` | `/api/gateway-config` | admin | OpenClaw gateway config |
 | `GET/POST` | `/api/cron` | admin | Cron management |
+| `GET/POST` | `/api/onboarding` | viewer | Onboarding wizard state and step progression |
 
 </details>
 
