@@ -38,28 +38,13 @@ function LoaderDots({ size = 'md' }: { size?: 'sm' | 'md' }) {
   )
 }
 
-function StepIcon({ status, isActive }: { status: 'pending' | 'done'; isActive: boolean }) {
-  if (status === 'done') {
-    return (
-      <svg className="w-3.5 h-3.5 text-primary check-enter" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 8.5l3.5 3.5 6.5-7" />
-      </svg>
-    )
-  }
-  if (isActive) {
-    return <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-  }
-  return <div className="w-2 h-2 rounded-full bg-border" />
-}
-
 function PageLoader({ steps }: { steps?: InitStep[] }) {
   const doneCount = steps?.filter(s => s.status === 'done').length ?? 0
   const totalCount = steps?.length ?? 1
   const progress = steps ? (doneCount / totalCount) * 100 : 0
   const allDone = steps ? doneCount === totalCount : false
 
-  // Find the first pending step (the "active" one)
-  const activeIndex = steps?.findIndex(s => s.status === 'pending') ?? -1
+  const activeStep = steps?.find(s => s.status === 'pending')
 
   return (
     <div
@@ -106,7 +91,8 @@ function PageLoader({ steps }: { steps?: InitStep[] }) {
         {/* Progress section — appears after logo animation, only while loading */}
         {steps ? (
           <div
-            className="w-full flex flex-col items-center gap-4 opacity-0 animate-mc-fade-in"
+            className="w-full flex flex-col items-center gap-3 opacity-0"
+            style={{ animation: 'mcFadeIn 0.6s ease-out 2.4s forwards' }}
           >
             {/* Progress bar */}
             <div className="w-full h-0.5 bg-border/50 rounded-full overflow-hidden">
@@ -116,25 +102,20 @@ function PageLoader({ steps }: { steps?: InitStep[] }) {
               />
             </div>
 
-            {/* Step list */}
-            <div className="w-full space-y-2">
-              {steps.map((step, i) => (
+            {/* Active step label — crossfades on step change */}
+            <div className="h-5 flex items-center justify-center">
+              {activeStep && (
                 <div
-                  key={step.key}
-                  className={`flex items-center gap-2.5 text-xs transition-all duration-300 ${
-                    step.status === 'done'
-                      ? 'text-muted-foreground/50 h-0 overflow-hidden opacity-0'
-                      : i === activeIndex
-                        ? 'text-foreground'
-                        : 'text-muted-foreground/40'
-                  }`}
+                  key={activeStep.key}
+                  className="flex items-center gap-2"
+                  style={{ animation: 'fadeIn 0.3s ease-out' }}
                 >
-                  <div className="w-4 h-4 flex items-center justify-center shrink-0">
-                    <StepIcon status={step.status} isActive={i === activeIndex} />
-                  </div>
-                  <span className="font-mono text-2xs tracking-wide">{step.label}</span>
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                  <span className="font-mono text-2xs tracking-wide text-muted-foreground">
+                    {activeStep.label}
+                  </span>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         ) : (
