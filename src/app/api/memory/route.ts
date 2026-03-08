@@ -7,6 +7,7 @@ import { resolveWithin } from '@/lib/paths'
 import { requireRole } from '@/lib/auth'
 import { readLimiter, mutationLimiter } from '@/lib/rate-limit'
 import { logger } from '@/lib/logger'
+import { validateSchema, extractWikiLinks } from '@/lib/memory-utils'
 
 const MEMORY_PATH = config.memoryDir
 const MEMORY_ALLOWED_PREFIXES = (config.memoryAllowedPrefixes || []).map((p) => p.replace(/\\/g, '/'))
@@ -192,12 +193,19 @@ export async function GET(request: NextRequest) {
       try {
         const content = await readFile(fullPath, 'utf-8')
         const stats = await stat(fullPath)
-        
+
+        // Extract wiki-links and schema validation for .md files
+        const isMarkdown = path.endsWith('.md')
+        const wikiLinks = isMarkdown ? extractWikiLinks(content) : []
+        const schemaResult = isMarkdown ? validateSchema(content) : null
+
         return NextResponse.json({
           content,
           size: stats.size,
           modified: stats.mtime.getTime(),
-          path
+          path,
+          wikiLinks,
+          schema: schemaResult,
         })
       } catch (error) {
         return NextResponse.json({ error: 'File not found' }, { status: 404 })
@@ -321,8 +329,16 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Content is required for save action' }, { status: 400 })
       }
 
+      // Validate schema if present (warn but don't block save)
+      const schemaResult = path.endsWith('.md') ? validateSchema(content) : null
+      const schemaWarnings = schemaResult?.errors ?? []
+
       await writeFile(fullPath, content, 'utf-8')
-      return NextResponse.json({ success: true, message: 'File saved successfully' })
+      return NextResponse.json({
+        success: true,
+        message: 'File saved successfully',
+        schemaWarnings,
+      })
     }
 
     if (action === 'create') {

@@ -201,7 +201,7 @@ export interface ChatMessage {
   from_agent: string
   to_agent: string | null
   content: string
-  message_type: 'text' | 'system' | 'handoff' | 'status' | 'command'
+  message_type: 'text' | 'system' | 'handoff' | 'status' | 'command' | 'tool_call'
   metadata?: any
   read_at?: number
   created_at: number
@@ -329,6 +329,19 @@ export interface ConnectionStatus {
   sseConnected?: boolean
 }
 
+export interface ExecApprovalRequest {
+  id: string
+  sessionId: string
+  agentName?: string
+  toolName: string
+  toolArgs: Record<string, any>
+  command?: string
+  risk: 'low' | 'medium' | 'high' | 'critical'
+  createdAt: number
+  expiresAt?: number
+  status: 'pending' | 'approved' | 'denied' | 'expired'
+}
+
 interface MissionControlStore {
   // Dashboard Mode (local vs full gateway)
   dashboardMode: 'full' | 'local'
@@ -436,9 +449,13 @@ interface MissionControlStore {
   memoryFiles: MemoryFile[]
   selectedMemoryFile: string | null
   memoryContent: string | null
+  memoryFileLinks: { wikiLinks: unknown[]; incoming: string[]; outgoing: string[] } | null
+  memoryHealth: unknown | null
   setMemoryFiles: (files: MemoryFile[]) => void
   setSelectedMemoryFile: (path: string | null) => void
   setMemoryContent: (content: string | null) => void
+  setMemoryFileLinks: (links: { wikiLinks: unknown[]; incoming: string[]; outgoing: string[] } | null) => void
+  setMemoryHealth: (health: unknown | null) => void
 
   // Token Usage & Cost Tracking
   tokenUsage: TokenUsage[]
@@ -496,6 +513,16 @@ interface MissionControlStore {
   // Onboarding
   showOnboarding: boolean
   setShowOnboarding: (show: boolean) => void
+
+  // Exec Approvals
+  execApprovals: ExecApprovalRequest[]
+  setExecApprovals: (approvals: ExecApprovalRequest[]) => void
+  addExecApproval: (approval: ExecApprovalRequest) => void
+  updateExecApproval: (id: string, updates: Partial<ExecApprovalRequest>) => void
+
+  // Dashboard Layout
+  dashboardLayout: string[] | null
+  setDashboardLayout: (layout: string[] | null) => void
 
   // UI State
   activeTab: string
@@ -619,9 +646,13 @@ export const useMissionControl = create<MissionControlStore>()(
     memoryFiles: [],
     selectedMemoryFile: null,
     memoryContent: null,
+    memoryFileLinks: null,
+    memoryHealth: null,
     setMemoryFiles: (files) => set({ memoryFiles: files }),
     setSelectedMemoryFile: (path) => set({ selectedMemoryFile: path }),
     setMemoryContent: (content) => set({ memoryContent: content }),
+    setMemoryFileLinks: (links) => set({ memoryFileLinks: links }),
+    setMemoryHealth: (health) => set({ memoryHealth: health }),
 
     // Token Usage
     tokenUsage: [],
@@ -759,6 +790,38 @@ export const useMissionControl = create<MissionControlStore>()(
     // Project Manager Modal (global)
     showProjectManagerModal: false,
     setShowProjectManagerModal: (show) => set({ showProjectManagerModal: show }),
+
+    // Exec Approvals
+    execApprovals: [],
+    setExecApprovals: (approvals) => set({ execApprovals: approvals }),
+    addExecApproval: (approval) =>
+      set((state) => {
+        if (state.execApprovals.some(a => a.id === approval.id)) return state
+        return { execApprovals: [approval, ...state.execApprovals].slice(0, 200) }
+      }),
+    updateExecApproval: (id, updates) =>
+      set((state) => ({
+        execApprovals: state.execApprovals.map(a => a.id === id ? { ...a, ...updates } : a),
+      })),
+
+    // Dashboard Layout
+    dashboardLayout: (() => {
+      if (typeof window === 'undefined') return null
+      try {
+        const raw = localStorage.getItem('mc-dashboard-layout')
+        return raw ? JSON.parse(raw) as string[] : null
+      } catch { return null }
+    })(),
+    setDashboardLayout: (layout) => {
+      try {
+        if (layout) {
+          localStorage.setItem('mc-dashboard-layout', JSON.stringify(layout))
+        } else {
+          localStorage.removeItem('mc-dashboard-layout')
+        }
+      } catch {}
+      set({ dashboardLayout: layout })
+    },
 
     // UI State — sidebar & layout persistence
     activeTab: 'overview',
