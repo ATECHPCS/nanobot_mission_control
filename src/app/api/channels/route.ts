@@ -13,6 +13,77 @@ function gatewayHeaders(): Record<string, string> {
   return headers
 }
 
+interface ChannelAccount {
+  id: string
+  platform: string
+  label: string
+  status: 'connected' | 'disconnected' | 'degraded' | 'pending'
+  lastActivity?: number
+  errorMessage?: string
+}
+
+interface ChannelsSnapshot {
+  channels: ChannelAccount[]
+  connected: boolean
+  updatedAt?: number
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function transformGatewayChannels(data: any): ChannelsSnapshot {
+  const channels: ChannelAccount[] = []
+  const channelLabels = data.channelLabels || {}
+  const rawChannels = data.channels || {}
+  const rawAccounts = data.channelAccounts || {}
+  const order: string[] = data.channelOrder || Object.keys(rawChannels)
+
+  for (const key of order) {
+    const chData = rawChannels[key]
+    if (!chData) continue
+    const accounts = rawAccounts[key] || {}
+    const accountEntries = Object.values(accounts) as any[] // eslint-disable-line @typescript-eslint/no-explicit-any
+
+    if (accountEntries.length === 0) {
+      channels.push({
+        id: key,
+        platform: key,
+        label: channelLabels[key] || key,
+        status: chData.configured ? 'pending' : 'disconnected',
+      })
+    } else {
+      for (const acct of accountEntries) {
+        channels.push({
+          id: `${key}:${acct.accountId || 'default'}`,
+          platform: key,
+          label: channelLabels[key] || key,
+          status: acct.connected === true ? 'connected'
+            : acct.running ? 'degraded'
+            : acct.enabled === false ? 'disconnected'
+            : 'pending',
+          lastActivity: acct.lastInboundAt || acct.lastOutboundAt || undefined,
+          errorMessage: acct.lastError || undefined,
+        })
+      }
+    }
+  }
+
+  return { channels, connected: true, updatedAt: data.ts }
+}
+
+async function isGatewayReachable(): Promise<boolean> {
+  try {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 2000)
+    const res = await fetch(`${gatewayInternalUrl}/api/health`, {
+      headers: gatewayHeaders(),
+      signal: controller.signal,
+    })
+    clearTimeout(timeout)
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
 /**
  * GET /api/channels - Fetch channel status from the gateway
  * Supports ?action=probe&channel=<name> to probe a specific channel
@@ -66,9 +137,11 @@ export async function GET(request: NextRequest) {
     clearTimeout(timeout)
 
     const data = await res.json()
-    return NextResponse.json(data)
+    return NextResponse.json(transformGatewayChannels(data))
   } catch (err) {
     logger.warn({ err }, 'Gateway unreachable for channel status')
-    return NextResponse.json({ channels: [], connected: false })
+    // Channel status endpoint failed — check if gateway is still reachable
+    const reachable = await isGatewayReachable()
+    return NextResponse.json({ channels: [], connected: reachable } satisfies ChannelsSnapshot)
   }
 }

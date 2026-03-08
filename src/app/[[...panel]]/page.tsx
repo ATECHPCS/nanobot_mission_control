@@ -62,7 +62,7 @@ function isLocalHost(hostname: string): boolean {
 export default function Home() {
   const router = useRouter()
   const { connect } = useWebSocket()
-  const { activeTab, setActiveTab, setCurrentUser, setDashboardMode, setGatewayAvailable, setCapabilitiesChecked, setSubscription, setDefaultOrgName, setUpdateAvailable, setOpenclawUpdate, setShowOnboarding, liveFeedOpen, toggleLiveFeed, showProjectManagerModal, setShowProjectManagerModal, fetchProjects, setChatPanelOpen, bootComplete, setBootComplete } = useMissionControl()
+  const { activeTab, setActiveTab, setCurrentUser, setDashboardMode, setGatewayAvailable, setCapabilitiesChecked, setSubscription, setDefaultOrgName, setUpdateAvailable, setOpenclawUpdate, setShowOnboarding, liveFeedOpen, toggleLiveFeed, showProjectManagerModal, setShowProjectManagerModal, fetchProjects, setChatPanelOpen, bootComplete, setBootComplete, setAgents, setSessions, setProjects } = useMissionControl()
 
   // Sync URL → Zustand activeTab
   const pathname = usePathname()
@@ -91,6 +91,7 @@ export default function Home() {
     { key: 'capabilities', label: 'Detecting mode',     status: 'pending' },
     { key: 'config',       label: 'Loading config',     status: 'pending' },
     { key: 'connect',      label: 'Connecting',         status: 'pending' },
+    { key: 'workspace',    label: 'Loading workspace',  status: 'pending' },
   ])
 
   const markStep = (key: string) => {
@@ -103,6 +104,28 @@ export default function Home() {
       return () => clearTimeout(t)
     }
   }, [initSteps, bootComplete, setBootComplete])
+
+  // Security console warning (anti-self-XSS)
+  useEffect(() => {
+    if (!bootComplete) return
+    if (typeof window === 'undefined') return
+    const key = 'mc-console-warning'
+    if (sessionStorage.getItem(key)) return
+    sessionStorage.setItem(key, '1')
+
+    console.log(
+      '%c  Stop!  ',
+      'color: #fff; background: #e53e3e; font-size: 40px; font-weight: bold; padding: 4px 16px; border-radius: 4px;'
+    )
+    console.log(
+      '%cThis is a browser feature intended for developers.\n\nIf someone told you to copy-paste something here to enable a feature or "hack" an account, it is a scam and will give them access to your account.',
+      'font-size: 14px; color: #e2e8f0; padding: 8px 0;'
+    )
+    console.log(
+      '%cLearn more: https://en.wikipedia.org/wiki/Self-XSS',
+      'font-size: 12px; color: #718096;'
+    )
+  }, [bootComplete])
 
   useEffect(() => {
     setIsClient(true)
@@ -249,8 +272,20 @@ export default function Home() {
         markStep('config')
       })
       .catch(() => { markStep('config') })
+    // Preload workspace data in parallel
+    Promise.all([
+      fetch('/api/agents').then(r => r.ok ? r.json() : null),
+      fetch('/api/sessions').then(r => r.ok ? r.json() : null),
+      fetch('/api/projects').then(r => r.ok ? r.json() : null),
+    ]).then(([agentsData, sessionsData, projectsData]) => {
+      if (agentsData?.agents) setAgents(agentsData.agents)
+      if (sessionsData?.sessions) setSessions(sessionsData.sessions)
+      if (projectsData?.projects) setProjects(projectsData.projects)
+    }).catch(() => { /* panels will lazy-load as fallback */ })
+      .finally(() => { markStep('workspace') })
+
   // eslint-disable-next-line react-hooks/exhaustive-deps -- boot once on mount, not on every pathname change
-  }, [connect, router, setCurrentUser, setDashboardMode, setGatewayAvailable, setCapabilitiesChecked, setSubscription, setUpdateAvailable, setShowOnboarding])
+  }, [connect, router, setCurrentUser, setDashboardMode, setGatewayAvailable, setCapabilitiesChecked, setSubscription, setUpdateAvailable, setShowOnboarding, setAgents, setSessions, setProjects])
 
   if (!isClient || !bootComplete) {
     return <Loader variant="page" steps={isClient ? initSteps : undefined} />

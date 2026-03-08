@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
+import { useMissionControl } from '@/store'
 
 interface ChannelAccount {
   id: string
@@ -149,8 +150,9 @@ export function ChannelsPanel() {
     )
   }
 
+  const { connection } = useMissionControl()
   const channels = snapshot?.channels ?? []
-  const gatewayConnected = snapshot?.connected ?? false
+  const gatewayConnected = snapshot?.connected ?? connection.isConnected
 
   return (
     <div className="m-4">
@@ -178,7 +180,9 @@ export function ChannelsPanel() {
       {channels.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-sm text-muted-foreground">
-            No channels configured. Connect messaging platforms through your OpenClaw gateway.
+            {gatewayConnected
+              ? 'No channels configured yet. Configure messaging platforms (WhatsApp, Telegram, Discord, Slack, etc.) in your OpenClaw gateway settings.'
+              : 'Cannot reach the OpenClaw gateway. Check that it is running and accessible.'}
           </p>
         </div>
       ) : (

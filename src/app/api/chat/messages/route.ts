@@ -383,7 +383,10 @@ export async function POST(request: NextRequest) {
           .prepare('SELECT * FROM agents WHERE lower(name) = lower(?) AND workspace_id = ?')
           .get(to, workspaceId) as any
 
-        let sessionKey: string | null = agent?.session_key || null
+        // Use explicit session key from caller if provided, then DB, then on-disk lookup
+        let sessionKey: string | null = typeof body.sessionKey === 'string' && body.sessionKey
+          ? body.sessionKey
+          : agent?.session_key || null
 
         // Fallback: derive session from on-disk gateway session stores
         if (!sessionKey) {

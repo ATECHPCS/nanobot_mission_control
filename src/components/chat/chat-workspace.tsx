@@ -451,6 +451,7 @@ function SessionConversationView({
             conversation_id: `agent_${agentName}`,
             message_type: 'text',
             forward: true,
+            sessionKey: session.sessionKey || undefined,
           }),
         })
         const data = await res.json().catch(() => ({}))
