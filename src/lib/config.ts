@@ -57,21 +57,11 @@ export const config = {
     (nanobotStateDir ? path.join(nanobotStateDir, 'templates', 'souls') : ''),
   homeDir: os.homedir(),
 
-  // --- Legacy aliases (consumed by files not yet migrated; will be removed in later plans) ---
-  /** @deprecated Use nanobotStateDir */
-  openclawHome: nanobotStateDir,
-  /** @deprecated Use nanobotStateDir */
-  openclawStateDir: nanobotStateDir,
-  /** @deprecated Will be removed once command.ts is cleaned up */
-  openclawBin: process.env.NANOBOT_BIN || 'nanobot',
-  /** @deprecated Will be removed once command.ts is cleaned up */
+  nanobotBin: process.env.NANOBOT_BIN || 'nanobot',
   clawdbotBin: process.env.NANOBOT_BIN || 'nanobot',
-  /** @deprecated No gateway in nanobot; will be removed */
-  openclawConfigPath: '',
-  /** @deprecated No gateway in nanobot; will be removed */
-  gatewayHost: '127.0.0.1',
-  /** @deprecated No gateway in nanobot; will be removed */
-  gatewayPort: 0,
+  nanobotConfigPath: process.env.NANOBOT_CONFIG_PATH || '',
+  nanobotGatewayHost: process.env.NANOBOT_GATEWAY_HOST || '127.0.0.1',
+  nanobotGatewayPort: Number(process.env.NANOBOT_GATEWAY_PORT || process.env.GATEWAY_PORT || '0'),
 
   // Data retention (days). 0 = keep forever.
   retention: {

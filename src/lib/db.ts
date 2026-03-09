@@ -205,6 +205,7 @@ export interface Tenant {
   linux_user: string
   plan_tier: string
   status: 'pending' | 'provisioning' | 'active' | 'suspended' | 'error'
+  /** Legacy DB column name -- aliased as nanobotHome in application layer */
   openclaw_home: string
   workspace_root: string
   gateway_port?: number

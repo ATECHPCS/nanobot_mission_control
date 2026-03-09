@@ -71,16 +71,16 @@ export function runCommand(
   })
 }
 
-export function runOpenClaw(args: string[], options: CommandOptions = {}) {
-  return runCommand(config.openclawBin, args, {
+export function runNanobot(args: string[], options: CommandOptions = {}) {
+  return runCommand(config.nanobotBin, args, {
     ...options,
-    cwd: options.cwd || config.openclawStateDir || process.cwd()
+    cwd: options.cwd || config.nanobotStateDir || process.cwd()
   })
 }
 
 export function runClawdbot(args: string[], options: CommandOptions = {}) {
   return runCommand(config.clawdbotBin, args, {
     ...options,
-    cwd: options.cwd || config.openclawStateDir || process.cwd()
+    cwd: options.cwd || config.nanobotStateDir || process.cwd()
   })
 }

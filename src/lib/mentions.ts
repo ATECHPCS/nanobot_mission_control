@@ -76,17 +76,18 @@ export function getMentionTargets(db: Database, workspaceId: number): MentionTar
     const recipient = String(agent.name || '').trim()
     if (!recipient) continue
 
-    let openclawId: string | null = null
+    let agentId: string | null = null
     try {
       const parsed = agent.config ? JSON.parse(agent.config) : null
-      if (parsed && typeof parsed.openclawId === 'string' && parsed.openclawId.trim()) {
-        openclawId = parsed.openclawId.trim()
+      const idField = parsed?.agentId ?? parsed?.openclawId
+      if (typeof idField === 'string' && idField.trim()) {
+        agentId = idField.trim()
       }
     } catch {
       // ignore invalid config JSON for mention indexing
     }
 
-    const candidateHandles = [openclawId, normalizeAgentHandle(recipient), recipient.toLowerCase()]
+    const candidateHandles = [agentId, normalizeAgentHandle(recipient), recipient.toLowerCase()]
       .filter((value): value is string => Boolean(value))
 
     for (const rawHandle of candidateHandles) {

@@ -20,10 +20,10 @@ export interface GatewaySession {
 }
 
 function getGatewaySessionStoreFiles(): string[] {
-  const openclawStateDir = config.openclawStateDir
-  if (!openclawStateDir) return []
+  const stateDir = config.nanobotStateDir
+  if (!stateDir) return []
 
-  const agentsDir = path.join(openclawStateDir, 'agents')
+  const agentsDir = path.join(stateDir, 'agents')
   if (!fs.existsSync(agentsDir)) return []
 
   let agentDirs: string[]
@@ -46,10 +46,10 @@ function getGatewaySessionStoreFiles(): string[] {
 }
 
 /**
- * Read all sessions from OpenClaw agent session stores on disk.
+ * Read all sessions from nanobot agent session stores on disk.
  *
- * OpenClaw stores sessions per-agent at:
- *   {OPENCLAW_STATE_DIR}/agents/{agentName}/sessions/sessions.json
+ * Nanobot stores sessions per-agent at:
+ *   {NANOBOT_STATE_DIR}/agents/{agentName}/sessions/sessions.json
  *
  * Each file is a JSON object keyed by session key (e.g. "agent:<agent>:main")
  * with session metadata as values.

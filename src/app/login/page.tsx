@@ -177,7 +177,7 @@ export default function LoginPage() {
         </div>
         {googleClientId && !googleReady && <p className="text-center text-xs text-muted-foreground mt-2">Loading Google Sign-In...</p>}
 
-        <p className="text-center text-xs text-muted-foreground mt-6">OpenClaw Agent Orchestration</p>
+        <p className="text-center text-xs text-muted-foreground mt-6">Nanobot Mission Control</p>
       </div>
     </div>
   )

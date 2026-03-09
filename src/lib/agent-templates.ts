@@ -2,7 +2,7 @@
  * Agent Templates Library
  *
  * Defines agent archetypes that can be used as starting points for new deployments.
- * Each template provides a full OpenClaw agent config structure that
+ * Each template provides a full nanobot agent config structure that
  * can be customized before creating an agent.
  */
 
@@ -43,7 +43,7 @@ export interface AgentMemorySearchConfig {
   }
 }
 
-export interface OpenClawAgentConfig {
+export interface NanobotAgentConfig {
   id: string
   name?: string
   workspace?: string
@@ -63,7 +63,7 @@ export interface AgentTemplate {
   emoji: string
   modelTier: 'opus' | 'sonnet' | 'haiku'
   toolCount: number
-  config: Omit<OpenClawAgentConfig, 'id' | 'workspace' | 'agentDir'>
+  config: Omit<NanobotAgentConfig, 'id' | 'workspace' | 'agentDir'>
 }
 
 // Tool groups for template composition
@@ -399,7 +399,7 @@ export function getTemplate(type: string): AgentTemplate | undefined {
   return AGENT_TEMPLATES.find(t => t.type === type)
 }
 
-/** Build a full OpenClaw agent config from a template + overrides */
+/** Build a full nanobot agent config from a template + overrides */
 export function buildAgentConfig(
   template: AgentTemplate,
   overrides: {
@@ -415,7 +415,7 @@ export function buildAgentConfig(
     dockerNetwork?: 'none' | 'bridge'
     subagentAllowAgents?: string[]
   }
-): OpenClawAgentConfig {
+): NanobotAgentConfig {
   const config = structuredClone(template.config)
 
   config.identity.name = overrides.name

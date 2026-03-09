@@ -17,7 +17,7 @@ interface Setting {
 const categoryLabels: Record<string, { label: string; icon: string; description: string }> = {
   general: { label: 'General', icon: '⚙', description: 'Core Mission Control settings' },
   retention: { label: 'Data Retention', icon: '🗄', description: 'How long data is kept before cleanup' },
-  gateway: { label: 'Gateway', icon: '🔌', description: 'OpenClaw gateway connection settings' },
+  gateway: { label: 'Gateway', icon: '🔌', description: 'Gateway connection settings' },
   custom: { label: 'Custom', icon: '🔧', description: 'User-defined settings' },
 }
 

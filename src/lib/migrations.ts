@@ -283,7 +283,7 @@ const migrations: Migration[] = [
           linux_user TEXT NOT NULL UNIQUE,
           plan_tier TEXT NOT NULL DEFAULT 'standard',
           status TEXT NOT NULL DEFAULT 'pending',
-          openclaw_home TEXT NOT NULL,
+          openclaw_home TEXT NOT NULL, -- legacy column name, aliased as nanobotHome in application layer
           workspace_root TEXT NOT NULL,
           gateway_port INTEGER,
           dashboard_port INTEGER,

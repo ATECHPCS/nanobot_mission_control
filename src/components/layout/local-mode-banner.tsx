@@ -13,7 +13,7 @@ export function LocalModeBanner() {
     <div className="mx-4 mt-3 mb-0 flex items-center gap-3 px-4 py-2.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-sm">
       <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
       <p className="flex-1 text-xs text-blue-300">
-        <span className="font-medium text-blue-200">No OpenClaw gateway detected</span>
+        <span className="font-medium text-blue-200">No nanobot gateway detected</span>
         {' — running in Local Mode. Monitoring Claude Code sessions, tasks, and local data.'}
       </p>
       <button
