@@ -257,13 +257,13 @@ describe('agent-health', () => {
     it('falls back to timestamp from last line when no assistant message found', () => {
       mockFs.existsSync.mockReturnValue(true)
       mockFs.readdirSync.mockReturnValue(['session.jsonl'] as any)
-      mockFs.statSync.mockReturnValue({ mtimeMs: 100, size: 100 } as any)
 
       const content = jsonl(
         { role: 'user', content: 'Test', timestamp: '2026-03-09T10:00:00Z' },
         { role: 'tool', content: 'Result', timestamp: '2026-03-09T10:00:05Z' }
       )
       const buf = Buffer.from(content)
+      mockFs.statSync.mockReturnValue({ mtimeMs: 100, size: buf.length } as any)
       mockFs.openSync.mockReturnValue(42 as any)
       mockFs.readSync.mockImplementation((fd: any, buffer: any) => {
         buf.copy(buffer)
