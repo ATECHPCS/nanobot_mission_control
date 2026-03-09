@@ -467,7 +467,7 @@ export const useMissionControl = create<MissionControlStore>()(
     updateDiscoveredAgent: (id, snapshot) =>
       set((state) => {
         const updated = state.discoveredAgents.map((a) =>
-          a.id === id ? snapshot : a
+          a.id === id ? { ...a, ...snapshot, agent: snapshot.agent ?? a.agent } : a
         )
         const order: Record<string, number> = { red: 0, yellow: 1, green: 2 }
         updated.sort(

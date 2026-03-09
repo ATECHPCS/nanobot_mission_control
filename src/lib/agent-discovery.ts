@@ -20,15 +20,73 @@ import type { DiscoveredAgent } from '@/types/agent-health'
  * Safe to call repeatedly -- each call rescans the filesystem.
  */
 export function discoverAgents(): DiscoveredAgent[] {
+  const agents: DiscoveredAgent[] = []
+
+  // Discover root workspace agent (e.g. Andy — runs from ~/.nanobot/workspace/ directly)
+  const rootAgent = discoverRootAgent()
+  if (rootAgent) agents.push(rootAgent)
+
+  // Discover sub-agents from ~/.nanobot/workspace/agents/
   const agentsDir = path.join(config.nanobotStateDir, 'workspace', 'agents')
-  if (!fs.existsSync(agentsDir)) return []
+  if (fs.existsSync(agentsDir)) {
+    const entries = fs.readdirSync(agentsDir, { withFileTypes: true })
+    for (const e of entries) {
+      if (!e.isDirectory() || e.name.startsWith('.')) continue
+      const agent = buildAgentFromDirectory(agentsDir, e.name)
+      if (agent) agents.push(agent)
+    }
+  }
 
-  const entries = fs.readdirSync(agentsDir, { withFileTypes: true })
+  return agents
+}
 
-  return entries
-    .filter(e => e.isDirectory() && !e.name.startsWith('.'))
-    .map(e => buildAgentFromDirectory(agentsDir, e.name))
-    .filter((a): a is DiscoveredAgent => a !== null)
+/**
+ * Discover the root workspace agent.
+ * The root agent lives at ~/.nanobot/workspace/ with config at ~/.nanobot/config.json.
+ * It has no launch script — HOME is the system default.
+ */
+function discoverRootAgent(): DiscoveredAgent | null {
+  const workspacePath = path.join(config.nanobotStateDir, 'workspace')
+  const configPath = path.join(config.nanobotStateDir, 'config.json')
+
+  if (!fs.existsSync(configPath)) return null
+
+  const agentConfig = readAgentConfig(configPath)
+  if (!agentConfig) return null
+
+  // Read name from IDENTITY.md
+  let name = 'nanobot'
+  let icon: string | undefined = agentConfig.icon
+  try {
+    const identityPath = path.join(workspacePath, 'IDENTITY.md')
+    if (fs.existsSync(identityPath)) {
+      const content = fs.readFileSync(identityPath, 'utf-8')
+      const nameMatch = content.match(/\*\*Name:\*\*\s*(.+)/i)
+      if (nameMatch) name = nameMatch[1].trim()
+      if (!icon) {
+        const iconMatch = content.match(/(?:Emoji|Icon)\s*:\s*(.+)/i)
+        if (iconMatch) icon = iconMatch[1].trim()
+      }
+    }
+  } catch {
+    // Ignore — use defaults
+  }
+
+  const homePath = process.env.HOME || '/Users/designmac'
+
+  return {
+    id: name.toLowerCase(),
+    name,
+    workspacePath,
+    homePath,
+    configPath,
+    launchScript: '',
+    model: agentConfig.model,
+    gatewayPort: agentConfig.gatewayPort,
+    gatewayHost: agentConfig.gatewayHost,
+    channels: agentConfig.channels,
+    icon,
+  }
 }
 
 /**

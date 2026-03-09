@@ -60,7 +60,7 @@ export function AgentCard({ snapshot, onClick, selected }: AgentCardProps) {
     >
       {/* Row 1: Icon + Name + Health Dot */}
       <div className="flex items-center gap-2 mb-2">
-        {agent.icon ? (
+        {agent?.icon ? (
           <span className="text-lg shrink-0" role="img" aria-label={`${name} icon`}>
             {agent.icon}
           </span>

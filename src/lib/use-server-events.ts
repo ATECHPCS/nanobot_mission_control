@@ -127,11 +127,13 @@ export function useServerEvents() {
         // Agent events (DB-based agents)
         case 'agent.created':
           // Discovered agent events include a 'health' property
-          if (event.data?.health) {
+          // Only add if it has the full agent object (from poll); SSE broadcasts partial data
+          if (event.data?.health && event.data?.agent) {
             addDiscoveredAgent(event.data)
-          } else {
+          } else if (!event.data?.health) {
             addAgent(event.data)
           }
+          // Partial discovered agent events (no .agent) are skipped; next poll picks them up
           break
         case 'agent.updated':
           if (event.data?.id) {
