@@ -23,7 +23,7 @@ const navGroups: NavGroup[] = [
     id: 'core',
     items: [
       { id: 'overview', label: 'Overview', icon: <OverviewIcon />, priority: true },
-      { id: 'agents', label: 'Agents', icon: <AgentsIcon />, priority: true, requiresGateway: true },
+      { id: 'agents', label: 'Agents', icon: <AgentsIcon />, priority: true },
       { id: 'tasks', label: 'Tasks', icon: <TasksIcon />, priority: true },
       { id: 'sessions', label: 'Sessions', icon: <SessionsIcon />, priority: false },
       { id: 'office', label: 'Office', icon: <OfficeIcon />, priority: false },
@@ -71,9 +71,10 @@ const navGroups: NavGroup[] = [
 const allNavItems = navGroups.flatMap(g => g.items)
 
 export function NavRail() {
-  const { activeTab, connection, dashboardMode, sidebarExpanded, collapsedGroups, toggleSidebar, toggleGroup } = useMissionControl()
+  const { activeTab, connection, dashboardMode, sidebarExpanded, collapsedGroups, toggleSidebar, toggleGroup, discoveredAgents } = useMissionControl()
   const navigateToPanel = useNavigateToPanel()
   const isLocal = dashboardMode === 'local'
+  const hasRedAgent = discoveredAgents.some((a) => a.health.overall === 'red')
 
   // Keyboard shortcut: [ to toggle sidebar
   useEffect(() => {
@@ -163,6 +164,7 @@ export function NavRail() {
                 <div className={`flex flex-col ${sidebarExpanded ? 'gap-0.5 px-2' : 'items-center gap-1'}`}>
                   {group.items.map((item) => {
                     const disabled = isLocal && item.requiresGateway
+                    const showBadge = item.id === 'agents' && hasRedAgent
                     return (
                       <NavButton
                         key={item.id}
@@ -170,6 +172,7 @@ export function NavRail() {
                         active={activeTab === item.id}
                         expanded={sidebarExpanded}
                         disabled={disabled}
+                        showBadge={showBadge}
                         onClick={() => { if (!disabled) navigateToPanel(item.id) }}
                       />
                     )
@@ -204,11 +207,12 @@ export function NavRail() {
   )
 }
 
-function NavButton({ item, active, expanded, disabled, onClick }: {
+function NavButton({ item, active, expanded, disabled, showBadge, onClick }: {
   item: NavItem
   active: boolean
   expanded: boolean
   disabled?: boolean
+  showBadge?: boolean
   onClick: () => void
 }) {
   const disabledClass = disabled ? 'opacity-40 pointer-events-none' : ''
@@ -229,7 +233,12 @@ function NavButton({ item, active, expanded, disabled, onClick }: {
         {active && (
           <span className="absolute left-0 w-0.5 h-5 bg-primary rounded-r" />
         )}
-        <div className="w-5 h-5 shrink-0">{item.icon}</div>
+        <div className="w-5 h-5 shrink-0 relative">
+          {item.icon}
+          {showBadge && (
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-destructive" />
+          )}
+        </div>
         <span className="text-sm truncate">{item.label}</span>
       </button>
     )
@@ -247,7 +256,12 @@ function NavButton({ item, active, expanded, disabled, onClick }: {
           : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
       }`}
     >
-      <div className="w-5 h-5">{item.icon}</div>
+      <div className="w-5 h-5 relative">
+        {item.icon}
+        {showBadge && (
+          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-destructive" />
+        )}
+      </div>
       {/* Tooltip */}
       <span className="absolute left-full ml-2 px-2 py-1 text-xs font-medium bg-popover text-popover-foreground border border-border rounded-md opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
         {tooltipLabel}

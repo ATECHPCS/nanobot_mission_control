@@ -6,6 +6,7 @@ import { NavRail } from '@/components/layout/nav-rail'
 import { HeaderBar } from '@/components/layout/header-bar'
 import { LiveFeed } from '@/components/layout/live-feed'
 import { Dashboard } from '@/components/dashboard/dashboard'
+import { AgentsPanel } from '@/components/agents/agents-panel'
 import { AgentSpawnPanel } from '@/components/panels/agent-spawn-panel'
 import { LogViewerPanel } from '@/components/panels/log-viewer-panel'
 import { CronManagementPanel } from '@/components/panels/cron-management-panel'
@@ -36,6 +37,7 @@ import { UpdateBanner } from '@/components/layout/update-banner'
 import { PromoBanner } from '@/components/layout/promo-banner'
 import { useServerEvents } from '@/lib/use-server-events'
 import { useMissionControl } from '@/store'
+import { ToastProvider } from '@/components/ui/toast-provider'
 
 export default function Home() {
   const router = useRouter()
@@ -119,51 +121,53 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:text-sm focus:font-medium">
-        Skip to main content
-      </a>
-      {/* Left: Icon rail navigation (hidden on mobile, shown as bottom bar instead) */}
-      <NavRail />
+    <ToastProvider>
+      <div className="flex h-screen bg-background overflow-hidden">
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:text-sm focus:font-medium">
+          Skip to main content
+        </a>
+        {/* Left: Icon rail navigation (hidden on mobile, shown as bottom bar instead) */}
+        <NavRail />
 
-      {/* Center: Header + Content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <HeaderBar />
-        <LocalModeBanner />
-        <UpdateBanner />
-        <PromoBanner />
-        <main id="main-content" className="flex-1 overflow-auto pb-16 md:pb-0" role="main">
-          <div aria-live="polite">
-            <ErrorBoundary key={activeTab}>
-              <ContentRouter tab={activeTab} />
-            </ErrorBoundary>
-          </div>
-        </main>
-      </div>
-
-      {/* Right: Live feed (hidden on mobile) */}
-      {liveFeedOpen && (
-        <div className="hidden lg:flex h-full">
-          <LiveFeed />
+        {/* Center: Header + Content */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <HeaderBar />
+          <LocalModeBanner />
+          <UpdateBanner />
+          <PromoBanner />
+          <main id="main-content" className="flex-1 overflow-auto pb-16 md:pb-0" role="main">
+            <div aria-live="polite">
+              <ErrorBoundary key={activeTab}>
+                <ContentRouter tab={activeTab} />
+              </ErrorBoundary>
+            </div>
+          </main>
         </div>
-      )}
 
-      {/* Floating button to reopen LiveFeed when closed */}
-      {!liveFeedOpen && (
-        <button
-          onClick={toggleLiveFeed}
-          className="hidden lg:flex fixed right-0 top-1/2 -translate-y-1/2 z-30 w-6 h-12 items-center justify-center bg-card border border-r-0 border-border rounded-l-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200"
-          title="Show live feed"
-        >
-          <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M10 3l-5 5 5 5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-      )}
+        {/* Right: Live feed (hidden on mobile) */}
+        {liveFeedOpen && (
+          <div className="hidden lg:flex h-full">
+            <LiveFeed />
+          </div>
+        )}
 
-      {/* Chat panel overlay */}
-      <ChatPanel />
-    </div>
+        {/* Floating button to reopen LiveFeed when closed */}
+        {!liveFeedOpen && (
+          <button
+            onClick={toggleLiveFeed}
+            className="hidden lg:flex fixed right-0 top-1/2 -translate-y-1/2 z-30 w-6 h-12 items-center justify-center bg-card border border-r-0 border-border rounded-l-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200"
+            title="Show live feed"
+          >
+            <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M10 3l-5 5 5 5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        )}
+
+        {/* Chat panel overlay */}
+        <ChatPanel />
+      </div>
+    </ToastProvider>
   )
 }
 
@@ -177,12 +181,7 @@ function ContentRouter({ tab }: { tab: string }) {
     case 'tasks':
       return <TaskBoardPanel />
     case 'agents':
-      return (
-        <>
-          <OrchestrationBar />
-          <ActivityFeedPanel />
-        </>
-      )
+      return <AgentsPanel />
     case 'activity':
       return <ActivityFeedPanel />
     case 'notifications':
