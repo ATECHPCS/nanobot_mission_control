@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-03-09T18:43:49Z"
-last_activity: 2026-03-09 -- Plan 02-01 executed (agent discovery + health backend)
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-03-09T18:57:23Z"
+last_activity: 2026-03-09 -- Plan 02-02 executed (agent card grid UI)
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 9
-  completed_plans: 7
-  percent: 78
+  completed_plans: 8
+  percent: 82
 ---
 
 # Project State
@@ -26,29 +26,29 @@ See: .planning/PROJECT.md (updated 2026-03-09)
 ## Current Position
 
 Phase: 2 of 6 (Agent Discovery and Health)
-Plan: 1 of 3 in current phase (02-01 complete)
-Status: Backend services complete -- discovery, health checks, monitor, API routes. 175 tests pass.
-Last activity: 2026-03-09 -- Plan 02-01 executed (agent discovery + health backend)
+Plan: 2 of 3 in current phase (02-02 complete)
+Status: Agent card grid UI complete -- Zustand store, SSE dispatch, card components, toast, nav-rail wiring. 175 tests pass.
+Last activity: 2026-03-09 -- Plan 02-02 executed (agent card grid UI)
 
-Progress: [███████░░░] 78%
+Progress: [████████░░] 82%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 14 min
-- Total execution time: 1.35 hours
+- Total plans completed: 7
+- Average duration: 13 min
+- Total execution time: 1.52 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Foundation Strip | 5/5 | 68 min | 14 min |
-| 2. Agent Discovery | 1/3 | 15 min | 15 min |
+| 2. Agent Discovery | 2/3 | 25 min | 13 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01b (26 min), 01-02 (15 min), 01-03 (5 min), 01-04 (4 min), 02-01 (15 min)
-- Trend: Stable (feature plans ~15 min)
+- Last 5 plans: 01-02 (15 min), 01-03 (5 min), 01-04 (4 min), 02-01 (15 min), 02-02 (10 min)
+- Trend: Stable (feature plans ~12 min)
 
 *Updated after each plan completion*
 
@@ -82,6 +82,10 @@ Recent decisions affecting current work:
 - [02-01]: readLastLines() reads only last N bytes to avoid loading full JSONL/log files into memory
 - [02-01]: Channel connected status derived from gateway port liveness (no per-channel health endpoint)
 - [02-01]: Error log entries use current timestamp as approximation (logs may lack timestamps)
+- [02-02]: ToastProvider wraps at page.tsx (client component) rather than layout.tsx (server component)
+- [02-02]: SSE events discriminated by health property to distinguish discovered vs DB agents
+- [02-02]: Card pulse animation runs 3 cycles (not infinite) to avoid visual noise
+- [02-02]: AgentAvatar fallback when no custom icon in agent config
 
 ### Pending Todos
 
@@ -95,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-09T18:43:49Z
-Stopped at: Completed 02-01-PLAN.md
-Resume file: .planning/phases/02-agent-discovery-and-health/02-01-SUMMARY.md
+Last session: 2026-03-09T18:57:23Z
+Stopped at: Completed 02-02-PLAN.md
+Resume file: .planning/phases/02-agent-discovery-and-health/02-02-SUMMARY.md
