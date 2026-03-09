@@ -241,7 +241,7 @@ export function OverviewTab({
               value={formData.session_key}
               onChange={(e) => setFormData((prev: any) => ({ ...prev, session_key: e.target.value }))}
               className="w-full bg-surface-1 text-foreground border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary/50"
-              placeholder="OpenClaw session identifier"
+              placeholder="Session identifier"
             />
           ) : (
             <div className="flex items-center gap-2">
@@ -848,8 +848,6 @@ export function CreateAgentModal({
     sandboxMode: 'all' as 'all' | 'non-main',
     dockerNetwork: 'none' as 'none' | 'bridge',
     session_key: '',
-    write_to_gateway: true,
-    provision_openclaw_workspace: true,
   })
   const [isCreating, setIsCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -914,13 +912,10 @@ export function CreateAgentModal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: formData.name,
-          openclaw_id: formData.id || undefined,
           role: formData.role,
           session_key: formData.session_key || undefined,
           template: selectedTemplate || undefined,
-          write_to_gateway: formData.write_to_gateway,
-          provision_openclaw_workspace: formData.provision_openclaw_workspace,
-          gateway_config: {
+          config: {
             model: { primary: primaryModel },
             identity: { name: formData.name, theme: formData.role, emoji: formData.emoji },
             sandbox: {
@@ -1157,7 +1152,7 @@ export function CreateAgentModal({
                   value={formData.session_key}
                   onChange={(e) => setFormData(prev => ({ ...prev, session_key: e.target.value }))}
                   className="w-full bg-surface-1 text-foreground border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary/50"
-                  placeholder="OpenClaw session identifier"
+                  placeholder="Session identifier"
                 />
               </div>
             </div>
@@ -1190,25 +1185,6 @@ export function CreateAgentModal({
                 </div>
               </div>
 
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.write_to_gateway}
-                  onChange={(e) => setFormData(prev => ({ ...prev, write_to_gateway: e.target.checked }))}
-                  className="w-4 h-4 rounded border-border"
-                />
-                <span className="text-sm text-foreground">Add to gateway config (openclaw.json)</span>
-              </label>
-
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.provision_openclaw_workspace}
-                  onChange={(e) => setFormData(prev => ({ ...prev, provision_openclaw_workspace: e.target.checked }))}
-                  className="w-4 h-4 rounded border-border"
-                />
-                <span className="text-sm text-foreground">Provision full OpenClaw workspace (`openclaw agents add`)</span>
-              </label>
             </div>
           )}
         </div>
@@ -1401,7 +1377,7 @@ export function ConfigTab({
   return (
     <div className="p-6 space-y-4">
       <div className="flex justify-between items-center">
-        <h4 className="text-lg font-medium text-foreground">OpenClaw Config</h4>
+        <h4 className="text-lg font-medium text-foreground">Agent Config</h4>
         <div className="flex gap-2">
           <button
             onClick={() => setShowJson(!showJson)}
@@ -1426,9 +1402,9 @@ export function ConfigTab({
         </div>
       )}
 
-      {config.openclawId && (
+      {config.agentId && (
         <div className="text-xs text-muted-foreground">
-          OpenClaw ID: <span className="font-mono text-foreground">{config.openclawId}</span>
+          Agent ID: <span className="font-mono text-foreground">{config.agentId}</span>
           {config.isDefault && <span className="ml-2 px-1.5 py-0.5 bg-primary/20 text-primary rounded text-xs">Default</span>}
         </div>
       )}

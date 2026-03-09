@@ -14,7 +14,6 @@ interface CronJob {
   nextRun?: number
   lastStatus?: 'success' | 'error' | 'running'
   lastError?: string
-  // Extended fields from OpenClaw format
   id?: string
   agentId?: string
   timezone?: string
@@ -22,11 +21,7 @@ interface CronJob {
   delivery?: string
 }
 
-/**
- * OpenClaw cron jobs live in ~/.openclaw/cron/jobs.json
- * Format: { version: 1, jobs: [ { id, agentId, name, enabled, schedule: { kind, expr, tz }, payload, delivery, state } ] }
- */
-interface OpenClawCronJob {
+interface CronJobEntry {
   id: string
   agentId: string
   name: string
@@ -61,18 +56,18 @@ interface OpenClawCronJob {
   }
 }
 
-interface OpenClawCronFile {
+interface CronFile {
   version: number
-  jobs: OpenClawCronJob[]
+  jobs: CronJobEntry[]
 }
 
 function getCronFilePath(): string {
-  const openclawStateDir = config.openclawStateDir
-  if (!openclawStateDir) return ''
-  return path.join(openclawStateDir, 'cron', 'jobs.json')
+  const stateDir = config.nanobotStateDir
+  if (!stateDir) return ''
+  return path.join(stateDir, 'cron', 'jobs.json')
 }
 
-async function loadCronFile(): Promise<OpenClawCronFile | null> {
+async function loadCronFile(): Promise<CronFile | null> {
   const filePath = getCronFilePath()
   if (!filePath) return null
   try {
@@ -83,7 +78,7 @@ async function loadCronFile(): Promise<OpenClawCronFile | null> {
   }
 }
 
-async function saveCronFile(data: OpenClawCronFile): Promise<boolean> {
+async function saveCronFile(data: CronFile): Promise<boolean> {
   const filePath = getCronFilePath()
   if (!filePath) return false
   try {
@@ -104,8 +99,7 @@ function mapLastStatus(status?: string): 'success' | 'error' | 'running' | undef
   return 'success' // default for unknown non-error statuses
 }
 
-function mapOpenClawJob(job: OpenClawCronJob): CronJob {
-  // Build a human-readable command description from the payload
+function mapCronJob(job: CronJobEntry): CronJob {
   const payloadSummary = job.payload.message
     ? job.payload.message.slice(0, 200) + (job.payload.message.length > 200 ? '...' : '')
     : `${job.payload.kind} (${job.agentId})`
@@ -145,7 +139,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ jobs: [] })
       }
 
-      const jobs = cronFile.jobs.map(mapOpenClawJob)
+      const jobs = cronFile.jobs.map(mapCronJob)
       return NextResponse.json({ jobs })
     }
 
@@ -155,7 +149,6 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Job ID required' }, { status: 400 })
       }
 
-      // Find the job to get its state info
       const cronFile = await loadCronFile()
       const job = cronFile?.jobs.find(j => j.id === jobId || j.name === jobId)
 
@@ -165,7 +158,7 @@ export async function GET(request: NextRequest) {
         if (job.state.lastRunAtMs) {
           logs.push({
             timestamp: job.state.lastRunAtMs,
-            message: `Job executed — status: ${job.state.lastStatus || 'unknown'}${job.state.lastDurationMs ? ` (${job.state.lastDurationMs}ms)` : ''}`,
+            message: `Job executed -- status: ${job.state.lastStatus || 'unknown'}${job.state.lastDurationMs ? ` (${job.state.lastDurationMs}ms)` : ''}`,
             level: job.state.lastStatus === 'error' || job.state.lastStatus === 'failed' ? 'error' : 'info',
           })
         }
@@ -230,44 +223,12 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'trigger') {
-      const id = jobId || jobName
-      if (!id) {
-        return NextResponse.json({ error: 'Job ID required' }, { status: 400 })
-      }
-
-      if (process.env.MISSION_CONTROL_ALLOW_COMMAND_TRIGGER !== '1') {
-        return NextResponse.json(
-          { error: 'Manual triggers disabled. Set MISSION_CONTROL_ALLOW_COMMAND_TRIGGER=1 to enable.' },
-          { status: 403 }
-        )
-      }
-
-      const cronFile = await loadCronFile()
-      const job = cronFile?.jobs.find(j => j.id === id || j.name === id)
-      if (!job) {
-        return NextResponse.json({ error: 'Job not found' }, { status: 404 })
-      }
-
-      // For OpenClaw cron jobs, trigger via the openclaw CLI
-      const { runCommand } = await import('@/lib/command')
-      try {
-        const { stdout, stderr } = await runCommand(config.openclawBin, [
-          'cron', 'trigger', job.id
-        ], { timeoutMs: 30000 })
-
-        return NextResponse.json({
-          success: true,
-          stdout: stdout.trim(),
-          stderr: stderr.trim()
-        })
-      } catch (execError: any) {
-        return NextResponse.json({
-          success: false,
-          error: execError.message,
-          stdout: execError.stdout?.trim() || '',
-          stderr: execError.stderr?.trim() || ''
-        }, { status: 500 })
-      }
+      // Manual trigger is not currently supported without an external runtime.
+      // In Phase 2+, this will integrate with the nanobot agent process management.
+      return NextResponse.json(
+        { error: 'Manual cron trigger not yet implemented for nanobot agents' },
+        { status: 501 }
+      )
     }
 
     if (action === 'remove') {
@@ -310,7 +271,7 @@ export async function POST(request: NextRequest) {
       // Prevent duplicates: remove existing jobs with the same name
       cronFile.jobs = cronFile.jobs.filter(j => j.name !== name)
 
-      const newJob: OpenClawCronJob = {
+      const newJob: CronJobEntry = {
         id: `mc-${Date.now().toString(36)}`,
         agentId: String(process.env.MC_CRON_AGENT_ID || process.env.MC_COORDINATOR_AGENT || 'system'),
         name,

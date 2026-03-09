@@ -20,39 +20,39 @@ export async function GET(request: NextRequest) {
     const db = getDatabase();
     const { searchParams } = new URL(request.url);
     const workspaceId = auth.user.workspace_id ?? 1;
-    
+
     // Parse query parameters
     const status = searchParams.get('status');
     const role = searchParams.get('role');
     const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 200);
     const offset = parseInt(searchParams.get('offset') || '0');
-    
+
     // Build dynamic query
     let query = 'SELECT * FROM agents WHERE workspace_id = ?';
-    const params: any[] = [workspaceId];
-    
+    const params: unknown[] = [workspaceId];
+
     if (status) {
       query += ' AND status = ?';
       params.push(status);
     }
-    
+
     if (role) {
       query += ' AND role = ?';
       params.push(role);
     }
-    
+
     query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
     params.push(limit, offset);
-    
+
     const stmt = db.prepare(query);
     const agents = stmt.all(...params) as Agent[];
-    
+
     // Parse JSON config field
     const agentsWithParsedData = agents.map(agent => ({
       ...agent,
       config: agent.config ? JSON.parse(agent.config) : {}
     }));
-    
+
     // Get task counts for each agent (prepare once, reuse per agent)
     const taskCountStmt = db.prepare(`
       SELECT
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
     `);
 
     const agentsWithStats = agentsWithParsedData.map(agent => {
-      const taskStats = taskCountStmt.get(agent.name, workspaceId) as any;
+      const taskStats = taskCountStmt.get(agent.name, workspaceId) as Record<string, number>;
 
       return {
         ...agent,
@@ -77,10 +77,10 @@ export async function GET(request: NextRequest) {
         }
       };
     });
-    
+
     // Get total count for pagination
     let countQuery = 'SELECT COUNT(*) as total FROM agents WHERE workspace_id = ?';
-    const countParams: any[] = [workspaceId];
+    const countParams: unknown[] = [workspaceId];
     if (status) {
       countQuery += ' AND status = ?';
       countParams.push(status);
@@ -128,21 +128,18 @@ export async function POST(request: NextRequest) {
       status = 'offline',
       config = {},
       template,
-      gateway_config,
     } = body;
 
     // Resolve template if specified
     let finalRole = role;
-    let finalConfig: Record<string, any> = { ...config };
+    let finalConfig: Record<string, unknown> = { ...config };
     if (template) {
       const tpl = getTemplate(template);
       if (tpl) {
-        const builtConfig = buildAgentConfig(tpl, (gateway_config || {}) as any);
+        const builtConfig = buildAgentConfig(tpl, {} as Parameters<typeof buildAgentConfig>[1]);
         finalConfig = { ...builtConfig, ...finalConfig };
         if (!finalRole) finalRole = tpl.config.identity?.theme || tpl.type;
       }
-    } else if (gateway_config) {
-      finalConfig = { ...finalConfig, ...(gateway_config as Record<string, any>) };
     }
 
     if (!name || !finalRole) {
@@ -158,14 +155,14 @@ export async function POST(request: NextRequest) {
     }
 
     const now = Math.floor(Date.now() / 1000);
-    
+
     const stmt = db.prepare(`
       INSERT INTO agents (
-        name, role, session_key, soul_content, status, 
+        name, role, session_key, soul_content, status,
         created_at, updated_at, config, workspace_id
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
-    
+
     const dbResult = stmt.run(
       name,
       finalRole,
@@ -179,7 +176,7 @@ export async function POST(request: NextRequest) {
     );
 
     const agentId = dbResult.lastInsertRowid as number;
-    
+
     // Log activity
     db_helpers.logActivity(
       'agent_created',
@@ -196,7 +193,7 @@ export async function POST(request: NextRequest) {
       },
       workspaceId
     );
-    
+
     // Fetch the created agent
     const createdAgent = db
       .prepare('SELECT * FROM agents WHERE id = ? AND workspace_id = ?')
@@ -236,69 +233,69 @@ export async function PUT(request: NextRequest) {
     if (body.name) {
       // Single agent update
       const { name, status, last_activity, config, session_key, soul_content, role } = body;
-      
+
       const agent = db
         .prepare('SELECT * FROM agents WHERE name = ? AND workspace_id = ?')
         .get(name, workspaceId) as Agent;
       if (!agent) {
         return NextResponse.json({ error: 'Agent not found' }, { status: 404 });
       }
-      
+
       const now = Math.floor(Date.now() / 1000);
-      
+
       // Build dynamic update query
       const fieldsToUpdate = [];
-      const params: any[] = [];
-      
+      const params: unknown[] = [];
+
       if (status !== undefined) {
         fieldsToUpdate.push('status = ?');
         params.push(status);
-        
+
         fieldsToUpdate.push('last_seen = ?');
         params.push(now);
       }
-      
+
       if (last_activity !== undefined) {
         fieldsToUpdate.push('last_activity = ?');
         params.push(last_activity);
       }
-      
+
       if (config !== undefined) {
         fieldsToUpdate.push('config = ?');
         params.push(JSON.stringify(config));
       }
-      
+
       if (session_key !== undefined) {
         fieldsToUpdate.push('session_key = ?');
         params.push(session_key);
       }
-      
+
       if (soul_content !== undefined) {
         fieldsToUpdate.push('soul_content = ?');
         params.push(soul_content);
       }
-      
+
       if (role !== undefined) {
         fieldsToUpdate.push('role = ?');
         params.push(role);
       }
-      
+
       fieldsToUpdate.push('updated_at = ?');
       params.push(now);
       params.push(name, workspaceId);
-      
+
       if (fieldsToUpdate.length === 1) { // Only updated_at
         return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
       }
-      
+
       const stmt = db.prepare(`
-        UPDATE agents 
+        UPDATE agents
         SET ${fieldsToUpdate.join(', ')}
         WHERE name = ? AND workspace_id = ?
       `);
-      
+
       stmt.run(...params);
-      
+
       // Log status change if status was updated
       if (status !== undefined && status !== agent.status) {
         db_helpers.logActivity(
