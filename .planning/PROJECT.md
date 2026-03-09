@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A nanobot-native operations dashboard forked from builderz-labs/mission-control. It provides full lifecycle control over nanobot agents (Stefany, Cody, and future agents) — monitoring health, dispatching tasks, managing memory, and viewing activity — all from a single web UI. Built for multi-user access with role-based permissions.
+A nanobot-native operations dashboard forked from builderz-labs/mission-control. It provides full lifecycle control over nanobot agents (Stefany, Cody, and future agents) — monitoring health, managing memory, and viewing activity — all from a single web UI. Built for multi-user access with role-based permissions.
 
 ## Core Value
 
@@ -29,12 +29,11 @@ At a glance, know whether every nanobot agent is alive, healthy, and doing what 
 - [ ] Nanobot agent health monitoring (process alive/dead, last activity, error state, channel status)
 - [ ] Full agent lifecycle control (start, stop, restart agents from dashboard)
 - [ ] Agent memory viewer and editor (MEMORY.md, SOUL.md, IDENTITY.md, sessions)
-- [ ] Nanobot gateway integration (communicate with agents via their HTTP gateway ports)
+- [ ] Nanobot gateway integration (health/status queries via agent HTTP gateway ports)
 - [ ] Agent session viewer (browse JSONL conversation logs)
 - [ ] Token usage tracking (volume and trends, no cost calculation)
 - [ ] Nanobot agent registry (auto-discover agents from ~/.nanobot/workspace/agents/)
 - [ ] Strip OpenClaw gateway protocol and replace with nanobot-native API layer
-- [ ] Task dispatch to agents via nanobot gateway HTTP endpoints
 - [ ] Channel status monitoring (Telegram, Discord connection health per agent)
 - [ ] Cloudflare Tunnel support for remote access
 - [ ] Multi-agent overview dashboard (all agents at a glance)
@@ -47,6 +46,8 @@ At a glance, know whether every nanobot agent is alive, healthy, and doing what 
 - Multi-gateway discovery — agents are known via filesystem, not discovered via protocol
 - Mobile app — web-first
 - Agent-to-agent messaging via MC — agents communicate through their own message bus
+- Chat/messaging to agents via dashboard — redundant with Telegram and future chat solutions
+- Task dispatch to agents via dashboard — agents receive work through their own channels
 - Google Sign-In OAuth — basic auth + API keys sufficient for v1
 
 ## Context

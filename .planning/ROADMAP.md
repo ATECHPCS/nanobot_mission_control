@@ -1,0 +1,127 @@
+# Roadmap: Nanobot Mission Control
+
+## Overview
+
+Transform the Mission Control fork from an OpenClaw-protocol dashboard into a nanobot-native operations console. The journey starts by stripping OpenClaw dead code and verifying the existing foundation, then builds upward: discover agents from the filesystem, monitor their health, control their lifecycles via gateway integration, expose their session logs and token usage, enable memory editing, and finally synthesize everything into a unified dashboard with remote access.
+
+## Phases
+
+**Phase Numbering:**
+- Integer phases (1, 2, 3): Planned milestone work
+- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+
+Decimal phases appear between their surrounding integers in numeric order.
+
+- [ ] **Phase 1: Foundation Strip** - Remove OpenClaw protocol and verify existing MC features work cleanly
+- [ ] **Phase 2: Agent Discovery and Health** - Auto-discover nanobot agents and monitor their process/channel health
+- [ ] **Phase 3: Agent Lifecycle and Gateway** - Start/stop/restart agents and communicate via HTTP gateway
+- [ ] **Phase 4: Session Viewer and Token Tracking** - Browse JSONL conversation logs and visualize token usage
+- [ ] **Phase 5: Memory Management** - Browse and edit agent memory files from the dashboard
+- [ ] **Phase 6: Overview Dashboard and Remote Access** - Unified multi-agent dashboard with Cloudflare Tunnel support
+
+## Phase Details
+
+### Phase 1: Foundation Strip
+**Goal**: A clean codebase free of OpenClaw protocol code where all existing MC features (auth, RBAC, kanban, webhooks, SSE, tests) work without OpenClaw dependencies
+**Depends on**: Nothing (first phase)
+**Requirements**: FOUN-01, FOUN-02, FOUN-03, FOUN-04, FOUN-05, FOUN-06, FOUN-07, FOUN-08
+**Success Criteria** (what must be TRUE):
+  1. No OpenClaw-specific code remains in the codebase (WebSocket client, device identity, Ed25519 signing, OpenClaw config files are all removed)
+  2. User can log in, manage sessions, and use API keys without any OpenClaw dependencies
+  3. User can create, move, and manage kanban tasks without references to OpenClaw agents
+  4. Webhook system accepts events, delivers payloads, and retries failures without OpenClaw event sources
+  5. All existing E2E tests pass or have been updated to reflect nanobot context
+**Plans**: TBD
+
+Plans:
+- [ ] 01-01: TBD
+- [ ] 01-02: TBD
+
+### Phase 2: Agent Discovery and Health
+**Goal**: Dashboard automatically finds nanobot agents on the filesystem and continuously monitors whether each agent process is alive, when it was last active, whether it has errors, and whether its channels are connected
+**Depends on**: Phase 1
+**Requirements**: AREG-01, AREG-02, AREG-03, AREG-04, HLTH-01, HLTH-02, HLTH-03, HLTH-04, HLTH-05, HLTH-06
+**Success Criteria** (what must be TRUE):
+  1. Dashboard displays all agents found in ~/.nanobot/workspace/agents/ with their name, model, gateway port, and workspace path -- without manual configuration
+  2. Adding a new agent directory to the workspace causes it to appear in the dashboard without a restart
+  3. Each agent card shows a color-coded status indicator (green/yellow/red) reflecting process liveness, last activity, error state, and channel health
+  4. Health data refreshes automatically on a configurable interval (default 30 seconds) without manual page reload
+**Plans**: TBD
+
+Plans:
+- [ ] 02-01: TBD
+- [ ] 02-02: TBD
+
+### Phase 3: Agent Lifecycle and Gateway
+**Goal**: Operators can start, stop, and restart nanobot agents directly from the dashboard, and the dashboard communicates with running agents via their HTTP gateway ports
+**Depends on**: Phase 2
+**Requirements**: LIFE-01, LIFE-02, LIFE-03, LIFE-04, LIFE-05, GATE-01, GATE-03, GATE-04
+**Success Criteria** (what must be TRUE):
+  1. Operator can start a stopped agent from the dashboard and see it transition to alive/green status within one health check cycle
+  2. Operator can stop a running agent from the dashboard (with confirmation dialog) and all processes in the agent's tree are killed (no zombie processes)
+  3. Gateway health/status queries route through MC API routes -- browser never communicates directly with agent gateway ports
+  4. Gateway connection failures (agent down, timeout, port unreachable) display clear error messages rather than silent failures or crashes
+**Plans**: TBD
+
+Plans:
+- [ ] 03-01: TBD
+- [ ] 03-02: TBD
+
+### Phase 4: Session Viewer and Token Tracking
+**Goal**: Users can browse agent conversation history from JSONL session files and see per-agent, per-model token usage visualized over time
+**Depends on**: Phase 2
+**Requirements**: SESS-01, SESS-02, SESS-03, SESS-04, TOKN-01, TOKN-02, TOKN-03, TOKN-04
+**Success Criteria** (what must be TRUE):
+  1. User can select an agent and browse its JSONL conversation sessions rendered as a chat-style timeline with user messages, agent responses, and tool calls
+  2. User can search sessions by keyword and filter by date to find specific conversations
+  3. Session viewer handles large JSONL files (10MB+) without freezing the browser (streaming or virtualized rendering)
+  4. Dashboard displays per-agent and per-model token usage charts (Recharts) with trend lines showing usage over time
+**Plans**: TBD
+
+Plans:
+- [ ] 04-01: TBD
+- [ ] 04-02: TBD
+
+### Phase 5: Memory Management
+**Goal**: Users can browse and edit agent memory files (MEMORY.md, SOUL.md, IDENTITY.md, etc.) from the dashboard with RBAC-gated editing
+**Depends on**: Phase 2
+**Requirements**: MEMO-01, MEMO-02, MEMO-03, MEMO-04, MEMO-05
+**Success Criteria** (what must be TRUE):
+  1. User can browse an agent's memory files (MEMORY.md, SOUL.md, IDENTITY.md, HISTORY.md) and subdirectories (episodes/, graph/, procedures/, topics/) from the dashboard
+  2. User with operator/admin role can edit a memory file using the markdown editor and the change persists to the agent's filesystem
+  3. Viewer-role users can read memory files but the edit controls are not available to them
+**Plans**: TBD
+
+Plans:
+- [ ] 05-01: TBD
+- [ ] 05-02: TBD
+
+### Phase 6: Overview Dashboard and Remote Access
+**Goal**: A single landing page shows all agents with composite status at a glance, with real-time activity feed, and the entire dashboard is accessible remotely via Cloudflare Tunnel
+**Depends on**: Phase 2, Phase 3, Phase 4
+**Requirements**: DASH-01, DASH-02, DASH-03, DASH-04, REMT-01, REMT-02, REMT-03
+**Success Criteria** (what must be TRUE):
+  1. Landing page shows all agents as composite status cards displaying name, alive/dead/error status, last activity, channel health, and token usage
+  2. Activity feed shows real-time nanobot agent events via SSE without manual refresh
+  3. Error and failure counts are displayed prominently and can be filtered
+  4. Dashboard is accessible from outside the local network via Cloudflare Tunnel with Zero Trust enforcement active
+**Plans**: TBD
+
+Plans:
+- [ ] 06-01: TBD
+- [ ] 06-02: TBD
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
+Note: Phase 4 depends on Phase 2 (not Phase 3), so Phases 3 and 4 could theoretically run in parallel.
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 1. Foundation Strip | 0/? | Not started | - |
+| 2. Agent Discovery and Health | 0/? | Not started | - |
+| 3. Agent Lifecycle and Gateway | 0/? | Not started | - |
+| 4. Session Viewer and Token Tracking | 0/? | Not started | - |
+| 5. Memory Management | 0/? | Not started | - |
+| 6. Overview Dashboard and Remote Access | 0/? | Not started | - |

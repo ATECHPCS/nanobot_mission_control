@@ -1,7 +1,7 @@
 # Requirements: Nanobot Mission Control
 
 **Defined:** 2026-03-09
-**Core Value:** At a glance, know whether every nanobot agent is alive, healthy, and doing what it should be — and if not, fix it from the dashboard.
+**Core Value:** At a glance, know whether every nanobot agent is alive, healthy, and doing what it should be -- and if not, fix it from the dashboard.
 
 ## v1 Requirements
 
@@ -45,16 +45,8 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Gateway Integration
 
 - [ ] **GATE-01**: Dashboard communicates with agents via HTTP requests to their gateway ports
-- [ ] **GATE-02**: Dashboard can send messages to agents through their gateway API
 - [ ] **GATE-03**: Dashboard handles gateway connection failures gracefully (timeout, retry, error display)
 - [ ] **GATE-04**: All agent communication routes through MC API routes (browser never talks directly to agent ports)
-
-### Task Dispatch
-
-- [ ] **TASK-01**: Operator can assign kanban board tasks to specific nanobot agents
-- [ ] **TASK-02**: Assigned tasks dispatch to agent via HTTP POST to agent gateway
-- [ ] **TASK-03**: Dashboard tracks task dispatch status (sent/acknowledged/in-progress/completed/failed)
-- [ ] **TASK-04**: Task board shows which agent is assigned to each task
 
 ### Session Viewer
 
@@ -81,7 +73,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Overview Dashboard
 
 - [ ] **DASH-01**: Landing page shows all agents with composite status cards
-- [ ] **DASH-02**: Each agent card shows: name, status (alive/dead/error), last activity, channel health, active tasks, token usage
+- [ ] **DASH-02**: Each agent card shows: name, status (alive/dead/error), last activity, channel health, token usage
 - [ ] **DASH-03**: Activity feed shows real-time nanobot agent events via SSE
 - [ ] **DASH-04**: Error/failure counts displayed prominently with filtering capability
 
@@ -120,14 +112,16 @@ Explicitly excluded. Documented to prevent scope creep.
 
 | Feature | Reason |
 |---------|--------|
-| Cost/dollar tracking | Subscription plans don't have meaningful per-token billing — volume tracking only |
-| Agent-to-agent messaging via dashboard | Agents have their own message bus — dashboard mediating creates single point of failure |
-| Visual workflow/DAG builder | Nanobot agents are autonomous — DAG implies deterministic orchestration which contradicts the model |
+| Cost/dollar tracking | Subscription plans don't have meaningful per-token billing -- volume tracking only |
+| Agent-to-agent messaging via dashboard | Agents have their own message bus -- dashboard mediating creates single point of failure |
+| Visual workflow/DAG builder | Nanobot agents are autonomous -- DAG implies deterministic orchestration which contradicts the model |
 | LLM playground / prompt engineering | Agent behavior is tuned via SOUL.md/IDENTITY.md files, not prompt templates |
 | Mobile app | Responsive web UI works on mobile browsers via Cloudflare Tunnel |
-| Multi-tenant / multi-workspace | Single-user/small-team tool — RBAC handles access control |
-| Real-time WebSocket for all data | SSE for activity feed + smart polling sufficient — WebSocket everywhere adds complexity |
+| Multi-tenant / multi-workspace | Single-user/small-team tool -- RBAC handles access control |
+| Real-time WebSocket for all data | SSE for activity feed + smart polling sufficient -- WebSocket everywhere adds complexity |
 | OpenClaw gateway protocol | Replaced entirely with nanobot-native integration |
+| Chat/messaging to agents via dashboard | Redundant -- agents are communicated with via Telegram or future chat solution |
+| Task dispatch to agents via gateway | Kanban board is for user task tracking only -- agents receive work through their own channels |
 
 ## Traceability
 
@@ -135,63 +129,58 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUN-01 | — | Pending |
-| FOUN-02 | — | Pending |
-| FOUN-03 | — | Pending |
-| FOUN-04 | — | Pending |
-| FOUN-05 | — | Pending |
-| FOUN-06 | — | Pending |
-| FOUN-07 | — | Pending |
-| FOUN-08 | — | Pending |
-| AREG-01 | — | Pending |
-| AREG-02 | — | Pending |
-| AREG-03 | — | Pending |
-| AREG-04 | — | Pending |
-| HLTH-01 | — | Pending |
-| HLTH-02 | — | Pending |
-| HLTH-03 | — | Pending |
-| HLTH-04 | — | Pending |
-| HLTH-05 | — | Pending |
-| HLTH-06 | — | Pending |
-| LIFE-01 | — | Pending |
-| LIFE-02 | — | Pending |
-| LIFE-03 | — | Pending |
-| LIFE-04 | — | Pending |
-| LIFE-05 | — | Pending |
-| GATE-01 | — | Pending |
-| GATE-02 | — | Pending |
-| GATE-03 | — | Pending |
-| GATE-04 | — | Pending |
-| TASK-01 | — | Pending |
-| TASK-02 | — | Pending |
-| TASK-03 | — | Pending |
-| TASK-04 | — | Pending |
-| SESS-01 | — | Pending |
-| SESS-02 | — | Pending |
-| SESS-03 | — | Pending |
-| SESS-04 | — | Pending |
-| TOKN-01 | — | Pending |
-| TOKN-02 | — | Pending |
-| TOKN-03 | — | Pending |
-| TOKN-04 | — | Pending |
-| MEMO-01 | — | Pending |
-| MEMO-02 | — | Pending |
-| MEMO-03 | — | Pending |
-| MEMO-04 | — | Pending |
-| MEMO-05 | — | Pending |
-| DASH-01 | — | Pending |
-| DASH-02 | — | Pending |
-| DASH-03 | — | Pending |
-| DASH-04 | — | Pending |
-| REMT-01 | — | Pending |
-| REMT-02 | — | Pending |
-| REMT-03 | — | Pending |
+| FOUN-01 | Phase 1 | Pending |
+| FOUN-02 | Phase 1 | Pending |
+| FOUN-03 | Phase 1 | Pending |
+| FOUN-04 | Phase 1 | Pending |
+| FOUN-05 | Phase 1 | Pending |
+| FOUN-06 | Phase 1 | Pending |
+| FOUN-07 | Phase 1 | Pending |
+| FOUN-08 | Phase 1 | Pending |
+| AREG-01 | Phase 2 | Pending |
+| AREG-02 | Phase 2 | Pending |
+| AREG-03 | Phase 2 | Pending |
+| AREG-04 | Phase 2 | Pending |
+| HLTH-01 | Phase 2 | Pending |
+| HLTH-02 | Phase 2 | Pending |
+| HLTH-03 | Phase 2 | Pending |
+| HLTH-04 | Phase 2 | Pending |
+| HLTH-05 | Phase 2 | Pending |
+| HLTH-06 | Phase 2 | Pending |
+| LIFE-01 | Phase 3 | Pending |
+| LIFE-02 | Phase 3 | Pending |
+| LIFE-03 | Phase 3 | Pending |
+| LIFE-04 | Phase 3 | Pending |
+| LIFE-05 | Phase 3 | Pending |
+| GATE-01 | Phase 3 | Pending |
+| GATE-03 | Phase 3 | Pending |
+| GATE-04 | Phase 3 | Pending |
+| SESS-01 | Phase 4 | Pending |
+| SESS-02 | Phase 4 | Pending |
+| SESS-03 | Phase 4 | Pending |
+| SESS-04 | Phase 4 | Pending |
+| TOKN-01 | Phase 4 | Pending |
+| TOKN-02 | Phase 4 | Pending |
+| TOKN-03 | Phase 4 | Pending |
+| TOKN-04 | Phase 4 | Pending |
+| MEMO-01 | Phase 5 | Pending |
+| MEMO-02 | Phase 5 | Pending |
+| MEMO-03 | Phase 5 | Pending |
+| MEMO-04 | Phase 5 | Pending |
+| MEMO-05 | Phase 5 | Pending |
+| DASH-01 | Phase 6 | Pending |
+| DASH-02 | Phase 6 | Pending |
+| DASH-03 | Phase 6 | Pending |
+| DASH-04 | Phase 6 | Pending |
+| REMT-01 | Phase 6 | Pending |
+| REMT-02 | Phase 6 | Pending |
+| REMT-03 | Phase 6 | Pending |
 
 **Coverage:**
-- v1 requirements: 50 total
-- Mapped to phases: 0
-- Unmapped: 50 ⚠️
+- v1 requirements: 46 total
+- Mapped to phases: 46
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-09*
-*Last updated: 2026-03-09 after initial definition*
+*Last updated: 2026-03-09 after roadmap creation*
