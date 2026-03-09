@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Phase 2 context gathered
-last_updated: "2026-03-09T18:02:36.624Z"
-last_activity: 2026-03-09 -- Plan 01-05 verified (build, tests, visual branding)
+status: executing
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-03-09T18:43:49Z"
+last_activity: 2026-03-09 -- Plan 02-01 executed (agent discovery + health backend)
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 6
-  completed_plans: 6
-  percent: 83
+  total_plans: 9
+  completed_plans: 7
+  percent: 78
 ---
 
 # Project State
@@ -21,33 +21,34 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** At a glance, know whether every nanobot agent is alive, healthy, and doing what it should be -- and if not, fix it from the dashboard.
-**Current focus:** Phase 1 gap closure complete. Ready for Phase 2: Agent Discovery and Health
+**Current focus:** Phase 2: Agent Discovery and Health -- backend services complete, UI plans next
 
 ## Current Position
 
-Phase: 1 of 6 (Foundation Strip) -- COMPLETE
-Plan: 6 of 6 in current phase (all done, verified)
-Status: Phase 1 fully verified — build green, 124 tests pass, branding approved
-Last activity: 2026-03-09 -- Plan 01-05 verified (build, tests, visual branding)
+Phase: 2 of 6 (Agent Discovery and Health)
+Plan: 1 of 3 in current phase (02-01 complete)
+Status: Backend services complete -- discovery, health checks, monitor, API routes. 175 tests pass.
+Last activity: 2026-03-09 -- Plan 02-01 executed (agent discovery + health backend)
 
-Progress: [████████░░] 83%
+Progress: [███████░░░] 78%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
+- Total plans completed: 6
 - Average duration: 14 min
-- Total execution time: 1.1 hours
+- Total execution time: 1.35 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Foundation Strip | 5/5 | 68 min | 14 min |
+| 2. Agent Discovery | 1/3 | 15 min | 15 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (18 min), 01-01b (26 min), 01-02 (15 min), 01-03 (5 min), 01-04 (4 min)
-- Trend: Accelerating (cleanup tasks progressively faster)
+- Last 5 plans: 01-01b (26 min), 01-02 (15 min), 01-03 (5 min), 01-04 (4 min), 02-01 (15 min)
+- Trend: Stable (feature plans ~15 min)
 
 *Updated after each plan completion*
 
@@ -77,6 +78,10 @@ Recent decisions affecting current work:
 - [Phase 01-04]: mentions.ts reads agentId ?? openclawId from stored JSON for backward compat with existing agent configs
 - [Phase 01-04]: DB column openclaw_home kept as-is with annotations (renaming requires migration)
 - [Phase 01-04]: Config legacy aliases replaced with properly named properties (nanobotBin, nanobotConfigPath, nanobotGatewayHost)
+- [02-01]: Synchronous fs reads acceptable for agent discovery (<10 agents, server-side)
+- [02-01]: readLastLines() reads only last N bytes to avoid loading full JSONL/log files into memory
+- [02-01]: Channel connected status derived from gateway port liveness (no per-channel health endpoint)
+- [02-01]: Error log entries use current timestamp as approximation (logs may lack timestamps)
 
 ### Pending Todos
 
@@ -85,11 +90,11 @@ None yet.
 ### Blockers/Concerns
 
 - Research gap: Exact nanobot gateway HTTP API contract unknown (affects Phase 3, 5)
-- Research gap: Agent process PID tracking mechanism unclear (affects Phase 2, 3)
-- Research gap: JSONL session file format unspecified (affects Phase 4)
+- Research gap: Agent process PID tracking mechanism unclear (affects Phase 3)
+- RESOLVED: JSONL session file format documented in 02-RESEARCH.md and implemented in agent-health.ts
 
 ## Session Continuity
 
-Last session: 2026-03-09T18:02:36.566Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-agent-discovery-and-health/02-CONTEXT.md
+Last session: 2026-03-09T18:43:49Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: .planning/phases/02-agent-discovery-and-health/02-01-SUMMARY.md

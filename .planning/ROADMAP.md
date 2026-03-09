@@ -125,7 +125,7 @@ Note: Phase 4 depends on Phase 2 (not Phase 3), so Phases 3 and 4 could theoreti
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation Strip | 4/6 | Gap closure | - |
-| 2. Agent Discovery and Health | 0/3 | Planned | - |
+| 2. Agent Discovery and Health | 1/3 | In Progress|  |
 | 3. Agent Lifecycle and Gateway | 0/? | Not started | - |
 | 4. Session Viewer and Token Tracking | 0/? | Not started | - |
 | 5. Memory Management | 0/? | Not started | - |

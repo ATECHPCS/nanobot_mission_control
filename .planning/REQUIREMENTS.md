@@ -20,19 +20,19 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Agent Registry
 
-- [ ] **AREG-01**: Dashboard auto-discovers agents by scanning ~/.nanobot/workspace/agents/ directory
-- [ ] **AREG-02**: Dashboard reads agent config from each agent's isolated HOME directory config.json
-- [ ] **AREG-03**: Dashboard displays discovered agents with name, model, gateway port, and workspace path
-- [ ] **AREG-04**: Dashboard detects new agents added to the workspace without restart (filesystem watching or polling)
+- [x] **AREG-01**: Dashboard auto-discovers agents by scanning ~/.nanobot/workspace/agents/ directory
+- [x] **AREG-02**: Dashboard reads agent config from each agent's isolated HOME directory config.json
+- [x] **AREG-03**: Dashboard displays discovered agents with name, model, gateway port, and workspace path
+- [x] **AREG-04**: Dashboard detects new agents added to the workspace without restart (filesystem watching or polling)
 
 ### Agent Health
 
-- [ ] **HLTH-01**: Dashboard shows process alive/dead status for each agent by checking gateway port liveness
-- [ ] **HLTH-02**: Dashboard shows last activity timestamp per agent from JSONL session files
-- [ ] **HLTH-03**: Dashboard shows error state per agent (crash detection, failed tool calls, rate limits)
-- [ ] **HLTH-04**: Dashboard shows channel status per agent (Telegram/Discord connected/disconnected/error)
-- [ ] **HLTH-05**: Health checks run on configurable interval (default 30 seconds)
-- [ ] **HLTH-06**: Agent cards display color-coded status indicators (green/yellow/red)
+- [x] **HLTH-01**: Dashboard shows process alive/dead status for each agent by checking gateway port liveness
+- [x] **HLTH-02**: Dashboard shows last activity timestamp per agent from JSONL session files
+- [x] **HLTH-03**: Dashboard shows error state per agent (crash detection, failed tool calls, rate limits)
+- [x] **HLTH-04**: Dashboard shows channel status per agent (Telegram/Discord connected/disconnected/error)
+- [x] **HLTH-05**: Health checks run on configurable interval (default 30 seconds)
+- [x] **HLTH-06**: Agent cards display color-coded status indicators (green/yellow/red)
 
 ### Agent Lifecycle
 
@@ -137,16 +137,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FOUN-06 | Phase 1 | Complete |
 | FOUN-07 | Phase 1 | Complete |
 | FOUN-08 | Phase 1 | Complete |
-| AREG-01 | Phase 2 | Pending |
-| AREG-02 | Phase 2 | Pending |
-| AREG-03 | Phase 2 | Pending |
-| AREG-04 | Phase 2 | Pending |
-| HLTH-01 | Phase 2 | Pending |
-| HLTH-02 | Phase 2 | Pending |
-| HLTH-03 | Phase 2 | Pending |
-| HLTH-04 | Phase 2 | Pending |
-| HLTH-05 | Phase 2 | Pending |
-| HLTH-06 | Phase 2 | Pending |
+| AREG-01 | Phase 2 | Complete |
+| AREG-02 | Phase 2 | Complete |
+| AREG-03 | Phase 2 | Complete |
+| AREG-04 | Phase 2 | Complete |
+| HLTH-01 | Phase 2 | Complete |
+| HLTH-02 | Phase 2 | Complete |
+| HLTH-03 | Phase 2 | Complete |
+| HLTH-04 | Phase 2 | Complete |
+| HLTH-05 | Phase 2 | Complete |
+| HLTH-06 | Phase 2 | Complete |
 | LIFE-01 | Phase 3 | Pending |
 | LIFE-02 | Phase 3 | Pending |
 | LIFE-03 | Phase 3 | Pending |
