@@ -9,7 +9,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Foundation
 
-- [ ] **FOUN-01**: OpenClaw gateway protocol fully removed from codebase (WebSocket client, device identity, Ed25519 signing, OpenClaw config)
+- [x] **FOUN-01**: OpenClaw gateway protocol fully removed from codebase (WebSocket client, device identity, Ed25519 signing, OpenClaw config)
 - [ ] **FOUN-02**: Environment variables renamed from OpenClaw conventions to NANOBOT_* namespace
 - [ ] **FOUN-03**: Existing auth system (session + API key) works without OpenClaw dependencies
 - [ ] **FOUN-04**: Existing RBAC (viewer/operator/admin) works without OpenClaw dependencies
@@ -129,7 +129,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUN-01 | Phase 1 | Pending |
+| FOUN-01 | Phase 1 | Complete |
 | FOUN-02 | Phase 1 | Pending |
 | FOUN-03 | Phase 1 | Pending |
 | FOUN-04 | Phase 1 | Pending |
