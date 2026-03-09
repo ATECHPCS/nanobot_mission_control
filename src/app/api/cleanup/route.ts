@@ -3,7 +3,6 @@ import { requireRole } from '@/lib/auth'
 import { getDatabase, logAuditEvent } from '@/lib/db'
 import { config } from '@/lib/config'
 import { heavyLimiter } from '@/lib/rate-limit'
-import { countStaleGatewaySessions, pruneGatewaySessionsOlderThan } from '@/lib/sessions'
 
 interface CleanupResult {
   table: string
@@ -58,17 +57,6 @@ export async function GET(request: NextRequest) {
     })
   } catch {
     preview.push({ table: 'Token Usage (file)', retention_days: ret.tokenUsage, stale_count: 0, note: 'No token data file' })
-  }
-
-  if (ret.gatewaySessions > 0) {
-    preview.push({
-      table: 'Gateway Session Store',
-      retention_days: ret.gatewaySessions,
-      stale_count: countStaleGatewaySessions(ret.gatewaySessions),
-      note: 'Stored under ~/.openclaw/agents/*/sessions/sessions.json',
-    })
-  } else {
-    preview.push({ table: 'Gateway Session Store', retention_days: 0, stale_count: 0, note: 'Retention disabled (keep forever)' })
   }
 
   return NextResponse.json({ retention: config.retention, preview })
@@ -147,19 +135,6 @@ export async function POST(request: NextRequest) {
     } catch {
       // No token file or parse error
     }
-  }
-
-  if (ret.gatewaySessions > 0) {
-    const sessionPrune = dryRun
-      ? { deleted: countStaleGatewaySessions(ret.gatewaySessions), filesTouched: 0 }
-      : pruneGatewaySessionsOlderThan(ret.gatewaySessions)
-    results.push({
-      table: 'Gateway Session Store',
-      deleted: sessionPrune.deleted,
-      cutoff_date: new Date(Date.now() - ret.gatewaySessions * 86400000).toISOString().split('T')[0],
-      retention_days: ret.gatewaySessions,
-    })
-    totalDeleted += sessionPrune.deleted
   }
 
   if (!dryRun && totalDeleted > 0) {

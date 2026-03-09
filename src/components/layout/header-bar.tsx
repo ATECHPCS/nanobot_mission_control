@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useMissionControl } from '@/store'
-import { useWebSocket } from '@/lib/websocket'
 import { useNavigateToPanel } from '@/lib/navigation'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { DigitalClock } from '@/components/ui/digital-clock'
@@ -20,8 +19,10 @@ interface SearchResult {
 
 export function HeaderBar() {
   const { activeTab, connection, sessions, chatPanelOpen, setChatPanelOpen, notifications, unreadNotificationCount, currentUser, setCurrentUser } = useMissionControl()
-  const { isConnected, reconnect } = useWebSocket()
   const navigateToPanel = useNavigateToPanel()
+
+  // Connection reconnect placeholder (WebSocket removed, SSE handles real-time)
+  const reconnect = () => {}
 
   const activeSessions = sessions.filter(s => s.active).length
   const tabLabels: Record<string, string> = {
@@ -42,10 +43,8 @@ export function HeaderBar() {
     audit: 'Audit Trail',
     webhooks: 'Webhooks',
     alerts: 'Alert Rules',
-    gateways: 'Gateway Manager',
     users: 'Users',
     workspaces: 'Workspaces',
-    'gateway-config': 'Gateway Config',
     settings: 'Settings',
   }
 

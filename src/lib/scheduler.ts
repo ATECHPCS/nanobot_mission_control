@@ -1,12 +1,10 @@
 import { getDatabase, logAuditEvent } from './db'
-import { syncAgentsFromConfig } from './agent-sync'
 import { config, ensureDirExists } from './config'
 import { join, dirname } from 'path'
 import { readdirSync, statSync, unlinkSync } from 'fs'
 import { logger } from './logger'
 import { processWebhookRetries } from './webhooks'
 import { syncClaudeSessions } from './claude-sessions'
-import { pruneGatewaySessionsOlderThan } from './sessions'
 
 const BACKUP_DIR = join(dirname(config.dbPath), 'backups')
 
@@ -131,11 +129,6 @@ async function runCleanup(): Promise<{ ok: boolean; message: string }> {
       }
     }
 
-    if (ret.gatewaySessions > 0) {
-      const sessionCleanup = pruneGatewaySessionsOlderThan(ret.gatewaySessions)
-      totalDeleted += sessionCleanup.deleted
-    }
-
     if (totalDeleted > 0) {
       logAuditEvent({
         action: 'auto_cleanup',
@@ -215,11 +208,6 @@ const TICK_MS = 60 * 1000 // Check every minute
 /** Initialize the scheduler */
 export function initScheduler() {
   if (tickInterval) return // Already running
-
-  // Auto-sync agents from openclaw.json on startup
-  syncAgentsFromConfig('startup').catch(err => {
-    logger.warn({ err }, 'Agent auto-sync failed')
-  })
 
   // Register tasks
   const now = Date.now()

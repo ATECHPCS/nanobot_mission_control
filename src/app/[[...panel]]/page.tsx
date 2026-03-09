@@ -15,8 +15,6 @@ import { AgentCostPanel } from '@/components/panels/agent-cost-panel'
 import { SessionDetailsPanel } from '@/components/panels/session-details-panel'
 import { TaskBoardPanel } from '@/components/panels/task-board-panel'
 import { ActivityFeedPanel } from '@/components/panels/activity-feed-panel'
-import { AgentSquadPanelPhase3 } from '@/components/panels/agent-squad-panel-phase3'
-import { AgentCommsPanel } from '@/components/panels/agent-comms-panel'
 import { StandupPanel } from '@/components/panels/standup-panel'
 import { OrchestrationBar } from '@/components/panels/orchestration-bar'
 import { NotificationsPanel } from '@/components/panels/notifications-panel'
@@ -25,10 +23,8 @@ import { AuditTrailPanel } from '@/components/panels/audit-trail-panel'
 import { AgentHistoryPanel } from '@/components/panels/agent-history-panel'
 import { WebhookPanel } from '@/components/panels/webhook-panel'
 import { SettingsPanel } from '@/components/panels/settings-panel'
-import { GatewayConfigPanel } from '@/components/panels/gateway-config-panel'
 import { IntegrationsPanel } from '@/components/panels/integrations-panel'
 import { AlertRulesPanel } from '@/components/panels/alert-rules-panel'
-import { MultiGatewayPanel } from '@/components/panels/multi-gateway-panel'
 import { SuperAdminPanel } from '@/components/panels/super-admin-panel'
 import { OfficePanel } from '@/components/panels/office-panel'
 import { GitHubSyncPanel } from '@/components/panels/github-sync-panel'
@@ -38,13 +34,11 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { LocalModeBanner } from '@/components/layout/local-mode-banner'
 import { UpdateBanner } from '@/components/layout/update-banner'
 import { PromoBanner } from '@/components/layout/promo-banner'
-import { useWebSocket } from '@/lib/websocket'
 import { useServerEvents } from '@/lib/use-server-events'
 import { useMissionControl } from '@/store'
 
 export default function Home() {
   const router = useRouter()
-  const { connect } = useWebSocket()
   const { activeTab, setActiveTab, setCurrentUser, setDashboardMode, setGatewayAvailable, setSubscription, setUpdateAvailable, liveFeedOpen, toggleLiveFeed } = useMissionControl()
 
   // Sync URL → Zustand activeTab
@@ -88,7 +82,7 @@ export default function Home() {
       })
       .catch(() => {})
 
-    // Check capabilities, then conditionally connect to gateway
+    // Check capabilities
     fetch('/api/status?action=capabilities')
       .then(res => res.ok ? res.json() : null)
       .then(data => {
@@ -98,37 +92,15 @@ export default function Home() {
         if (data && data.gateway === false) {
           setDashboardMode('local')
           setGatewayAvailable(false)
-          // Skip WebSocket connect — no gateway to talk to
           return
         }
         if (data && data.gateway === true) {
           setDashboardMode('full')
           setGatewayAvailable(true)
         }
-        // Connect to gateway WebSocket
-        const wsToken = process.env.NEXT_PUBLIC_GATEWAY_TOKEN || process.env.NEXT_PUBLIC_WS_TOKEN || ''
-        const explicitWsUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || ''
-        const gatewayPort = process.env.NEXT_PUBLIC_GATEWAY_PORT || '18789'
-        const gatewayHost = process.env.NEXT_PUBLIC_GATEWAY_HOST || window.location.hostname
-        const gatewayProto =
-          process.env.NEXT_PUBLIC_GATEWAY_PROTOCOL ||
-          (window.location.protocol === 'https:' ? 'wss' : 'ws')
-        const wsUrl = explicitWsUrl || `${gatewayProto}://${gatewayHost}:${gatewayPort}`
-        connect(wsUrl, wsToken)
       })
-      .catch(() => {
-        // If capabilities check fails, still try to connect
-        const wsToken = process.env.NEXT_PUBLIC_GATEWAY_TOKEN || process.env.NEXT_PUBLIC_WS_TOKEN || ''
-        const explicitWsUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || ''
-        const gatewayPort = process.env.NEXT_PUBLIC_GATEWAY_PORT || '18789'
-        const gatewayHost = process.env.NEXT_PUBLIC_GATEWAY_HOST || window.location.hostname
-        const gatewayProto =
-          process.env.NEXT_PUBLIC_GATEWAY_PROTOCOL ||
-          (window.location.protocol === 'https:' ? 'wss' : 'ws')
-        const wsUrl = explicitWsUrl || `${gatewayProto}://${gatewayHost}:${gatewayPort}`
-        connect(wsUrl, wsToken)
-      })
-  }, [connect, pathname, router, setCurrentUser, setDashboardMode, setGatewayAvailable, setSubscription, setUpdateAvailable])
+      .catch(() => {})
+  }, [pathname, router, setCurrentUser, setDashboardMode, setGatewayAvailable, setSubscription, setUpdateAvailable])
 
   if (!isClient) {
     return (
@@ -201,28 +173,14 @@ function ContentRouter({ tab }: { tab: string }) {
 
   switch (tab) {
     case 'overview':
-      return (
-        <>
-          <Dashboard />
-          {!isLocal && (
-            <div className="mt-4 mx-4 mb-4 rounded-xl border border-border bg-card overflow-hidden">
-              <AgentCommsPanel />
-            </div>
-          )}
-        </>
-      )
+      return <Dashboard />
     case 'tasks':
       return <TaskBoardPanel />
     case 'agents':
       return (
         <>
           <OrchestrationBar />
-          <AgentSquadPanelPhase3 />
-          {!isLocal && (
-            <div className="mt-4 mx-4 mb-4 rounded-xl border border-border bg-card overflow-hidden">
-              <AgentCommsPanel />
-            </div>
-          )}
+          <ActivityFeedPanel />
         </>
       )
     case 'activity':
@@ -255,10 +213,6 @@ function ContentRouter({ tab }: { tab: string }) {
       return <WebhookPanel />
     case 'alerts':
       return <AlertRulesPanel />
-    case 'gateways':
-      return <MultiGatewayPanel />
-    case 'gateway-config':
-      return <GatewayConfigPanel />
     case 'integrations':
       return <IntegrationsPanel />
     case 'settings':

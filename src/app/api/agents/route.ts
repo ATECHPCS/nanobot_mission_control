@@ -2,16 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase, Agent, db_helpers } from '@/lib/db';
 import { eventBus } from '@/lib/event-bus';
 import { getTemplate, buildAgentConfig } from '@/lib/agent-templates';
-import { writeAgentToConfig, enrichAgentConfigFromWorkspace } from '@/lib/agent-sync';
 import { logAuditEvent } from '@/lib/db';
 import { requireRole } from '@/lib/auth';
 import { mutationLimiter } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { validateBody, createAgentSchema } from '@/lib/validation';
-import { runOpenClaw } from '@/lib/command';
-import { config as appConfig } from '@/lib/config';
-import { resolveWithin } from '@/lib/paths';
-import path from 'node:path';
 
 /**
  * GET /api/agents - List all agents with optional filtering
@@ -55,7 +50,7 @@ export async function GET(request: NextRequest) {
     // Parse JSON config field
     const agentsWithParsedData = agents.map(agent => ({
       ...agent,
-      config: enrichAgentConfigFromWorkspace(agent.config ? JSON.parse(agent.config) : {})
+      config: agent.config ? JSON.parse(agent.config) : {}
     }));
     
     // Get task counts for each agent (prepare once, reuse per agent)
@@ -127,7 +122,6 @@ export async function POST(request: NextRequest) {
 
     const {
       name,
-      openclaw_id,
       role,
       session_key,
       soul_content,
@@ -135,15 +129,7 @@ export async function POST(request: NextRequest) {
       config = {},
       template,
       gateway_config,
-      write_to_gateway,
-      provision_openclaw_workspace,
-      openclaw_workspace_path
     } = body;
-
-    const openclawId = (openclaw_id || name || 'agent')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '');
 
     // Resolve template if specified
     let finalRole = role;
@@ -171,32 +157,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Agent name already exists' }, { status: 409 });
     }
 
-    if (provision_openclaw_workspace) {
-      if (!appConfig.openclawStateDir) {
-        return NextResponse.json(
-          { error: 'OPENCLAW_STATE_DIR is not configured; cannot provision OpenClaw workspace' },
-          { status: 500 }
-        );
-      }
-
-      const workspacePath = openclaw_workspace_path
-        ? path.resolve(openclaw_workspace_path)
-        : resolveWithin(appConfig.openclawStateDir, path.join('workspaces', openclawId));
-
-      try {
-        await runOpenClaw(
-          ['agents', 'add', openclawId, '--name', name, '--workspace', workspacePath, '--non-interactive'],
-          { timeoutMs: 20000 }
-        );
-      } catch (provisionError: any) {
-        logger.error({ err: provisionError, openclawId, workspacePath }, 'OpenClaw workspace provisioning failed');
-        return NextResponse.json(
-          { error: provisionError?.message || 'Failed to provision OpenClaw agent workspace' },
-          { status: 502 }
-        );
-      }
-    }
-    
     const now = Math.floor(Date.now() / 1000);
     
     const stmt = db.prepare(`
@@ -249,39 +209,6 @@ export async function POST(request: NextRequest) {
 
     // Broadcast to SSE clients
     eventBus.broadcast('agent.created', parsedAgent);
-
-    // Write to gateway config if requested
-    if (write_to_gateway && finalConfig) {
-      try {
-        await writeAgentToConfig({
-          id: openclawId,
-          name,
-          ...(finalConfig.model && { model: finalConfig.model }),
-          ...(finalConfig.identity && { identity: finalConfig.identity }),
-          ...(finalConfig.sandbox && { sandbox: finalConfig.sandbox }),
-          ...(finalConfig.tools && { tools: finalConfig.tools }),
-          ...(finalConfig.subagents && { subagents: finalConfig.subagents }),
-          ...(finalConfig.memorySearch && { memorySearch: finalConfig.memorySearch }),
-        });
-
-        const ipAddress = request.headers.get('x-forwarded-for') || 'unknown';
-        logAuditEvent({
-          action: 'agent_gateway_create',
-          actor: auth.user.username,
-          actor_id: auth.user.id,
-          target_type: 'agent',
-          target_id: agentId as number,
-          detail: { name, openclaw_id: openclawId, template: template || null },
-          ip_address: ipAddress,
-        });
-      } catch (gwErr: any) {
-        logger.error({ err: gwErr }, 'Gateway write-back failed');
-        return NextResponse.json({ 
-          agent: parsedAgent,
-          warning: `Agent created in MC but gateway write failed: ${gwErr.message}`
-        }, { status: 201 });
-      }
-    }
 
     return NextResponse.json({ agent: parsedAgent }, { status: 201 });
   } catch (error) {
