@@ -188,6 +188,8 @@ describe('agent-discovery', () => {
         throw new Error(`Unexpected: ${path}`)
       })
       mockFs.existsSync.mockImplementation((p: any) => {
+        // Exclude root config so discoverRootAgent() doesn't add an extra agent
+        if (String(p) === '/home/testuser/.nanobot/config.json') return false
         return true
       })
 
@@ -196,7 +198,10 @@ describe('agent-discovery', () => {
 
       // Second call: two agents
       vi.resetAllMocks()
-      mockFs.existsSync.mockReturnValue(true)
+      mockFs.existsSync.mockImplementation((p: any) => {
+        if (String(p) === '/home/testuser/.nanobot/config.json') return false
+        return true
+      })
       mockFs.readdirSync.mockImplementation((p: any) => {
         const path = String(p)
         if (path === '/home/testuser/.nanobot/workspace/agents') {
