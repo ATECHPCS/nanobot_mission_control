@@ -31,11 +31,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User can create, move, and manage kanban tasks without references to OpenClaw agents
   4. Webhook system accepts events, delivers payloads, and retries failures without OpenClaw event sources
   5. All existing E2E tests pass or have been updated to reflect nanobot context
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md — Delete OC-only files, strip mixed files, rename env vars
+- [ ] 01-02-PLAN.md — Tech debt cleanup (duplicate store, shared types, safeCompare, any types)
+- [ ] 01-03-PLAN.md — Update E2E tests, add smoke tests, final verification
 
 ### Phase 2: Agent Discovery and Health
 **Goal**: Dashboard automatically finds nanobot agents on the filesystem and continuously monitors whether each agent process is alive, when it was last active, whether it has errors, and whether its channels are connected
@@ -46,7 +47,7 @@ Plans:
   2. Adding a new agent directory to the workspace causes it to appear in the dashboard without a restart
   3. Each agent card shows a color-coded status indicator (green/yellow/red) reflecting process liveness, last activity, error state, and channel health
   4. Health data refreshes automatically on a configurable interval (default 30 seconds) without manual page reload
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
 - [ ] 02-01: TBD
@@ -61,7 +62,7 @@ Plans:
   2. Operator can stop a running agent from the dashboard (with confirmation dialog) and all processes in the agent's tree are killed (no zombie processes)
   3. Gateway health/status queries route through MC API routes -- browser never communicates directly with agent gateway ports
   4. Gateway connection failures (agent down, timeout, port unreachable) display clear error messages rather than silent failures or crashes
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
 - [ ] 03-01: TBD
@@ -76,7 +77,7 @@ Plans:
   2. User can search sessions by keyword and filter by date to find specific conversations
   3. Session viewer handles large JSONL files (10MB+) without freezing the browser (streaming or virtualized rendering)
   4. Dashboard displays per-agent and per-model token usage charts (Recharts) with trend lines showing usage over time
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
 - [ ] 04-01: TBD
@@ -90,7 +91,7 @@ Plans:
   1. User can browse an agent's memory files (MEMORY.md, SOUL.md, IDENTITY.md, HISTORY.md) and subdirectories (episodes/, graph/, procedures/, topics/) from the dashboard
   2. User with operator/admin role can edit a memory file using the markdown editor and the change persists to the agent's filesystem
   3. Viewer-role users can read memory files but the edit controls are not available to them
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
 - [ ] 05-01: TBD
@@ -105,7 +106,7 @@ Plans:
   2. Activity feed shows real-time nanobot agent events via SSE without manual refresh
   3. Error and failure counts are displayed prominently and can be filtered
   4. Dashboard is accessible from outside the local network via Cloudflare Tunnel with Zero Trust enforcement active
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
 - [ ] 06-01: TBD
@@ -119,7 +120,7 @@ Note: Phase 4 depends on Phase 2 (not Phase 3), so Phases 3 and 4 could theoreti
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation Strip | 0/? | Not started | - |
+| 1. Foundation Strip | 0/3 | Not started | - |
 | 2. Agent Discovery and Health | 0/? | Not started | - |
 | 3. Agent Lifecycle and Gateway | 0/? | Not started | - |
 | 4. Session Viewer and Token Tracking | 0/? | Not started | - |
