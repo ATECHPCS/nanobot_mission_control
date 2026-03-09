@@ -2,7 +2,6 @@ import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
   testDir: 'tests',
-  testIgnore: /openclaw-harness\.spec\.ts/,
   timeout: 60_000,
   expect: {
     timeout: 10_000
@@ -34,7 +33,7 @@ export default defineConfig({
       API_KEY: process.env.API_KEY || 'test-api-key-e2e-12345',
       AUTH_USER: process.env.AUTH_USER || 'testadmin',
       AUTH_PASS: process.env.AUTH_PASS || 'testpass1234!',
-      OPENCLAW_MEMORY_DIR: process.env.OPENCLAW_MEMORY_DIR || '.data/e2e-memory',
+      NANOBOT_MEMORY_DIR: process.env.NANOBOT_MEMORY_DIR || '.data/e2e-memory',
     },
   }
 })
