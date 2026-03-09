@@ -7,6 +7,30 @@ import { hashPassword } from './password';
 import { logger } from './logger';
 import { parseMentions as parseMentionTokens } from './mentions';
 
+// Import canonical types for use within this module.
+import type {
+  DbAgentRow,
+  DbActivityRow,
+  DbNotificationRow,
+} from '@/types/shared'
+
+// Re-export database row types under the short names that existing consumers
+// already use (e.g. `import { Task, Agent } from '@/lib/db'`).
+// These have JSON columns typed as `string` -- matching raw SQLite rows.
+export type {
+  DbTaskRow as Task,
+  DbAgentRow as Agent,
+  DbCommentRow as Comment,
+  DbActivityRow as Activity,
+  DbNotificationRow as Notification,
+} from '@/types/shared'
+
+// Also export the explicit Db* names for code that wants to be specific.
+export type {
+  DbTaskRow, DbAgentRow, DbCommentRow, DbActivityRow,
+  DbMessageRow, DbNotificationRow,
+} from '@/types/shared'
+
 // Database file location
 const DB_PATH = config.dbPath;
 
@@ -158,71 +182,10 @@ export function closeDatabase() {
   }
 }
 
-// Type definitions for database entities
-export interface Task {
-  id: number;
-  title: string;
-  description?: string;
-  status: 'inbox' | 'assigned' | 'in_progress' | 'review' | 'quality_review' | 'done';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  project_id?: number;
-  project_ticket_no?: number;
-  project_name?: string;
-  project_prefix?: string;
-  ticket_ref?: string;
-  assigned_to?: string;
-  created_by: string;
-  created_at: number;
-  updated_at: number;
-  due_date?: number;
-  estimated_hours?: number;
-  actual_hours?: number;
-  outcome?: 'success' | 'failed' | 'partial' | 'abandoned';
-  error_message?: string;
-  resolution?: string;
-  feedback_rating?: number;
-  feedback_notes?: string;
-  retry_count?: number;
-  completed_at?: number;
-  tags?: string; // JSON string
-  metadata?: string; // JSON string
-}
+// Database-only entity types (not shared with client).
+// For Task, Agent, Comment, Activity, Notification see @/types/shared.
 
-export interface Agent {
-  id: number;
-  name: string;
-  role: string;
-  session_key?: string;
-  soul_content?: string;
-  status: 'offline' | 'idle' | 'busy' | 'error';
-  last_seen?: number;
-  last_activity?: string;
-  created_at: number;
-  updated_at: number;
-  config?: string; // JSON string
-}
-
-export interface Comment {
-  id: number;
-  task_id: number;
-  author: string;
-  content: string;
-  created_at: number;
-  parent_id?: number;
-  mentions?: string; // JSON string
-}
-
-export interface Activity {
-  id: number;
-  type: string;
-  entity_type: string;
-  entity_id: number;
-  actor: string;
-  description: string;
-  data?: string; // JSON string
-  created_at: number;
-}
-
+/** Raw chat message row as stored in SQLite. */
 export interface Message {
   id: number;
   conversation_id: string;
@@ -232,19 +195,6 @@ export interface Message {
   message_type: string;
   metadata?: string; // JSON string
   read_at?: number;
-  created_at: number;
-}
-
-export interface Notification {
-  id: number;
-  recipient: string;
-  type: string;
-  title: string;
-  message: string;
-  source_type?: string;
-  source_id?: number;
-  read_at?: number;
-  delivered_at?: number;
   created_at: number;
 }
 
@@ -382,7 +332,7 @@ export const db_helpers = {
   /**
    * Update agent status and last seen
    */
-  updateAgentStatus: (agentName: string, status: Agent['status'], activity?: string, workspaceId: number = 1) => {
+  updateAgentStatus: (agentName: string, status: DbAgentRow['status'], activity?: string, workspaceId: number = 1) => {
     const db = getDatabase();
     const now = Math.floor(Date.now() / 1000);
 
@@ -414,29 +364,29 @@ export const db_helpers = {
   /**
    * Get recent activities for feed
    */
-  getRecentActivities: (limit: number = 50): Activity[] => {
+  getRecentActivities: (limit: number = 50): DbActivityRow[] => {
     const db = getDatabase();
     const stmt = db.prepare(`
-      SELECT * FROM activities 
-      ORDER BY created_at DESC 
+      SELECT * FROM activities
+      ORDER BY created_at DESC
       LIMIT ?
     `);
-    
-    return stmt.all(limit) as Activity[];
+
+    return stmt.all(limit) as DbActivityRow[];
   },
 
   /**
    * Get unread notifications for recipient
    */
-  getUnreadNotifications: (recipient: string, workspaceId: number = 1): Notification[] => {
+  getUnreadNotifications: (recipient: string, workspaceId: number = 1): DbNotificationRow[] => {
     const db = getDatabase();
     const stmt = db.prepare(`
-      SELECT * FROM notifications 
+      SELECT * FROM notifications
       WHERE recipient = ? AND read_at IS NULL AND workspace_id = ?
       ORDER BY created_at DESC
     `);
-    
-    return stmt.all(recipient, workspaceId) as Notification[];
+
+    return stmt.all(recipient, workspaceId) as DbNotificationRow[];
   },
 
   /**
