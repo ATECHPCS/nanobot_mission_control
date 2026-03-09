@@ -40,9 +40,9 @@ interface MissionControlStore {
 
   // WebSocket & Connection
   connection: ConnectionStatus
-  lastMessage: any
+  lastMessage: Record<string, unknown> | null
   setConnection: (connection: Partial<ConnectionStatus>) => void
-  setLastMessage: (message: any) => void
+  setLastMessage: (message: Record<string, unknown> | null) => void
 
   // Mission Control Phase 2 - Tasks
   tasks: Task[]

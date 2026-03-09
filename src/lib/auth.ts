@@ -1,22 +1,10 @@
-import { createHash, randomBytes, timingSafeEqual } from 'crypto'
+import { createHash, randomBytes } from 'crypto'
 import { getDatabase } from './db'
 import { hashPassword, verifyPassword } from './password'
+import { safeCompare } from './safe-compare'
 
-/**
- * Constant-time string comparison to prevent timing attacks.
- */
-export function safeCompare(a: string, b: string): boolean {
-  if (typeof a !== 'string' || typeof b !== 'string') return false
-  const bufA = Buffer.from(a)
-  const bufB = Buffer.from(b)
-  if (bufA.length !== bufB.length) {
-    // Compare against dummy buffer to avoid timing leak on length mismatch
-    const dummy = Buffer.alloc(bufA.length)
-    timingSafeEqual(bufA, dummy)
-    return false
-  }
-  return timingSafeEqual(bufA, bufB)
-}
+// Re-export so existing consumers (e.g. tests) that import from auth still work.
+export { safeCompare } from './safe-compare'
 
 export interface User {
   id: number
@@ -253,7 +241,7 @@ export function createUser(
 export function updateUser(id: number, updates: { display_name?: string; role?: User['role']; password?: string; email?: string | null; avatar_url?: string | null; is_approved?: 0 | 1 }): User | null {
   const db = getDatabase()
   const fields: string[] = []
-  const params: any[] = []
+  const params: (string | number | null)[] = []
 
   if (updates.display_name !== undefined) { fields.push('display_name = ?'); params.push(updates.display_name) }
   if (updates.role !== undefined) { fields.push('role = ?'); params.push(updates.role) }

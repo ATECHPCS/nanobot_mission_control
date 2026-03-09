@@ -257,7 +257,7 @@ export const db_helpers = {
     entity_id: number,
     actor: string,
     description: string,
-    data?: any,
+    data?: Record<string, unknown>,
     workspaceId: number = 1
   ) => {
     const db = getDatabase();
@@ -442,7 +442,7 @@ export function logAuditEvent(event: {
   actor_id?: number
   target_type?: string
   target_id?: number
-  detail?: any
+  detail?: Record<string, unknown>
   ip_address?: string
   user_agent?: string
 }) {
@@ -479,7 +479,7 @@ export function appendProvisionEvent(event: {
   level?: 'info' | 'warn' | 'error'
   step_key?: string
   message: string
-  data?: any
+  data?: Record<string, unknown>
 }) {
   const db = getDatabase()
   db.prepare(`

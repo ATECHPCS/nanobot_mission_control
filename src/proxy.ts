@@ -2,12 +2,22 @@ import crypto from 'node:crypto'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-/** Constant-time string comparison using Node.js crypto. */
+/**
+ * Constant-time string comparison using Node.js crypto.
+ * Canonical implementation lives in src/lib/safe-compare.ts;
+ * this is a local copy because proxy.ts runs in Next.js middleware
+ * runtime which cannot import modules that pull in better-sqlite3.
+ */
 function safeCompare(a: string, b: string): boolean {
   if (typeof a !== 'string' || typeof b !== 'string') return false
   const bufA = Buffer.from(a)
   const bufB = Buffer.from(b)
-  if (bufA.length !== bufB.length) return false
+  if (bufA.length !== bufB.length) {
+    // Compare against dummy buffer to avoid timing leak on length mismatch
+    const dummy = Buffer.alloc(bufA.length)
+    crypto.timingSafeEqual(bufA, dummy)
+    return false
+  }
   return crypto.timingSafeEqual(bufA, bufB)
 }
 
