@@ -12,10 +12,10 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **FOUN-01**: OpenClaw gateway protocol fully removed from codebase (WebSocket client, device identity, Ed25519 signing, OpenClaw config)
 - [ ] **FOUN-02**: Environment variables renamed from OpenClaw conventions to NANOBOT_* namespace
 - [ ] **FOUN-03**: Existing auth system (session + API key) works without OpenClaw dependencies
-- [ ] **FOUN-04**: Existing RBAC (viewer/operator/admin) works without OpenClaw dependencies
-- [ ] **FOUN-05**: Existing kanban task board works without OpenClaw agent references
-- [ ] **FOUN-06**: Existing webhook system works without OpenClaw event sources
-- [ ] **FOUN-07**: Existing SSE activity feed infrastructure works without OpenClaw events
+- [x] **FOUN-04**: Existing RBAC (viewer/operator/admin) works without OpenClaw dependencies
+- [x] **FOUN-05**: Existing kanban task board works without OpenClaw agent references
+- [x] **FOUN-06**: Existing webhook system works without OpenClaw event sources
+- [x] **FOUN-07**: Existing SSE activity feed infrastructure works without OpenClaw events
 - [ ] **FOUN-08**: Existing E2E tests pass or are updated for nanobot context
 
 ### Agent Registry
@@ -132,10 +132,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FOUN-01 | Phase 1 | Complete |
 | FOUN-02 | Phase 1 | Pending |
 | FOUN-03 | Phase 1 | Pending |
-| FOUN-04 | Phase 1 | Pending |
-| FOUN-05 | Phase 1 | Pending |
-| FOUN-06 | Phase 1 | Pending |
-| FOUN-07 | Phase 1 | Pending |
+| FOUN-04 | Phase 1 | Complete |
+| FOUN-05 | Phase 1 | Complete |
+| FOUN-06 | Phase 1 | Complete |
+| FOUN-07 | Phase 1 | Complete |
 | FOUN-08 | Phase 1 | Pending |
 | AREG-01 | Phase 2 | Pending |
 | AREG-02 | Phase 2 | Pending |

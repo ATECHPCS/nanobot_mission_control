@@ -31,12 +31,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User can create, move, and manage kanban tasks without references to OpenClaw agents
   4. Webhook system accepts events, delivers payloads, and retries failures without OpenClaw event sources
   5. All existing E2E tests pass or have been updated to reflect nanobot context
-**Plans**: 3 plans
+**Plans**: 4 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Delete OC-only files, strip mixed files, rename env vars
-- [ ] 01-02-PLAN.md — Tech debt cleanup (duplicate store, shared types, safeCompare, any types)
-- [ ] 01-03-PLAN.md — Update E2E tests, add smoke tests, final verification
+- [x] 01-01-PLAN.md -- Delete OC-only files, fix cascading imports
+- [x] 01-01b-PLAN.md -- Strip mixed files of OC references, rename env vars to NANOBOT_*
+- [ ] 01-02-PLAN.md -- Tech debt cleanup (duplicate store, shared types, safeCompare, any types)
+- [ ] 01-03-PLAN.md -- Update E2E tests, add smoke tests, final verification
 
 ### Phase 2: Agent Discovery and Health
 **Goal**: Dashboard automatically finds nanobot agents on the filesystem and continuously monitors whether each agent process is alive, when it was last active, whether it has errors, and whether its channels are connected
@@ -120,7 +121,7 @@ Note: Phase 4 depends on Phase 2 (not Phase 3), so Phases 3 and 4 could theoreti
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation Strip | 0/3 | Not started | - |
+| 1. Foundation Strip | 2/4 | In progress | - |
 | 2. Agent Discovery and Health | 0/? | Not started | - |
 | 3. Agent Lifecycle and Gateway | 0/? | Not started | - |
 | 4. Session Viewer and Token Tracking | 0/? | Not started | - |
