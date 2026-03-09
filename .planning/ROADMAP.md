@@ -13,7 +13,7 @@ Transform the Mission Control fork from an OpenClaw-protocol dashboard into a na
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Foundation Strip** - Remove OpenClaw protocol and verify existing MC features work cleanly
-- [ ] **Phase 2: Agent Discovery and Health** - Auto-discover nanobot agents and monitor their process/channel health
+- [x] **Phase 2: Agent Discovery and Health** - Auto-discover nanobot agents and monitor their process/channel health
 - [ ] **Phase 3: Agent Lifecycle and Gateway** - Start/stop/restart agents and communicate via HTTP gateway
 - [ ] **Phase 4: Session Viewer and Token Tracking** - Browse JSONL conversation logs and visualize token usage
 - [ ] **Phase 5: Memory Management** - Browse and edit agent memory files from the dashboard
@@ -53,9 +53,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 02-01-PLAN.md -- Types, agent discovery service, health checking, health monitor, API routes (Wave 1)
-- [ ] 02-02-PLAN.md -- Zustand store, agent card grid UI, summary bar, toast, nav-rail wiring (Wave 2)
-- [ ] 02-03-PLAN.md -- Slide-out detail panel, RBAC, keyboard nav, visual verification (Wave 3)
+- [x] 02-01-PLAN.md -- Types, agent discovery service, health checking, health monitor, API routes (Wave 1)
+- [x] 02-02-PLAN.md -- Zustand store, agent card grid UI, summary bar, toast, nav-rail wiring (Wave 2)
+- [x] 02-03-PLAN.md -- Slide-out detail panel, RBAC, keyboard nav, visual verification (Wave 3)
 
 ### Phase 3: Agent Lifecycle and Gateway
 **Goal**: Operators can start, stop, and restart nanobot agents directly from the dashboard, and the dashboard communicates with running agents via their HTTP gateway ports
@@ -125,7 +125,7 @@ Note: Phase 4 depends on Phase 2 (not Phase 3), so Phases 3 and 4 could theoreti
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation Strip | 4/6 | Gap closure | - |
-| 2. Agent Discovery and Health | 1/3 | In Progress|  |
+| 2. Agent Discovery and Health | 3/3 | Complete | 2026-03-09 |
 | 3. Agent Lifecycle and Gateway | 0/? | Not started | - |
 | 4. Session Viewer and Token Tracking | 0/? | Not started | - |
 | 5. Memory Management | 0/? | Not started | - |
