@@ -38,6 +38,9 @@ export function useServerEvents() {
     addChatMessage,
     addNotification,
     addActivity,
+    updateDiscoveredAgent,
+    addDiscoveredAgent,
+    removeDiscoveredAgent,
   } = useMissionControl()
 
   useEffect(() => {
@@ -121,14 +124,32 @@ export function useServerEvents() {
           }
           break
 
-        // Agent events
+        // Agent events (DB-based agents)
         case 'agent.created':
-          addAgent(event.data)
+          // Discovered agent events include a 'health' property
+          if (event.data?.health) {
+            addDiscoveredAgent(event.data)
+          } else {
+            addAgent(event.data)
+          }
           break
         case 'agent.updated':
-        case 'agent.status_changed':
           if (event.data?.id) {
             updateAgent(event.data.id, event.data)
+          }
+          break
+        case 'agent.status_changed':
+          // Discovered agent events include a 'health' property
+          if (event.data?.health && event.data?.id) {
+            updateDiscoveredAgent(event.data.id, event.data)
+          } else if (event.data?.id) {
+            updateAgent(event.data.id, event.data)
+          }
+          break
+        case 'agent.deleted':
+          // Discovered agent removal (filesystem-based)
+          if (event.data?.id) {
+            removeDiscoveredAgent(event.data.id)
           }
           break
 
@@ -204,5 +225,8 @@ export function useServerEvents() {
     addChatMessage,
     addNotification,
     addActivity,
+    updateDiscoveredAgent,
+    addDiscoveredAgent,
+    removeDiscoveredAgent,
   ])
 }

@@ -12,6 +12,8 @@ import type {
   ModelConfig, StandupReport, CurrentUser, ConnectionStatus,
 } from '@/types/shared'
 
+import type { AgentHealthSnapshot } from '@/types/agent-health'
+
 // Re-export all entity types so existing consumers
 // (e.g. `import { Agent } from '@/store'`) continue to work.
 export type {
@@ -61,6 +63,22 @@ interface MissionControlStore {
   addAgent: (agent: Agent) => void
   updateAgent: (agentId: number, updates: Partial<Agent>) => void
   deleteAgent: (agentId: number) => void
+
+  // Discovered Agents (filesystem-based, Phase 2)
+  discoveredAgents: AgentHealthSnapshot[]
+  selectedDiscoveredAgentId: string | null
+  discoveredAgentsLoading: boolean
+  discoveredAgentsLastChecked: number | null
+  healthCheckInterval: number
+  setDiscoveredAgents: (agents: AgentHealthSnapshot[]) => void
+  updateDiscoveredAgent: (id: string, snapshot: AgentHealthSnapshot) => void
+  addDiscoveredAgent: (snapshot: AgentHealthSnapshot) => void
+  removeDiscoveredAgent: (id: string) => void
+  setSelectedDiscoveredAgentId: (id: string | null) => void
+  setDiscoveredAgentsLoading: (loading: boolean) => void
+  setDiscoveredAgentsLastChecked: (timestamp: number) => void
+  setHealthCheckInterval: (ms: number) => void
+  dismissAgentErrors: (agentId: string) => void
 
   // Mission Control Phase 2 - Activities
   activities: Activity[]
@@ -430,6 +448,57 @@ export const useMissionControl = create<MissionControlStore>()(
       set((state) => ({
         agents: state.agents.filter((agent) => agent.id !== agentId),
         selectedAgent: state.selectedAgent?.id === agentId ? null : state.selectedAgent
+      })),
+
+    // Discovered Agents (filesystem-based, Phase 2)
+    discoveredAgents: [],
+    selectedDiscoveredAgentId: null,
+    discoveredAgentsLoading: true,
+    discoveredAgentsLastChecked: null,
+    healthCheckInterval: 30000,
+    setDiscoveredAgents: (agents) => {
+      // Sort by health status: red first, then yellow, then green
+      const order: Record<string, number> = { red: 0, yellow: 1, green: 2 }
+      const sorted = [...agents].sort(
+        (a, b) => (order[a.health.overall] ?? 2) - (order[b.health.overall] ?? 2)
+      )
+      set({ discoveredAgents: sorted })
+    },
+    updateDiscoveredAgent: (id, snapshot) =>
+      set((state) => {
+        const updated = state.discoveredAgents.map((a) =>
+          a.id === id ? snapshot : a
+        )
+        const order: Record<string, number> = { red: 0, yellow: 1, green: 2 }
+        updated.sort(
+          (a, b) => (order[a.health.overall] ?? 2) - (order[b.health.overall] ?? 2)
+        )
+        return { discoveredAgents: updated }
+      }),
+    addDiscoveredAgent: (snapshot) =>
+      set((state) => {
+        const updated = [...state.discoveredAgents, snapshot]
+        const order: Record<string, number> = { red: 0, yellow: 1, green: 2 }
+        updated.sort(
+          (a, b) => (order[a.health.overall] ?? 2) - (order[b.health.overall] ?? 2)
+        )
+        return { discoveredAgents: updated }
+      }),
+    removeDiscoveredAgent: (id) =>
+      set((state) => ({
+        discoveredAgents: state.discoveredAgents.filter((a) => a.id !== id),
+        selectedDiscoveredAgentId:
+          state.selectedDiscoveredAgentId === id ? null : state.selectedDiscoveredAgentId,
+      })),
+    setSelectedDiscoveredAgentId: (id) => set({ selectedDiscoveredAgentId: id }),
+    setDiscoveredAgentsLoading: (loading) => set({ discoveredAgentsLoading: loading }),
+    setDiscoveredAgentsLastChecked: (timestamp) => set({ discoveredAgentsLastChecked: timestamp }),
+    setHealthCheckInterval: (ms) => set({ healthCheckInterval: ms }),
+    dismissAgentErrors: (agentId) =>
+      set((state) => ({
+        discoveredAgents: state.discoveredAgents.map((a) =>
+          a.id === agentId ? { ...a, errors: [], errorsDismissed: true } : a
+        ),
       })),
 
     // Mission Control Phase 2 - Activities
