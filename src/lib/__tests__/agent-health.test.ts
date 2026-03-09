@@ -1,3 +1,5 @@
+// @ts-nocheck -- Vitest mock overloads confuse TypeScript's strict overload resolution
+// for node:fs methods (openSync, readSync, statSync, etc.). Tests run correctly.
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 // Mock node:net
@@ -160,7 +162,7 @@ describe('agent-health', () => {
       // File is bigger than maxBytes
       mockFs.statSync.mockReturnValue({ size: 10000 } as any)
       mockFs.openSync.mockReturnValue(42 as any)
-      mockFs.readSync.mockImplementation((fd: any, buffer: any, offset: any, length: any) => {
+      mockFs.readSync.mockImplementation((fd: any, buffer: any, offset: any, length: any, position: any) => {
         const slice = buf.subarray(0, length)
         slice.copy(buffer)
         return slice.length
