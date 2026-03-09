@@ -12,7 +12,7 @@ Transform the Mission Control fork from an OpenClaw-protocol dashboard into a na
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [x] **Phase 1: Foundation Strip** - Remove OpenClaw protocol and verify existing MC features work cleanly
+- [ ] **Phase 1: Foundation Strip** - Remove OpenClaw protocol and verify existing MC features work cleanly
 - [ ] **Phase 2: Agent Discovery and Health** - Auto-discover nanobot agents and monitor their process/channel health
 - [ ] **Phase 3: Agent Lifecycle and Gateway** - Start/stop/restart agents and communicate via HTTP gateway
 - [ ] **Phase 4: Session Viewer and Token Tracking** - Browse JSONL conversation logs and visualize token usage
@@ -31,13 +31,15 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User can create, move, and manage kanban tasks without references to OpenClaw agents
   4. Webhook system accepts events, delivers payloads, and retries failures without OpenClaw event sources
   5. All existing E2E tests pass or have been updated to reflect nanobot context
-**Plans**: 4 plans
+**Plans**: 6 plans
 
 Plans:
 - [x] 01-01-PLAN.md -- Delete OC-only files, fix cascading imports
 - [x] 01-01b-PLAN.md -- Strip mixed files of OC references, rename env vars to NANOBOT_*
 - [x] 01-02-PLAN.md -- Tech debt cleanup (duplicate store, shared types, safeCompare, any types)
 - [x] 01-03-PLAN.md -- Update E2E tests, add smoke tests, final verification
+- [ ] 01-04-PLAN.md -- [GAP CLOSURE] Strip remaining 89 OC references from 31 untouched files
+- [ ] 01-05-PLAN.md -- [GAP CLOSURE] Build/test verification and visual branding check
 
 ### Phase 2: Agent Discovery and Health
 **Goal**: Dashboard automatically finds nanobot agents on the filesystem and continuously monitors whether each agent process is alive, when it was last active, whether it has errors, and whether its channels are connected
@@ -121,7 +123,7 @@ Note: Phase 4 depends on Phase 2 (not Phase 3), so Phases 3 and 4 could theoreti
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation Strip | 4/4 | Complete | 2026-03-09 |
+| 1. Foundation Strip | 4/6 | Gap closure | - |
 | 2. Agent Discovery and Health | 0/? | Not started | - |
 | 3. Agent Lifecycle and Gateway | 0/? | Not started | - |
 | 4. Session Viewer and Token Tracking | 0/? | Not started | - |
