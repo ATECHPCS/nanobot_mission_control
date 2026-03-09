@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/toast-provider'
 import { AgentSummaryBar } from './agent-summary-bar'
 import { AgentCardGrid } from './agent-card-grid'
 import { AgentSkeletonGrid } from './agent-skeleton'
+import { AgentSlideOut } from './agent-slide-out'
 import type { AgentHealthSnapshot } from '@/types/agent-health'
 
 export function AgentsPanel() {
@@ -144,6 +145,12 @@ export function AgentsPanel() {
           onSelectAgent={handleSelectAgent}
         />
       )}
+
+      {/* Slide-out detail panel */}
+      <AgentSlideOut
+        agentId={selectedDiscoveredAgentId}
+        onClose={() => setSelectedDiscoveredAgentId(null)}
+      />
 
       {/* Footer: Last checked + Refresh */}
       <div className="flex items-center justify-between pt-2 border-t border-border">
