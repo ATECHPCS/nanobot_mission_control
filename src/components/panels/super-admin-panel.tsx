@@ -126,7 +126,7 @@ export function SuperAdminPanel() {
     display_name: '',
     linux_user: '',
     plan_tier: 'standard',
-    owner_gateway: 'openclaw-main',
+    owner_gateway: 'nanobot-main',
     gateway_port: '',
     dashboard_port: '',
     dry_run: true,
@@ -363,7 +363,7 @@ export function SuperAdminPanel() {
         display_name: '',
         linux_user: '',
         plan_tier: 'standard',
-        owner_gateway: 'openclaw-main',
+        owner_gateway: 'nanobot-main',
         gateway_port: '',
         dashboard_port: '',
         dry_run: true,
@@ -630,7 +630,7 @@ export function SuperAdminPanel() {
                 className="h-9 px-3 rounded-md bg-secondary border border-border text-sm text-foreground"
               >
                 {gatewayOptions.length === 0 ? (
-                  <option value={form.owner_gateway || 'openclaw-main'}>{form.owner_gateway || 'openclaw-main'}</option>
+                  <option value={form.owner_gateway || 'nanobot-main'}>{form.owner_gateway || 'nanobot-main'}</option>
                 ) : (
                   gatewayOptions.map((gw) => (
                     <option key={gw.id} value={gw.name}>
@@ -1050,7 +1050,7 @@ export function SuperAdminPanel() {
                   />
                   <span>
                     <span className="block font-medium">Remove state/workspace dirs</span>
-                    <span className="text-muted-foreground">Deletes `.openclaw` and `workspace` paths when user is kept.</span>
+                    <span className="text-muted-foreground">Deletes `.nanobot` and `workspace` paths when user is kept.</span>
                   </span>
                 </label>
               </div>
@@ -1058,8 +1058,8 @@ export function SuperAdminPanel() {
               <div className="rounded-md border border-border bg-secondary/20 p-3 text-xs text-foreground">
                 <div className="font-medium mb-1">Impact summary</div>
                 <ul className="space-y-1 text-muted-foreground">
-                  <li>• Stops and disables `openclaw-gateway@{decommissionDialog.tenant.linux_user}.service`.</li>
-                  <li>• Removes `/etc/openclaw-tenants/{decommissionDialog.tenant.linux_user}.env`.</li>
+                  <li>• Stops and disables `nanobot-gateway@{decommissionDialog.tenant.linux_user}.service`.</li>
+                  <li>• Removes `/etc/nanobot-tenants/{decommissionDialog.tenant.linux_user}.env`.</li>
                   <li>• {decommissionDialog.removeLinuxUser ? 'Linux user will be removed.' : (decommissionDialog.removeStateDirs ? 'State/workspace directories will be removed.' : 'Linux user and directories are retained.')}</li>
                 </ul>
               </div>

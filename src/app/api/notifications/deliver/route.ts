@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase, Notification, db_helpers } from '@/lib/db';
-import { runOpenClaw } from '@/lib/command';
+import { runNanobot } from '@/lib/command';
 import { requireRole } from '@/lib/auth';
 import { logger } from '@/lib/logger';
 
@@ -8,7 +8,7 @@ import { logger } from '@/lib/logger';
  * POST /api/notifications/deliver - Notification delivery daemon endpoint
  * 
  * Polls undelivered notifications and sends them to agent sessions
- * via OpenClaw sessions_send command
+ * via nanobot sessions_send command
  */
 export async function POST(request: NextRequest) {
   const auth = requireRole(request, 'operator');
@@ -79,9 +79,9 @@ export async function POST(request: NextRequest) {
         const message = formatNotificationMessage(notification);
         
         if (!dry_run) {
-          // Send notification via OpenClaw sessions_send
+          // Send notification via nanobot sessions_send
           try {
-            const { stdout, stderr } = await runOpenClaw(
+            const { stdout, stderr } = await runNanobot(
               [
                 'gateway',
                 'sessions_send',
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
             );
             
             if (stderr && stderr.includes('error')) {
-              throw new Error(`OpenClaw error: ${stderr}`);
+              throw new Error(`Nanobot error: ${stderr}`);
             }
             
             // Mark as delivered

@@ -3,7 +3,7 @@ import net from 'node:net'
 import os from 'node:os'
 import { existsSync, statSync } from 'node:fs'
 import path from 'node:path'
-import { runCommand, runOpenClaw, runClawdbot } from '@/lib/command'
+import { runCommand, runNanobot, runClawdbot } from '@/lib/command'
 import { config } from '@/lib/config'
 import { getDatabase } from '@/lib/db'
 import { getAllGatewaySessions, getAgentLiveStatuses } from '@/lib/sessions'
@@ -280,7 +280,7 @@ async function getSystemStatus(workspaceId: number) {
           command: parts.slice(2).join(' ')
         }
       })
-      .filter((proc) => /clawdbot|openclaw/i.test(proc.command))
+      .filter((proc) => /clawdbot|nanobot/i.test(proc.command))
     status.processes = processes
   } catch (error) {
     logger.error({ err: error }, 'Error getting process info')
@@ -329,7 +329,7 @@ async function getSystemStatus(workspaceId: number) {
 async function getGatewayStatus() {
   const gatewayStatus: any = {
     running: false,
-    port: config.gatewayPort,
+    port: config.nanobotGatewayPort,
     pid: null,
     uptime: 0,
     version: null,
@@ -342,7 +342,7 @@ async function getGatewayStatus() {
     })
     const match = stdout
       .split('\n')
-      .find((line) => /clawdbot-gateway|openclaw-gateway|openclaw.*gateway/i.test(line))
+      .find((line) => /clawdbot-gateway|nanobot-gateway|nanobot.*gateway/i.test(line))
     if (match) {
       const parts = match.trim().split(/\s+/)
       gatewayStatus.running = true
@@ -353,13 +353,13 @@ async function getGatewayStatus() {
   }
 
   try {
-    gatewayStatus.port_listening = await isPortOpen(config.gatewayHost, config.gatewayPort)
+    gatewayStatus.port_listening = await isPortOpen(config.nanobotGatewayHost, config.nanobotGatewayPort)
   } catch (error) {
     logger.error({ err: error }, 'Error checking port')
   }
 
   try {
-    const { stdout } = await runOpenClaw(['--version'], { timeoutMs: 3000 })
+    const { stdout } = await runNanobot(['--version'], { timeoutMs: 3000 })
     gatewayStatus.version = stdout.trim()
   } catch (error) {
     try {
@@ -503,11 +503,11 @@ async function performHealthCheck() {
 }
 
 async function getCapabilities() {
-  const gateway = await isPortOpen(config.gatewayHost, config.gatewayPort)
+  const gateway = await isPortOpen(config.nanobotGatewayHost, config.nanobotGatewayPort)
 
-  const openclawHome = Boolean(
-    (config.openclawStateDir && existsSync(config.openclawStateDir)) ||
-    (config.openclawConfigPath && existsSync(config.openclawConfigPath))
+  const nanobotHome = Boolean(
+    (config.nanobotStateDir && existsSync(config.nanobotStateDir)) ||
+    (config.nanobotConfigPath && existsSync(config.nanobotConfigPath))
   )
 
   const claudeProjectsPath = path.join(config.claudeHome, 'projects')
@@ -531,7 +531,7 @@ async function getCapabilities() {
     provider: primary.provider,
   } : null
 
-  return { gateway, openclawHome, claudeHome, claudeSessions, subscription, subscriptions }
+  return { gateway, nanobotHome, claudeHome, claudeSessions, subscription, subscriptions }
 }
 
 function isPortOpen(host: string, port: number): Promise<boolean> {

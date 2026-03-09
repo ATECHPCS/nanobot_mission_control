@@ -25,14 +25,14 @@ interface HealthResult {
 }
 
 function parseGatewayVersion(res: Response): string | null {
-  const direct = res.headers.get('x-openclaw-version') || res.headers.get('x-clawdbot-version')
+  const direct = res.headers.get('x-nanobot-version') || res.headers.get('x-clawdbot-version')
   if (direct) return direct.trim()
   const server = res.headers.get('server') || ''
   const m = server.match(/(\d{4}\.\d+\.\d+)/)
   return m?.[1] || null
 }
 
-function hasOpenClaw32ToolsProfileRisk(version: string | null): boolean {
+function hasToolsProfileRisk(version: string | null): boolean {
   if (!version) return false
   const m = version.match(/^(\d{4})\.(\d+)\.(\d+)/)
   if (!m) return false
@@ -102,8 +102,8 @@ export async function POST(request: NextRequest) {
       const latency = Date.now() - start
       const status = res.ok ? "online" : "error"
       const gatewayVersion = parseGatewayVersion(res)
-      const compatibilityWarning = hasOpenClaw32ToolsProfileRisk(gatewayVersion)
-        ? 'OpenClaw 2026.3.2+ defaults tools.profile=messaging; Mission Control should enforce coding profile when spawning.'
+      const compatibilityWarning = hasToolsProfileRisk(gatewayVersion)
+        ? 'Nanobot agent 2026.3.2+ defaults tools.profile=messaging; Mission Control should enforce coding profile when spawning.'
         : undefined
 
       updateOnlineStmt.run(status, latency, gw.id)

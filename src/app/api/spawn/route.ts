@@ -9,7 +9,7 @@ import { logger } from '@/lib/logger'
 import { validateBody, spawnAgentSchema } from '@/lib/validation'
 
 function getPreferredToolsProfile(): string {
-  return String(process.env.OPENCLAW_TOOLS_PROFILE || 'coding').trim() || 'coding'
+  return String(process.env.NANOBOT_TOOLS_PROFILE || 'coding').trim() || 'coding'
 }
 
 async function runSpawnWithCompatibility(spawnPayload: Record<string, unknown>) {
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     const spawnId = `spawn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 
     // Construct the spawn command
-    // Using OpenClaw's sessions_spawn function via clawdbot CLI
+    // Using nanobot's sessions_spawn function via clawdbot CLI
     const spawnPayload = {
       task,
       model,
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      // Execute the spawn command (OpenClaw 2026.3.2+ defaults tools.profile to messaging).
+      // Execute the spawn command (nanobot 2026.3.2+ defaults tools.profile to messaging).
       let stdout = ''
       let stderr = ''
       let compatibilityFallbackUsed = false

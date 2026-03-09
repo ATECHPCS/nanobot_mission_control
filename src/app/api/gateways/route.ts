@@ -53,10 +53,10 @@ export async function GET(request: NextRequest) {
   // If no gateways exist, seed defaults from environment
   if (gateways.length === 0) {
     const name = String(process.env.MC_DEFAULT_GATEWAY_NAME || 'primary')
-    const host = String(process.env.OPENCLAW_GATEWAY_HOST || '127.0.0.1')
-    const mainPort = parseInt(process.env.OPENCLAW_GATEWAY_PORT || process.env.GATEWAY_PORT || process.env.NEXT_PUBLIC_GATEWAY_PORT || '18789')
+    const host = String(process.env.NANOBOT_GATEWAY_HOST || '127.0.0.1')
+    const mainPort = parseInt(process.env.NANOBOT_GATEWAY_PORT || process.env.GATEWAY_PORT || process.env.NEXT_PUBLIC_GATEWAY_PORT || '18789')
     const mainToken =
-      process.env.OPENCLAW_GATEWAY_TOKEN ||
+      process.env.NANOBOT_GATEWAY_TOKEN ||
       process.env.GATEWAY_TOKEN ||
       ''
 

@@ -9,8 +9,8 @@ import { logger } from '@/lib/logger';
 
 function resolveAgentWorkspacePath(workspace: string): string {
   if (isAbsolute(workspace)) return resolve(workspace)
-  if (!config.openclawStateDir) throw new Error('OPENCLAW_STATE_DIR not configured')
-  return resolveWithin(config.openclawStateDir, workspace)
+  if (!config.nanobotStateDir) throw new Error('NANOBOT_STATE_DIR not configured')
+  return resolveWithin(config.nanobotStateDir, workspace)
 }
 
 /**

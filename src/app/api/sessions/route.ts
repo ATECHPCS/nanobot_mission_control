@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
     // If gateway sessions exist, deduplicate and return those
     if (gatewaySessions.length > 0) {
-      // Deduplicate by sessionId — OpenClaw tracks cron runs under the same
+      // Deduplicate by sessionId -- agent runtime tracks cron runs under the same
       // session ID as the parent session, causing duplicate React keys (#80).
       // Keep the most recently updated entry when duplicates exist.
       const sessionMap = new Map<string, (typeof gatewaySessions)[0]>()
