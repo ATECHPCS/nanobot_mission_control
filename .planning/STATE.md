@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 01-03-PLAN.md
-last_updated: "2026-03-09T12:41:00Z"
-last_activity: 2026-03-09 -- Plan 01-03 executed (E2E test cleanup, webhook/SSE smoke tests, Phase 1 complete)
+status: completed
+stopped_at: Completed 01-04-PLAN.md
+last_updated: "2026-03-09T13:10:55.573Z"
+last_activity: 2026-03-09 -- Plan 01-04 executed (gap closure, zero OC references in src/)
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
-  percent: 17
+  total_plans: 6
+  completed_plans: 5
+  percent: 83
 ---
 
 # Project State
@@ -21,32 +21,32 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** At a glance, know whether every nanobot agent is alive, healthy, and doing what it should be -- and if not, fix it from the dashboard.
-**Current focus:** Phase 1 complete. Ready for Phase 2: Agent Discovery and Health
+**Current focus:** Phase 1 gap closure complete. Ready for Phase 2: Agent Discovery and Health
 
 ## Current Position
 
 Phase: 1 of 6 (Foundation Strip) -- COMPLETE
-Plan: 4 of 4 in current phase (all done)
-Status: Phase 1 complete, ready for Phase 2
-Last activity: 2026-03-09 -- Plan 01-03 executed (E2E test cleanup, webhook/SSE smoke tests)
+Plan: 5 of 5 in current phase (all done, including gap closure plans)
+Status: Phase 1 fully complete, ready for Phase 2
+Last activity: 2026-03-09 -- Plan 01-04 executed (gap closure, zero OC references in src/)
 
-Progress: [##░░░░░░░░] 17%
+Progress: [████████░░] 83%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: 16 min
+- Total plans completed: 5
+- Average duration: 14 min
 - Total execution time: 1.1 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 1. Foundation Strip | 4/4 | 64 min | 16 min |
+| 1. Foundation Strip | 5/5 | 68 min | 14 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (18 min), 01-01b (26 min), 01-02 (15 min), 01-03 (5 min)
+- Last 5 plans: 01-01 (18 min), 01-01b (26 min), 01-02 (15 min), 01-03 (5 min), 01-04 (4 min)
 - Trend: Accelerating (cleanup tasks progressively faster)
 
 *Updated after each plan completion*
@@ -74,6 +74,9 @@ Recent decisions affecting current work:
 - [01-03]: Kept direct-cli.spec.ts (tests /api/connect, generic agent connection, not OC-specific)
 - [01-03]: Deleted openapi.spec.ts (tests /api/docs endpoint which served deleted openapi.json)
 - [01-03]: Renamed OPENCLAW_MEMORY_DIR to NANOBOT_MEMORY_DIR in playwright config
+- [Phase 01-04]: mentions.ts reads agentId ?? openclawId from stored JSON for backward compat with existing agent configs
+- [Phase 01-04]: DB column openclaw_home kept as-is with annotations (renaming requires migration)
+- [Phase 01-04]: Config legacy aliases replaced with properly named properties (nanobotBin, nanobotConfigPath, nanobotGatewayHost)
 
 ### Pending Todos
 
@@ -87,6 +90,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-09T12:41:00Z
-Stopped at: Completed 01-03-PLAN.md (Phase 1 complete)
-Resume file: .planning/phases/01-foundation-strip/01-03-SUMMARY.md
+Last session: 2026-03-09T13:10:55.567Z
+Stopped at: Completed 01-04-PLAN.md
+Resume file: .planning/phases/01-foundation-strip/01-04-SUMMARY.md
