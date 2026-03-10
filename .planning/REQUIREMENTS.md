@@ -39,7 +39,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **LIFE-01**: Operator can start an agent from the dashboard by executing its launch script
 - [x] **LIFE-02**: Operator can stop a running agent from the dashboard (proper process tree kill)
 - [x] **LIFE-03**: Operator can restart an agent from the dashboard (stop + start)
-- [ ] **LIFE-04**: Dashboard shows confirmation dialog before stop/restart actions
+- [x] **LIFE-04**: Dashboard shows confirmation dialog before stop/restart actions
 - [x] **LIFE-05**: Dashboard handles process tree management correctly (kill grandchild processes, not just direct child)
 
 ### Gateway Integration
@@ -150,7 +150,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LIFE-01 | Phase 3 | Complete |
 | LIFE-02 | Phase 3 | Complete |
 | LIFE-03 | Phase 3 | Complete |
-| LIFE-04 | Phase 3 | Pending |
+| LIFE-04 | Phase 3 | Complete |
 | LIFE-05 | Phase 3 | Complete |
 | GATE-01 | Phase 3 | Complete |
 | GATE-03 | Phase 3 | Complete |

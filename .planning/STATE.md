@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: in_progress
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-03-10T00:36:00Z"
+status: completed
+stopped_at: Completed 03-02-PLAN.md (Phase 3 complete)
+last_updated: "2026-03-10T02:33:35.366Z"
 last_activity: 2026-03-10 -- Plan 03-01 executed (lifecycle service, gateway proxy, API routes)
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 11
-  completed_plans: 10
+  completed_plans: 11
   percent: 91
 ---
 
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** At a glance, know whether every nanobot agent is alive, healthy, and doing what it should be -- and if not, fix it from the dashboard.
-**Current focus:** Phase 3 in progress. Plan 03-01 complete (server-side lifecycle + gateway). Next: Plan 03-02 (UI integration).
+**Current focus:** Phase 3 complete. Full agent lifecycle controls (server + UI). Next: Phase 4 (Alert Rules) or Phase 5 (Historical Metrics).
 
 ## Current Position
 
-Phase: 3 of 6 (Agent Lifecycle and Gateway)
-Plan: 1 of 2 in current phase (03-01 complete)
-Status: Server-side lifecycle and gateway infrastructure complete. Process management, gateway proxy, 4 API routes, lifecycle locks. 203 tests pass.
-Last activity: 2026-03-10 -- Plan 03-01 executed (lifecycle service, gateway proxy, API routes)
+Phase: 3 of 6 (Agent Lifecycle and Gateway) -- COMPLETE
+Plan: 2 of 2 in current phase (all complete)
+Status: Full lifecycle UI operational. Start/stop/restart/force-kill with confirmation modals, RBAC tab gating, operation history, card spinners, SSE real-time updates.
+Last activity: 2026-03-10 -- Plan 03-02 executed (lifecycle UI, confirmation modal, process-based verification)
 
-Progress: [█████████░] 91%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
-- Average duration: 12 min
-- Total execution time: 1.93 hours
+- Total plans completed: 11
+- Average duration: 14 min
+- Total execution time: 2.68 hours
 
 **By Phase:**
 
@@ -45,11 +45,11 @@ Progress: [█████████░] 91%
 |-------|-------|-------|----------|
 | 1. Foundation Strip | 5/5 | 68 min | 14 min |
 | 2. Agent Discovery | 3/3 | 43 min | 14 min |
-| 3. Agent Lifecycle | 1/2 | 7 min | 7 min |
+| 3. Agent Lifecycle | 2/2 | 52 min | 26 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-04 (4 min), 02-01 (15 min), 02-02 (10 min), 02-03 (18 min), 03-01 (7 min)
-- Trend: Stable (feature plans ~12 min)
+- Last 5 plans: 02-01 (15 min), 02-02 (10 min), 02-03 (18 min), 03-01 (7 min), 03-02 (45 min)
+- Trend: 03-02 longer due to checkpoint verification + 5 bug fixes
 
 *Updated after each plan completion*
 
@@ -94,6 +94,9 @@ Recent decisions affecting current work:
 - [03-01]: Background verification polling (setTimeout) returns API response immediately while monitoring start/stop outcome
 - [03-01]: Force-stop allows escalation from existing stop/restart lock without acquiring new lock
 - [03-01]: Gateway proxy validates endpoint against allowlist before forwarding (health and status only)
+- [03-02]: Process detection via pgrep instead of port-only lsof for reliable alive/dead checks
+- [03-02]: launchctl unload/load for launchd-managed agents instead of raw SIGTERM
+- [03-02]: Error log truncation on dismiss to prevent stale errors reappearing
 
 ### Pending Todos
 
@@ -107,6 +110,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T00:36:00Z
-Stopped at: Completed 03-01-PLAN.md
-Resume file: .planning/phases/03-agent-lifecycle-and-gateway/03-02-PLAN.md
+Last session: 2026-03-10T02:33:35.360Z
+Stopped at: Completed 03-02-PLAN.md (Phase 3 complete)
+Resume file: None
