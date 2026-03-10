@@ -66,11 +66,11 @@ Plans:
   2. Operator can stop a running agent from the dashboard (with confirmation dialog) and all processes in the agent's tree are killed (no zombie processes)
   3. Gateway health/status queries route through MC API routes -- browser never communicates directly with agent gateway ports
   4. Gateway connection failures (agent down, timeout, port unreachable) display clear error messages rather than silent failures or crashes
-**Plans**: 3 plans
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01-PLAN.md -- Lifecycle service, gateway proxy, API routes, health monitor locks, unit tests (Wave 1)
+- [ ] 03-02-PLAN.md -- Zustand lifecycle state, Lifecycle tab, confirm modal, card spinner, SSE events, visual verification (Wave 2)
 
 ### Phase 4: Session Viewer and Token Tracking
 **Goal**: Users can browse agent conversation history from JSONL session files and see per-agent, per-model token usage visualized over time
@@ -126,7 +126,7 @@ Note: Phase 4 depends on Phase 2 (not Phase 3), so Phases 3 and 4 could theoreti
 |-------|----------------|--------|-----------|
 | 1. Foundation Strip | 4/6 | Gap closure | - |
 | 2. Agent Discovery and Health | 3/3 | Complete | 2026-03-09 |
-| 3. Agent Lifecycle and Gateway | 0/? | Not started | - |
+| 3. Agent Lifecycle and Gateway | 0/2 | Planning complete | - |
 | 4. Session Viewer and Token Tracking | 0/? | Not started | - |
 | 5. Memory Management | 0/? | Not started | - |
 | 6. Overview Dashboard and Remote Access | 0/? | Not started | - |
