@@ -103,19 +103,18 @@ Plans:
 - [x] 05-02-PLAN.md -- Memory tab UI: file tree, editor/viewer, slide-out wiring, visual verification (Wave 2)
 
 ### Phase 6: Overview Dashboard and Remote Access
-**Goal**: A single landing page shows all agents with composite status at a glance, with real-time activity feed, and the entire dashboard is accessible remotely via Cloudflare Tunnel
+**Goal**: Agent-centric landing page showing all agents with composite status at a glance, real-time activity feed, and error summary -- replacing the legacy overview dashboard
 **Depends on**: Phase 2, Phase 3, Phase 4
-**Requirements**: DASH-01, DASH-02, DASH-03, DASH-04, REMT-01, REMT-02, REMT-03
+**Requirements**: DASH-01, DASH-02, DASH-03, DASH-04
 **Success Criteria** (what must be TRUE):
   1. Landing page shows all agents as composite status cards displaying name, alive/dead/error status, last activity, channel health, and token usage
   2. Activity feed shows real-time nanobot agent events via SSE without manual refresh
   3. Error and failure counts are displayed prominently and can be filtered
-  4. Dashboard is accessible from outside the local network via Cloudflare Tunnel with Zero Trust enforcement active
-**Plans**: 3 plans
+**Plans**: 2 plans
 
 Plans:
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
+- [ ] 06-01-PLAN.md -- New dashboard components (MetricStrip, ActivityFeedInline, ErrorSummaryPanel), nav rail cleanup, live-feed removal (Wave 1)
+- [ ] 06-02-PLAN.md -- OverviewLanding composition, ContentRouter wiring, legacy file deletion, visual verification (Wave 2)
 
 ## Progress
 
@@ -130,4 +129,4 @@ Note: Phase 4 depends on Phase 2 (not Phase 3), so Phases 3 and 4 could theoreti
 | 3. Agent Lifecycle and Gateway | 1/2 | In progress | - |
 | 4. Session Viewer and Token Tracking | 3/3 | Complete   | 2026-03-10 |
 | 5. Memory Management | 2/2 | Complete   | 2026-03-10 |
-| 6. Overview Dashboard and Remote Access | 0/? | Not started | - |
+| 6. Overview Dashboard and Remote Access | 0/2 | Not started | - |
