@@ -187,6 +187,15 @@ interface MissionControlStore {
   currentUser: CurrentUser | null
   setCurrentUser: (user: CurrentUser | null) => void
 
+  // Session Viewer (Phase 4)
+  sessionViewerAgent: string | null
+  sessionViewerSession: string | null
+  sessionViewerAgentSidebarOpen: boolean
+  setSessionViewerAgent: (agentId: string | null) => void
+  setSessionViewerSession: (session: string | null) => void
+  toggleSessionViewerAgentSidebar: () => void
+  setSessionViewerAgentSidebar: (open: boolean) => void
+
   // UI State
   activeTab: string
   sidebarExpanded: boolean
@@ -366,6 +375,16 @@ export const useMissionControl = create<MissionControlStore>()(
     // Auth
     currentUser: null,
     setCurrentUser: (user) => set({ currentUser: user }),
+
+    // Session Viewer (Phase 4)
+    sessionViewerAgent: null,
+    sessionViewerSession: null,
+    sessionViewerAgentSidebarOpen: true,
+    setSessionViewerAgent: (agentId) => set({ sessionViewerAgent: agentId, sessionViewerSession: null }),
+    setSessionViewerSession: (session) => set({ sessionViewerSession: session }),
+    toggleSessionViewerAgentSidebar: () =>
+      set((state) => ({ sessionViewerAgentSidebarOpen: !state.sessionViewerAgentSidebarOpen })),
+    setSessionViewerAgentSidebar: (open) => set({ sessionViewerAgentSidebarOpen: open }),
 
     // UI State — sidebar & layout persistence
     activeTab: 'overview',
