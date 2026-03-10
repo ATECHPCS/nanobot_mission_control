@@ -246,9 +246,9 @@ export function AgentLifecycleTab({ snapshot }: AgentLifecycleTabProps) {
                   <span
                     className={cn(
                       'w-1.5 h-1.5 rounded-full shrink-0',
-                      op.status === 'success' && 'bg-green-500',
                       op.status === 'error' && 'bg-red-500',
                       op.status === 'pending' && 'bg-yellow-500',
+                      op.status === 'success' && (op.action === 'stop' || op.action === 'force_stop' ? 'bg-red-500' : 'bg-green-500'),
                     )}
                   />
                   <span className="text-foreground">

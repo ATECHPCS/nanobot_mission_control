@@ -13,6 +13,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import net from 'node:net'
+import { execSync } from 'node:child_process'
 import type {
   DiscoveredAgent,
   HealthLevel,
@@ -54,6 +55,41 @@ export function checkPortAlive(
     })
     socket.connect(port, host)
   })
+}
+
+// ---------------------------------------------------------------------------
+// Process Liveness (by command pattern)
+// ---------------------------------------------------------------------------
+
+/**
+ * Check if a nanobot gateway process is running for the given port.
+ * Falls back from exact --port match to any gateway without --port flag
+ * (covers the default-port case where nanobot reads port from config).
+ */
+export function checkProcessRunning(port: number): boolean {
+  try {
+    execSync(`pgrep -f "nanobot gateway.*--port ${port}"`, {
+      encoding: 'utf-8',
+      timeout: 5000,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    })
+    return true
+  } catch {
+    // No exact port match
+  }
+
+  try {
+    // Check for nanobot gateway without --port flag (uses default from config)
+    const output = execSync(
+      'ps -eo command | grep "[n]anobot gateway" | grep -v -- "--port"',
+      { encoding: 'utf-8', timeout: 5000, stdio: ['pipe', 'pipe', 'pipe'] }
+    ).trim()
+    if (output.length > 0) return true
+  } catch {
+    // No match
+  }
+
+  return false
 }
 
 // ---------------------------------------------------------------------------
@@ -264,12 +300,12 @@ export function detectErrors(
 // ---------------------------------------------------------------------------
 
 /**
- * Determine channel statuses from agent config, port liveness, and errors.
- * Gateway running implies channels are running (they're part of the gateway process).
+ * Determine channel statuses from agent config, process liveness, and errors.
+ * Gateway process running implies channels are running (they're part of the gateway process).
  */
 export function getChannelStatuses(
   agent: DiscoveredAgent,
-  portAlive: boolean,
+  processAlive: boolean,
   errors: AgentError[]
 ): ChannelStatus[] {
   return Object.entries(agent.channels).map(([name, { enabled }]) => {
@@ -281,7 +317,7 @@ export function getChannelStatuses(
     return {
       name,
       enabled,
-      connected: portAlive,
+      connected: processAlive,
       lastError: channelError ? channelError.message : null,
     }
   })
@@ -296,7 +332,7 @@ export function getChannelStatuses(
  * Uses worst-dimension-wins logic for overall status.
  */
 export function computeCompositeHealth(data: {
-  portAlive: boolean
+  processAlive: boolean
   lastActivityMs: number | null
   errorCount24h: number
   criticalErrors: boolean
@@ -306,7 +342,7 @@ export function computeCompositeHealth(data: {
   const now = Date.now()
   const ONE_HOUR = 60 * 60 * 1000
 
-  const process: HealthDimension = data.portAlive
+  const process: HealthDimension = data.processAlive
     ? { level: 'green', reason: 'Gateway process is running' }
     : { level: 'red', reason: 'Gateway process is not responding' }
 
@@ -346,6 +382,8 @@ export function computeCompositeHealth(data: {
  */
 export async function checkAgentHealth(agent: DiscoveredAgent): Promise<AgentHealthSnapshot> {
   const portAlive = await checkPortAlive(agent.gatewayPort, agent.gatewayHost)
+  // Process is alive if the HTTP port responds OR the gateway process is running
+  const processAlive = portAlive || (agent.gatewayPort > 0 && checkProcessRunning(agent.gatewayPort))
 
   const sessionsDir = path.join(agent.workspacePath, 'sessions')
   const lastActivity = getLatestActivity(sessionsDir)
@@ -353,7 +391,7 @@ export async function checkAgentHealth(agent: DiscoveredAgent): Promise<AgentHea
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000) // last 24 hours
   const errors = detectErrors(agent.workspacePath, agent.id, since)
 
-  const channels = getChannelStatuses(agent, portAlive, errors)
+  const channels = getChannelStatuses(agent, processAlive, errors)
 
   // Determine channels that are down
   const channelsDown = channels
@@ -369,7 +407,7 @@ export async function checkAgentHealth(agent: DiscoveredAgent): Promise<AgentHea
     : null
 
   const health = computeCompositeHealth({
-    portAlive,
+    processAlive,
     lastActivityMs,
     errorCount24h: errors.length,
     criticalErrors,

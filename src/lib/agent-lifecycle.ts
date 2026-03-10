@@ -33,6 +33,51 @@ export function findPidByPort(port: number): number | null {
 }
 
 /**
+ * Find the PID of a nanobot gateway process by command pattern.
+ * Fallback when the gateway process doesn't listen on a TCP port.
+ * Matches `nanobot gateway --port {port}` first, then bare `nanobot gateway`.
+ */
+export function findPidByCommand(port: number): number | null {
+  try {
+    const output = execSync(`pgrep -f "nanobot gateway.*--port ${port}"`, {
+      encoding: 'utf-8',
+      timeout: 5000,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    }).trim()
+    if (output) {
+      const pid = parseInt(output.split('\n')[0], 10)
+      if (!isNaN(pid)) return pid
+    }
+  } catch {
+    // No exact port match
+  }
+
+  try {
+    // Gateway without --port flag (uses default port from config)
+    const output = execSync(
+      'ps -eo pid,command | grep "[n]anobot gateway" | grep -v -- "--port"',
+      { encoding: 'utf-8', timeout: 5000, stdio: ['pipe', 'pipe', 'pipe'] }
+    ).trim()
+    if (output) {
+      const pid = parseInt(output.trim().split(/\s+/)[0], 10)
+      if (!isNaN(pid)) return pid
+    }
+  } catch {
+    // No match
+  }
+
+  return null
+}
+
+/**
+ * Find the PID of a nanobot gateway process, trying port-based lookup first
+ * then falling back to command pattern matching.
+ */
+export function findAgentPid(port: number): number | null {
+  return findPidByPort(port) ?? findPidByCommand(port)
+}
+
+/**
  * Get the process group ID (PGID) for a given PID.
  * Used to kill the entire process tree (agent + all child processes).
  */
@@ -65,6 +110,30 @@ export function findPortOwnerAgent(
 }
 
 // ---------------------------------------------------------------------------
+// launchd Integration
+// ---------------------------------------------------------------------------
+
+/**
+ * Find the launchd service label managing a given PID.
+ * Parses `launchctl list` output to match PID → service label.
+ * Returns null if the process is not managed by launchd.
+ */
+export function findLaunchdService(pid: number): string | null {
+  try {
+    const output = execSync('launchctl list', { encoding: 'utf-8', timeout: 5000 })
+    for (const line of output.split('\n')) {
+      const parts = line.trim().split(/\s+/)
+      if (parts[0] === String(pid)) {
+        return parts[2] ?? null
+      }
+    }
+  } catch {
+    // launchctl not available or failed
+  }
+  return null
+}
+
+// ---------------------------------------------------------------------------
 // Start
 // ---------------------------------------------------------------------------
 
@@ -72,15 +141,24 @@ export function findPortOwnerAgent(
 const MAX_STDERR_BYTES = 4096
 
 /**
- * Start an agent by executing its launch script (or inferred command for root agent)
- * as a fully detached process that survives dashboard restart.
- *
- * - Sub-agents: `bash <launchScript>` (script sets HOME, BOT_ID, etc.)
- * - Root agent (launchScript === ''): `nanobot gateway --port <port>` with system HOME
+ * Start an agent. If managed by launchd, uses `launchctl start`.
+ * Otherwise spawns a detached process from its launch script.
  */
 export function startAgent(
-  agent: DiscoveredAgent
+  agent: DiscoveredAgent,
+  launchdPlist?: string | null
 ): { pid: number | null; error?: string } {
+  // Use launchctl load if plist path is known (re-enables the service after unload)
+  if (launchdPlist) {
+    try {
+      execSync(`launchctl load ${launchdPlist}`, { encoding: 'utf-8', timeout: 10000 })
+      // launchctl load is async -- PID not immediately known
+      return { pid: null }
+    } catch (err: any) {
+      return { pid: null, error: `launchctl load failed: ${err.message}` }
+    }
+  }
+
   try {
     const isRootAgent = agent.launchScript === ''
 
@@ -118,28 +196,43 @@ export function startAgent(
 // ---------------------------------------------------------------------------
 
 /**
- * Stop an agent by killing its entire process group.
- * Uses port-based PID lookup, then PGID resolution, then process group kill.
+ * Stop an agent. If managed by launchd, uses `launchctl unload` to stop
+ * and prevent KeepAlive respawn. Otherwise falls back to process group kill.
  *
- * @param port - The gateway port the agent is listening on
+ * @param port - The gateway port the agent is configured on
  * @param signal - SIGTERM (graceful) or SIGKILL (force)
  */
 export function stopAgent(
   port: number,
   signal: 'SIGTERM' | 'SIGKILL' = 'SIGTERM'
-): { killed: boolean; pid: number | null; error?: string } {
-  const pid = findPidByPort(port)
+): { killed: boolean; pid: number | null; error?: string; launchdLabel?: string; launchdPlist?: string } {
+  const pid = findAgentPid(port)
   if (!pid) {
-    return { killed: false, pid: null, error: 'No process found on port' }
+    return { killed: false, pid: null, error: 'No process found' }
   }
 
+  // Check if managed by launchd
+  const label = findLaunchdService(pid)
+  if (label) {
+    // Find the plist file path
+    const home = process.env.HOME || '/Users/designmac'
+    const plistPath = `${home}/Library/LaunchAgents/${label}.plist`
+    try {
+      // unload stops the service AND prevents KeepAlive respawn
+      execSync(`launchctl unload ${plistPath}`, { encoding: 'utf-8', timeout: 10000 })
+      return { killed: true, pid, launchdLabel: label, launchdPlist: plistPath }
+    } catch (err: any) {
+      return { killed: false, pid, error: `launchctl unload failed: ${err.message}` }
+    }
+  }
+
+  // Non-launchd: use process group kill
   const pgid = getProcessGroupId(pid)
   if (!pgid) {
     return { killed: false, pid, error: 'Could not determine process group' }
   }
 
   try {
-    // Kill the entire process group (negative PGID)
     process.kill(-pgid, signal)
     return { killed: true, pid }
   } catch (err: any) {
@@ -171,26 +264,44 @@ export async function waitForPortRelease(
 }
 
 /**
- * Restart an agent: stop, wait for port release, then start.
- * Atomic operation -- the caller sees only the final start result.
+ * Restart an agent: stop, wait for process exit, then start.
+ * For launchd-managed services, uses launchctl stop then start.
  */
 export async function restartAgent(
   agent: DiscoveredAgent
 ): Promise<{ pid: number | null; error?: string }> {
-  // Stop the agent
   const stopResult = stopAgent(agent.gatewayPort)
-  if (!stopResult.killed && stopResult.error !== 'No process found on port') {
+  if (!stopResult.killed && stopResult.error !== 'No process found') {
     return { pid: null, error: `Stop failed: ${stopResult.error}` }
   }
 
-  // Wait for port to be released
-  if (stopResult.killed) {
-    const released = await waitForPortRelease(agent.gatewayPort)
-    if (!released) {
-      return { pid: null, error: 'Port not released after stop -- try force kill' }
+  // Wait for process to exit
+  if (stopResult.killed && stopResult.pid) {
+    const exited = await waitForProcessExit(stopResult.pid)
+    if (!exited) {
+      return { pid: null, error: 'Process did not exit after stop -- try force kill' }
     }
   }
 
-  // Start the agent
-  return startAgent(agent)
+  // Start the agent (pass launchd plist if known)
+  return startAgent(agent, stopResult.launchdPlist)
+}
+
+/**
+ * Poll until a process has exited.
+ */
+export async function waitForProcessExit(
+  pid: number,
+  timeoutMs = 10000
+): Promise<boolean> {
+  const start = Date.now()
+  while (Date.now() - start < timeoutMs) {
+    try {
+      process.kill(pid, 0)
+      await new Promise(r => setTimeout(r, 500))
+    } catch {
+      return true // Process gone
+    }
+  }
+  return false
 }

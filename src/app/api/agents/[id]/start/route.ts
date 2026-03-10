@@ -3,8 +3,7 @@ import { requireRole } from '@/lib/auth'
 import { mutationLimiter } from '@/lib/rate-limit'
 import { healthMonitor } from '@/lib/health-monitor'
 import { eventBus } from '@/lib/event-bus'
-import { startAgent, isPortAvailable, findPidByPort } from '@/lib/agent-lifecycle'
-import { checkPortAlive } from '@/lib/agent-health'
+import { startAgent, findAgentPid, findLaunchdService, findPidByCommand } from '@/lib/agent-lifecycle'
 
 /**
  * POST /api/agents/[id]/start
@@ -48,14 +47,14 @@ export async function POST(
     )
   }
 
-  // Pre-check: is port already in use?
-  if (!isPortAvailable(gatewayPort)) {
-    const existingPid = findPidByPort(gatewayPort)
+  // Pre-check: is agent already running?
+  const existingPid = findAgentPid(gatewayPort)
+  if (existingPid) {
     healthMonitor.releaseLock(id)
     return NextResponse.json(
       {
-        error: 'Port in use',
-        details: `Port ${gatewayPort} is already in use (PID: ${existingPid})`,
+        error: 'Agent already running',
+        details: `Agent process is already running (PID: ${existingPid})`,
         port: gatewayPort,
         pid: existingPid,
       },
@@ -91,10 +90,9 @@ export async function POST(
     )
   }
 
-  // Background verification: poll for gateway to come up (non-blocking)
+  // Background verification: poll until process is running (non-blocking)
   const agentId = id
-  const port = gatewayPort
-  const host = snapshot.agent.gatewayHost
+  const startedPid = result.pid!
   const username = auth.user.username
 
   setTimeout(async () => {
@@ -103,8 +101,9 @@ export async function POST(
     const start = Date.now()
 
     while (Date.now() - start < MAX_WAIT_MS) {
-      const alive = await checkPortAlive(port, host, 2000)
-      if (alive) {
+      try {
+        process.kill(startedPid, 0) // Check process exists (signal 0 = no-op)
+        // Process is alive -- success
         eventBus.broadcast('agent.lifecycle', {
           id: agentId,
           action: 'start',
@@ -114,16 +113,18 @@ export async function POST(
         })
         healthMonitor.releaseLock(agentId)
         return
+      } catch {
+        // Process not yet started, keep polling
       }
       await new Promise(r => setTimeout(r, POLL_INTERVAL_MS))
     }
 
-    // Timeout -- gateway did not start
+    // Timeout -- process did not start
     eventBus.broadcast('agent.lifecycle', {
       id: agentId,
       action: 'start',
       status: 'error',
-      error: 'Gateway did not start within 15 seconds',
+      error: 'Agent process did not start within 15 seconds',
       username,
       timestamp: Date.now(),
     })

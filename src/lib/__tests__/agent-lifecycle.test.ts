@@ -201,7 +201,7 @@ describe('agent-lifecycle', () => {
 
       const result = stopAgent(18793)
 
-      expect(result).toEqual({ killed: false, pid: null, error: 'No process found on port' })
+      expect(result).toEqual({ killed: false, pid: null, error: 'No process found' })
     })
 
     it('returns error when PGID lookup fails', () => {

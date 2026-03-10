@@ -7,6 +7,8 @@
  * Stored on globalThis to survive Next.js HMR in development.
  */
 
+import fs from 'node:fs'
+import path from 'node:path'
 import { eventBus } from '@/lib/event-bus'
 import { discoverAgents } from '@/lib/agent-discovery'
 import { checkAgentHealth } from '@/lib/agent-health'
@@ -145,6 +147,16 @@ class HealthMonitor {
 
     snapshot.errorsDismissed = true
     snapshot.errors = []
+
+    // Truncate the error log file on disk so errors don't reappear after restart
+    const errorLogPath = path.join(snapshot.agent.workspacePath, 'logs', `${snapshot.agent.id}-error.log`)
+    try {
+      if (fs.existsSync(errorLogPath)) {
+        fs.writeFileSync(errorLogPath, '')
+      }
+    } catch {
+      // Non-critical -- log truncation failed, errors may reappear
+    }
 
     eventBus.broadcast('agent.status_changed', {
       id: snapshot.id,

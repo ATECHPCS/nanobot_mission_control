@@ -4,7 +4,6 @@ import { mutationLimiter } from '@/lib/rate-limit'
 import { healthMonitor } from '@/lib/health-monitor'
 import { eventBus } from '@/lib/event-bus'
 import { stopAgent } from '@/lib/agent-lifecycle'
-import { checkPortAlive } from '@/lib/agent-health'
 
 /**
  * POST /api/agents/[id]/stop
@@ -74,10 +73,9 @@ export async function POST(
     )
   }
 
-  // Background verification: poll for port release (10s timeout)
+  // Background verification: poll until process exits (10s timeout)
   const agentId = id
-  const port = gatewayPort
-  const host = snapshot.agent.gatewayHost
+  const stoppedPid = result.pid!
   const username = auth.user.username
 
   setTimeout(async () => {
@@ -86,9 +84,10 @@ export async function POST(
     const start = Date.now()
 
     while (Date.now() - start < MAX_WAIT_MS) {
-      const alive = await checkPortAlive(port, host, 1000)
-      if (!alive) {
-        // Port released -- process stopped successfully
+      try {
+        process.kill(stoppedPid, 0) // Throws if process is gone
+      } catch {
+        // Process exited -- stop successful
         eventBus.broadcast('agent.lifecycle', {
           id: agentId,
           action: 'stop',

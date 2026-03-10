@@ -12,6 +12,12 @@ vi.mock('node:net', () => {
   return { default: { Socket }, Socket }
 })
 
+// Mock node:child_process
+vi.mock('node:child_process', () => {
+  const execSync = vi.fn()
+  return { default: { execSync }, execSync }
+})
+
 // Mock node:fs
 vi.mock('node:fs', () => ({
   default: {
@@ -47,8 +53,10 @@ vi.mock('@/lib/config', () => ({
 
 import fs from 'node:fs'
 import net from 'node:net'
+import { execSync } from 'node:child_process'
 import {
   checkPortAlive,
+  checkProcessRunning,
   getLatestActivity,
   detectErrors,
   getChannelStatuses,
@@ -60,6 +68,7 @@ import type { DiscoveredAgent, AgentError } from '@/types/agent-health'
 
 const mockFs = vi.mocked(fs)
 const mockNet = vi.mocked(net)
+const mockExecSync = vi.mocked(execSync)
 
 // Helper to create a mock DiscoveredAgent
 function mockAgent(overrides: Partial<DiscoveredAgent> = {}): DiscoveredAgent {
@@ -137,6 +146,33 @@ describe('agent-health', () => {
 
       const result = await checkPortAlive(18793)
       expect(result).toBe(false)
+    })
+  })
+
+  describe('checkProcessRunning()', () => {
+    it('returns true when pgrep finds a process with matching port', () => {
+      mockExecSync.mockReturnValueOnce('12345\n' as any)
+
+      expect(checkProcessRunning(18792)).toBe(true)
+      expect(mockExecSync).toHaveBeenCalledWith(
+        'pgrep -f "nanobot gateway.*--port 18792"',
+        expect.objectContaining({ encoding: 'utf-8' })
+      )
+    })
+
+    it('returns true when gateway process runs without --port flag', () => {
+      // First call (exact port match) fails
+      mockExecSync.mockImplementationOnce(() => { throw new Error('no match') })
+      // Second call (no --port flag) succeeds
+      mockExecSync.mockReturnValueOnce('/usr/local/bin/nanobot gateway\n' as any)
+
+      expect(checkProcessRunning(18790)).toBe(true)
+    })
+
+    it('returns false when no nanobot gateway process is running', () => {
+      mockExecSync.mockImplementation(() => { throw new Error('no match') })
+
+      expect(checkProcessRunning(18792)).toBe(false)
     })
   })
 
@@ -429,7 +465,7 @@ describe('agent-health', () => {
   })
 
   describe('getChannelStatuses()', () => {
-    it('returns connected=true for enabled channels when port is alive', () => {
+    it('returns connected=true for enabled channels when process is alive', () => {
       const agent = mockAgent({
         channels: { telegram: { enabled: true }, discord: { enabled: true } },
       })
@@ -441,7 +477,7 @@ describe('agent-health', () => {
       expect(result[1]).toMatchObject({ name: 'discord', enabled: true, connected: true, lastError: null })
     })
 
-    it('returns connected=false when port is dead', () => {
+    it('returns connected=false when process is dead', () => {
       const agent = mockAgent({
         channels: { telegram: { enabled: true } },
       })
@@ -477,7 +513,7 @@ describe('agent-health', () => {
   describe('computeCompositeHealth()', () => {
     it('returns green when all dimensions are healthy', () => {
       const result = computeCompositeHealth({
-        portAlive: true,
+        processAlive: true,
         lastActivityMs: Date.now() - 300000, // 5 min ago
         errorCount24h: 0,
         criticalErrors: false,
@@ -494,7 +530,7 @@ describe('agent-health', () => {
 
     it('returns yellow when activity is stale (>1 hour)', () => {
       const result = computeCompositeHealth({
-        portAlive: true,
+        processAlive: true,
         lastActivityMs: Date.now() - 7200000, // 2 hours ago
         errorCount24h: 0,
         criticalErrors: false,
@@ -506,9 +542,9 @@ describe('agent-health', () => {
       expect(result.dimensions.activity.level).toBe('yellow')
     })
 
-    it('returns red when port is dead', () => {
+    it('returns red when process is not running', () => {
       const result = computeCompositeHealth({
-        portAlive: false,
+        processAlive: false,
         lastActivityMs: Date.now() - 300000,
         errorCount24h: 0,
         criticalErrors: false,
@@ -522,7 +558,7 @@ describe('agent-health', () => {
 
     it('returns red when critical errors exist', () => {
       const result = computeCompositeHealth({
-        portAlive: true,
+        processAlive: true,
         lastActivityMs: Date.now() - 300000,
         errorCount24h: 5,
         criticalErrors: true,
@@ -536,7 +572,7 @@ describe('agent-health', () => {
 
     it('uses worst-dimension-wins logic', () => {
       const result = computeCompositeHealth({
-        portAlive: true,
+        processAlive: true,
         lastActivityMs: Date.now() - 300000,
         errorCount24h: 0,
         criticalErrors: false,
@@ -550,7 +586,7 @@ describe('agent-health', () => {
 
     it('returns yellow for non-critical errors', () => {
       const result = computeCompositeHealth({
-        portAlive: true,
+        processAlive: true,
         lastActivityMs: Date.now() - 300000,
         errorCount24h: 3,
         criticalErrors: false,
@@ -564,7 +600,7 @@ describe('agent-health', () => {
 
     it('returns green for no channels configured', () => {
       const result = computeCompositeHealth({
-        portAlive: true,
+        processAlive: true,
         lastActivityMs: Date.now() - 300000,
         errorCount24h: 0,
         criticalErrors: false,
@@ -578,7 +614,7 @@ describe('agent-health', () => {
 
     it('returns yellow when no activity data found', () => {
       const result = computeCompositeHealth({
-        portAlive: true,
+        processAlive: true,
         lastActivityMs: null,
         errorCount24h: 0,
         criticalErrors: false,
@@ -591,7 +627,7 @@ describe('agent-health', () => {
 
     it('returns yellow when some channels are down but not all', () => {
       const result = computeCompositeHealth({
-        portAlive: true,
+        processAlive: true,
         lastActivityMs: Date.now() - 300000,
         errorCount24h: 0,
         criticalErrors: false,
@@ -618,6 +654,9 @@ describe('agent-health', () => {
         destroy: vi.fn(),
       }
       ;(net.Socket as any).mockImplementation(() => socketInstance)
+
+      // Mock process check (fallback, won't be called since port is alive)
+      mockExecSync.mockImplementation(() => { throw new Error('no match') })
 
       // Mock session directory doesn't exist
       mockFs.existsSync.mockReturnValue(false)
