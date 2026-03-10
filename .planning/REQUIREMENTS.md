@@ -64,11 +64,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Memory Management
 
-- [ ] **MEMO-01**: User can browse agent memory files (MEMORY.md, SOUL.md, IDENTITY.md, HISTORY.md)
-- [ ] **MEMO-02**: User can browse agent memory subdirectories (episodes/, graph/, procedures/, topics/)
-- [ ] **MEMO-03**: User can edit memory files from the dashboard with a markdown editor
-- [ ] **MEMO-04**: Memory editor saves changes back to the agent's filesystem
-- [ ] **MEMO-05**: Viewer permission role can view but not edit memory files
+- [x] **MEMO-01**: User can browse agent memory files (MEMORY.md, SOUL.md, IDENTITY.md, HISTORY.md)
+- [x] **MEMO-02**: User can browse agent memory subdirectories (episodes/, graph/, procedures/, topics/)
+- [x] **MEMO-03**: User can edit memory files from the dashboard with a markdown editor
+- [x] **MEMO-04**: Memory editor saves changes back to the agent's filesystem
+- [x] **MEMO-05**: Viewer permission role can view but not edit memory files
 
 ### Overview Dashboard
 
@@ -163,11 +163,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TOKN-02 | Phase 4 | Complete |
 | TOKN-03 | Phase 4 | Complete |
 | TOKN-04 | Phase 4 | Complete |
-| MEMO-01 | Phase 5 | Pending |
-| MEMO-02 | Phase 5 | Pending |
-| MEMO-03 | Phase 5 | Pending |
-| MEMO-04 | Phase 5 | Pending |
-| MEMO-05 | Phase 5 | Pending |
+| MEMO-01 | Phase 5 | Complete |
+| MEMO-02 | Phase 5 | Complete |
+| MEMO-03 | Phase 5 | Complete |
+| MEMO-04 | Phase 5 | Complete |
+| MEMO-05 | Phase 5 | Complete |
 | DASH-01 | Phase 6 | Pending |
 | DASH-02 | Phase 6 | Pending |
 | DASH-03 | Phase 6 | Pending |
