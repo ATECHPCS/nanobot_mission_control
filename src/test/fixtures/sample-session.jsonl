@@ -1,0 +1,6 @@
+{"_type": "metadata", "key": "telegram:6432548537", "created_at": "2026-03-08T10:00:00.000Z", "updated_at": "2026-03-09T15:30:00.000Z", "metadata": {}, "last_consolidated": 42}
+{"role": "user", "content": "Check my account balance please", "timestamp": "2026-03-09T14:00:00.000Z"}
+{"role": "assistant", "content": "I'll check your account balance right away.", "tool_calls": [{"id": "tc_001", "type": "function", "function": {"name": "get_balance", "arguments": "{\"account_id\": \"main\"}"}}], "timestamp": "2026-03-09T14:00:05.000Z"}
+{"role": "tool", "tool_call_id": "tc_001", "name": "get_balance", "content": "Current balance: $4,521.33", "timestamp": "2026-03-09T14:00:06.000Z"}
+{"role": "assistant", "content": "Your current account balance is **$4,521.33**.", "timestamp": "2026-03-09T14:00:07.000Z"}
+{"role": "user", "content": "Thanks! Can you also send the daily summary to the group?", "timestamp": "2026-03-09T15:30:00.000Z"}

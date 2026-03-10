@@ -830,6 +830,33 @@ const migrations: Migration[] = [
       db.exec(`CREATE INDEX IF NOT EXISTS idx_agent_api_keys_expires_at ON agent_api_keys(expires_at)`)
       db.exec(`CREATE INDEX IF NOT EXISTS idx_agent_api_keys_revoked_at ON agent_api_keys(revoked_at)`)
     }
+  },
+  {
+    id: '028_nanobot_sessions',
+    up: (db) => {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS nanobot_sessions (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          agent_id TEXT NOT NULL,
+          filename TEXT NOT NULL,
+          session_key TEXT NOT NULL,
+          channel_type TEXT NOT NULL,
+          channel_identifier TEXT NOT NULL,
+          message_count INTEGER NOT NULL DEFAULT 0,
+          first_message_at TEXT,
+          last_message_at TEXT,
+          last_user_message TEXT,
+          file_size_bytes INTEGER NOT NULL DEFAULT 0,
+          scanned_at INTEGER NOT NULL,
+          created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+          updated_at INTEGER NOT NULL DEFAULT (unixepoch()),
+          UNIQUE(agent_id, filename)
+        );
+        CREATE INDEX IF NOT EXISTS idx_nanobot_sessions_agent ON nanobot_sessions(agent_id);
+        CREATE INDEX IF NOT EXISTS idx_nanobot_sessions_channel ON nanobot_sessions(channel_type);
+        CREATE INDEX IF NOT EXISTS idx_nanobot_sessions_last_message ON nanobot_sessions(last_message_at);
+      `)
+    }
   }
 ]
 
