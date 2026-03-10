@@ -9,18 +9,20 @@ import { AgentOverviewTab } from './agent-overview-tab'
 import { AgentErrorsTab } from './agent-errors-tab'
 import { AgentChannelsTab } from './agent-channels-tab'
 import { AgentLifecycleTab } from './agent-lifecycle-tab'
+import { AgentMemoryTab } from './agent-memory-tab'
 
 interface AgentSlideOutProps {
   agentId: string | null
   onClose: () => void
 }
 
-type TabId = 'overview' | 'errors' | 'channels' | 'lifecycle'
+type TabId = 'overview' | 'errors' | 'channels' | 'lifecycle' | 'memory'
 
 const baseTabs: { id: TabId; label: string }[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'errors', label: 'Errors' },
   { id: 'channels', label: 'Channels' },
+  { id: 'memory', label: 'Memory' },
 ]
 
 export function AgentSlideOut({ agentId, onClose }: AgentSlideOutProps) {
@@ -90,10 +92,11 @@ export function AgentSlideOut({ agentId, onClose }: AgentSlideOutProps) {
         aria-modal="true"
         aria-label={snapshot ? `${snapshot.name} details` : 'Agent details'}
         className={cn(
-          'fixed right-0 top-0 h-full w-full md:w-[400px] z-50',
+          'fixed right-0 top-0 h-full w-full z-50',
+          activeTab === 'memory' ? 'md:w-[600px]' : 'md:w-[400px]',
           'bg-card border-l border-border shadow-2xl',
           'flex flex-col',
-          'transition-transform duration-200 ease-out',
+          'transition-all duration-200 ease-out',
           mounted ? 'translate-x-0' : 'translate-x-full',
         )}
       >
@@ -166,10 +169,11 @@ export function AgentSlideOut({ agentId, onClose }: AgentSlideOutProps) {
 
             {/* Tab content */}
             <div className="flex-1 overflow-y-auto p-4">
-              {activeTab === 'overview' && <AgentOverviewTab snapshot={snapshot} />}
+              {activeTab === 'overview' && <AgentOverviewTab snapshot={snapshot} onSwitchTab={(tab: string) => setActiveTab(tab as TabId)} />}
               {activeTab === 'errors' && <AgentErrorsTab snapshot={snapshot} />}
               {activeTab === 'channels' && <AgentChannelsTab snapshot={snapshot} />}
               {activeTab === 'lifecycle' && <AgentLifecycleTab snapshot={snapshot} />}
+              {activeTab === 'memory' && <AgentMemoryTab snapshot={snapshot} />}
             </div>
           </>
         ) : (

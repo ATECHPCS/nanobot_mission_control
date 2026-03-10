@@ -8,6 +8,7 @@ import type { AgentHealthSnapshot, HealthLevel } from '@/types/agent-health'
 
 interface AgentOverviewTabProps {
   snapshot: AgentHealthSnapshot
+  onSwitchTab?: (tab: string) => void
 }
 
 const healthLabels: Record<HealthLevel, string> = {
@@ -39,7 +40,7 @@ function relativeTime(isoTimestamp: string): string {
   return `${diffDays}d ago`
 }
 
-export function AgentOverviewTab({ snapshot }: AgentOverviewTabProps) {
+export function AgentOverviewTab({ snapshot, onSwitchTab }: AgentOverviewTabProps) {
   const { currentUser } = useMissionControl()
   const { name, health, lastActivity, agent } = snapshot
   const isViewer = currentUser?.role === 'viewer'
@@ -118,6 +119,16 @@ export function AgentOverviewTab({ snapshot }: AgentOverviewTabProps) {
               )
             )}
           </div>
+        </div>
+
+        {/* View Memory quick link */}
+        <div className="pt-1">
+          <button
+            onClick={() => onSwitchTab?.('memory')}
+            className="text-xs text-primary hover:text-primary/80 hover:underline transition-colors"
+          >
+            View Memory Files -&gt;
+          </button>
         </div>
 
         {/* RBAC-gated technical details */}
