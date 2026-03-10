@@ -130,3 +130,32 @@ export interface AgentHealthSnapshot {
   /** Whether errors have been dismissed by an operator */
   errorsDismissed?: boolean
 }
+
+// ---------------------------------------------------------------------------
+// Lifecycle
+// ---------------------------------------------------------------------------
+
+/** Actions that can be performed on an agent process */
+export type LifecycleAction = 'start' | 'stop' | 'restart' | 'force_stop'
+
+/** Status of a lifecycle operation */
+export type LifecycleStatus = 'pending' | 'success' | 'error'
+
+/** A lifecycle operation record (for history and SSE broadcast) */
+export interface LifecycleOperation {
+  agentId: string
+  action: LifecycleAction
+  status: LifecycleStatus
+  timestamp: number
+  username: string
+  error?: string
+}
+
+/** A lifecycle lock preventing concurrent operations on the same agent */
+export interface LifecycleLock {
+  agentId: string
+  action: LifecycleAction
+  lockedAt: number
+  lockedBy: string
+  expiresAt: number // auto-expire after 30s
+}

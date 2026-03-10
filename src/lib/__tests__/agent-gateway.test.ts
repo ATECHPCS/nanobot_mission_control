@@ -76,6 +76,8 @@ describe('agent-gateway', () => {
     })
 
     it('rejects disallowed endpoints', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response())
+
       const result = await proxyGatewayRequest('127.0.0.1', 18793, 'admin/secrets')
 
       expect(result).toEqual({
@@ -83,7 +85,7 @@ describe('agent-gateway', () => {
         details: 'Only these endpoints are allowed: health, status',
         status: 403,
       })
-      expect(globalThis.fetch).not.toHaveBeenCalled()
+      expect(fetchSpy).not.toHaveBeenCalled()
     })
   })
 })

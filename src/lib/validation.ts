@@ -187,3 +187,7 @@ export const githubSyncSchema = z.object({
   body: z.string().optional(),
   comment: z.string().optional(),
 })
+
+export const lifecycleStopSchema = z.object({
+  force: z.boolean().optional().default(false),
+})

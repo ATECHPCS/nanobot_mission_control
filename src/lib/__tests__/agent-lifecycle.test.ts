@@ -1,12 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// Mock child_process before importing module under test
-vi.mock('node:child_process', () => ({
-  execSync: vi.fn(),
-  spawn: vi.fn(),
+// Hoisted mocks -- these run before vi.mock factory
+const { mockExecSync, mockSpawn } = vi.hoisted(() => ({
+  mockExecSync: vi.fn(),
+  mockSpawn: vi.fn(),
 }))
 
-import { execSync, spawn } from 'node:child_process'
+vi.mock('node:child_process', () => ({
+  default: { execSync: mockExecSync, spawn: mockSpawn },
+  execSync: mockExecSync,
+  spawn: mockSpawn,
+}))
+
 import {
   findPidByPort,
   getProcessGroupId,
@@ -18,9 +23,6 @@ import {
   findPortOwnerAgent,
 } from '../agent-lifecycle'
 import type { DiscoveredAgent } from '@/types/agent-health'
-
-const mockExecSync = vi.mocked(execSync)
-const mockSpawn = vi.mocked(spawn)
 
 // Helper to build a mock DiscoveredAgent
 function makeAgent(overrides: Partial<DiscoveredAgent> = {}): DiscoveredAgent {
@@ -46,18 +48,18 @@ describe('agent-lifecycle', () => {
 
   describe('findPidByPort', () => {
     it('returns PID when lsof outputs a number', () => {
-      mockExecSync.mockReturnValue('12345\n' as any)
+      mockExecSync.mockReturnValue('12345\n')
       expect(findPidByPort(18793)).toBe(12345)
       expect(mockExecSync).toHaveBeenCalledWith('lsof -ti :18793', { encoding: 'utf-8' })
     })
 
     it('returns first PID when lsof outputs multiple PIDs', () => {
-      mockExecSync.mockReturnValue('12345\n67890\n' as any)
+      mockExecSync.mockReturnValue('12345\n67890\n')
       expect(findPidByPort(18793)).toBe(12345)
     })
 
     it('returns null when lsof outputs empty string', () => {
-      mockExecSync.mockReturnValue('' as any)
+      mockExecSync.mockReturnValue('')
       expect(findPidByPort(18793)).toBeNull()
     })
 
@@ -69,7 +71,7 @@ describe('agent-lifecycle', () => {
 
   describe('getProcessGroupId', () => {
     it('returns PGID when ps outputs a number', () => {
-      mockExecSync.mockReturnValue('  12345\n' as any)
+      mockExecSync.mockReturnValue('  12345\n')
       expect(getProcessGroupId(12345)).toBe(12345)
       expect(mockExecSync).toHaveBeenCalledWith('ps -o pgid= -p 12345', { encoding: 'utf-8' })
     })
@@ -87,7 +89,7 @@ describe('agent-lifecycle', () => {
     })
 
     it('returns false when process found on port', () => {
-      mockExecSync.mockReturnValue('12345\n' as any)
+      mockExecSync.mockReturnValue('12345\n')
       expect(isPortAvailable(18793)).toBe(false)
     })
   })
@@ -99,7 +101,7 @@ describe('agent-lifecycle', () => {
         stderr: { on: vi.fn() },
         unref: vi.fn(),
       }
-      mockSpawn.mockReturnValue(mockChild as any)
+      mockSpawn.mockReturnValue(mockChild)
 
       const agent = makeAgent()
       const result = startAgent(agent)
@@ -122,7 +124,7 @@ describe('agent-lifecycle', () => {
         stderr: { on: vi.fn() },
         unref: vi.fn(),
       }
-      mockSpawn.mockReturnValue(mockChild as any)
+      mockSpawn.mockReturnValue(mockChild)
 
       const agent = makeAgent({ launchScript: '', gatewayPort: 18790 })
       const result = startAgent(agent)
@@ -154,7 +156,7 @@ describe('agent-lifecycle', () => {
         stderr: { on: vi.fn() },
         unref: vi.fn(),
       }
-      mockSpawn.mockReturnValue(mockChild as any)
+      mockSpawn.mockReturnValue(mockChild)
 
       const agent = makeAgent()
       const result = startAgent(agent)
@@ -166,9 +168,9 @@ describe('agent-lifecycle', () => {
   describe('stopAgent', () => {
     it('kills process group with SIGTERM by default', () => {
       // findPidByPort returns 12345
-      mockExecSync.mockReturnValueOnce('12345\n' as any)
+      mockExecSync.mockReturnValueOnce('12345\n')
       // getProcessGroupId returns 12340
-      mockExecSync.mockReturnValueOnce('  12340\n' as any)
+      mockExecSync.mockReturnValueOnce('  12340\n')
 
       const killSpy = vi.spyOn(process, 'kill').mockImplementation(() => true)
 
@@ -181,8 +183,8 @@ describe('agent-lifecycle', () => {
     })
 
     it('kills process group with SIGKILL when specified', () => {
-      mockExecSync.mockReturnValueOnce('12345\n' as any)
-      mockExecSync.mockReturnValueOnce('  12340\n' as any)
+      mockExecSync.mockReturnValueOnce('12345\n')
+      mockExecSync.mockReturnValueOnce('  12340\n')
 
       const killSpy = vi.spyOn(process, 'kill').mockImplementation(() => true)
 
@@ -203,7 +205,7 @@ describe('agent-lifecycle', () => {
     })
 
     it('returns error when PGID lookup fails', () => {
-      mockExecSync.mockReturnValueOnce('12345\n' as any)
+      mockExecSync.mockReturnValueOnce('12345\n')
       mockExecSync.mockImplementationOnce(() => { throw new Error('no such process') })
 
       const result = stopAgent(18793)
@@ -212,8 +214,8 @@ describe('agent-lifecycle', () => {
     })
 
     it('returns error when process.kill throws', () => {
-      mockExecSync.mockReturnValueOnce('12345\n' as any)
-      mockExecSync.mockReturnValueOnce('  12340\n' as any)
+      mockExecSync.mockReturnValueOnce('12345\n')
+      mockExecSync.mockReturnValueOnce('  12340\n')
 
       const killSpy = vi.spyOn(process, 'kill').mockImplementation(() => {
         throw new Error('ESRCH')
@@ -246,7 +248,7 @@ describe('agent-lifecycle', () => {
     it('resolves true when port is released', async () => {
       // First call: port in use, second call: port free
       mockExecSync
-        .mockReturnValueOnce('12345\n' as any)
+        .mockReturnValueOnce('12345\n')
         .mockImplementationOnce(() => { throw new Error('exit code 1') })
 
       const result = await waitForPortRelease(18793, 2000)
@@ -255,7 +257,7 @@ describe('agent-lifecycle', () => {
 
     it('resolves false when timeout reached', async () => {
       // Port stays in use
-      mockExecSync.mockReturnValue('12345\n' as any)
+      mockExecSync.mockReturnValue('12345\n')
 
       const result = await waitForPortRelease(18793, 500)
       expect(result).toBe(false)
@@ -265,8 +267,8 @@ describe('agent-lifecycle', () => {
   describe('restartAgent', () => {
     it('stops then starts the agent', async () => {
       // stopAgent: findPidByPort returns PID, getProcessGroupId returns PGID
-      mockExecSync.mockReturnValueOnce('12345\n' as any)
-      mockExecSync.mockReturnValueOnce('  12340\n' as any)
+      mockExecSync.mockReturnValueOnce('12345\n')
+      mockExecSync.mockReturnValueOnce('  12340\n')
 
       const killSpy = vi.spyOn(process, 'kill').mockImplementation(() => true)
 
@@ -279,7 +281,7 @@ describe('agent-lifecycle', () => {
         stderr: { on: vi.fn() },
         unref: vi.fn(),
       }
-      mockSpawn.mockReturnValue(mockChild as any)
+      mockSpawn.mockReturnValue(mockChild)
 
       const agent = makeAgent()
       const result = await restartAgent(agent)
