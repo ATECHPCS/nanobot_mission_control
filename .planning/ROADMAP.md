@@ -96,11 +96,11 @@ Plans:
   1. User can browse an agent's memory files (MEMORY.md, SOUL.md, IDENTITY.md, HISTORY.md) and subdirectories (episodes/, graph/, procedures/, topics/) from the dashboard
   2. User with operator/admin role can edit a memory file using the markdown editor and the change persists to the agent's filesystem
   3. Viewer-role users can read memory files but the edit controls are not available to them
-**Plans**: 3 plans
+**Plans**: 2 plans
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
+- [ ] 05-01-PLAN.md -- Memory files service, unit tests, API routes for file tree and read/write (Wave 1)
+- [ ] 05-02-PLAN.md -- Memory tab UI: file tree, editor/viewer, slide-out wiring, visual verification (Wave 2)
 
 ### Phase 6: Overview Dashboard and Remote Access
 **Goal**: A single landing page shows all agents with composite status at a glance, with real-time activity feed, and the entire dashboard is accessible remotely via Cloudflare Tunnel
@@ -129,5 +129,5 @@ Note: Phase 4 depends on Phase 2 (not Phase 3), so Phases 3 and 4 could theoreti
 | 2. Agent Discovery and Health | 3/3 | Complete | 2026-03-09 |
 | 3. Agent Lifecycle and Gateway | 1/2 | In progress | - |
 | 4. Session Viewer and Token Tracking | 3/3 | Complete   | 2026-03-10 |
-| 5. Memory Management | 0/? | Not started | - |
+| 5. Memory Management | 0/2 | Planned | - |
 | 6. Overview Dashboard and Remote Access | 0/? | Not started | - |
