@@ -84,8 +84,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
+- [ ] 04-01-PLAN.md -- Types, JSONL parser, SQLite migration, API routes, unit tests (Wave 1)
+- [ ] 04-02-PLAN.md -- Three-column Sessions panel UI with chat viewer, search/filter, deep linking (Wave 2)
+- [ ] 04-03-PLAN.md -- Unified Tokens panel with Recharts charts, stats cards, per-model breakdown (Wave 2)
 
 ### Phase 5: Memory Management
 **Goal**: Users can browse and edit agent memory files (MEMORY.md, SOUL.md, IDENTITY.md, etc.) from the dashboard with RBAC-gated editing
@@ -127,6 +128,6 @@ Note: Phase 4 depends on Phase 2 (not Phase 3), so Phases 3 and 4 could theoreti
 | 1. Foundation Strip | 4/6 | Gap closure | - |
 | 2. Agent Discovery and Health | 3/3 | Complete | 2026-03-09 |
 | 3. Agent Lifecycle and Gateway | 1/2 | In progress | - |
-| 4. Session Viewer and Token Tracking | 0/? | Not started | - |
+| 4. Session Viewer and Token Tracking | 0/3 | Planned | - |
 | 5. Memory Management | 0/? | Not started | - |
 | 6. Overview Dashboard and Remote Access | 0/? | Not started | - |
