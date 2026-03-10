@@ -82,7 +82,7 @@ export function MessageBubble({ message, agentIcon, toolResult, searchHighlight,
       {/* Bubble content */}
       <div
         className={cn(
-          'rounded-xl px-3 py-2 text-sm min-w-0',
+          'rounded-xl px-3 py-2 text-sm min-w-0 overflow-hidden',
           isUser
             ? 'bg-primary/15 text-foreground'
             : 'bg-muted text-foreground'
@@ -110,7 +110,7 @@ export function MessageBubble({ message, agentIcon, toolResult, searchHighlight,
             )}
           </div>
         ) : (
-          <div>
+          <div className="overflow-x-auto max-w-full">
             {searchHighlight ? (
               <div className="whitespace-pre-wrap break-words">
                 {highlightText(message.content, searchHighlight)}

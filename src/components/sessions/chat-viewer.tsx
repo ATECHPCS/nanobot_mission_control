@@ -212,7 +212,7 @@ export function ChatViewer({ agentId, sessionFilename, agentIcon }: ChatViewerPr
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-4 py-3"
+        className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-3"
       >
         {/* Loading more indicator */}
         {loadingMore && (
