@@ -30,6 +30,8 @@ import { SuperAdminPanel } from '@/components/panels/super-admin-panel'
 import { OfficePanel } from '@/components/panels/office-panel'
 import { GitHubSyncPanel } from '@/components/panels/github-sync-panel'
 import { DocumentsPanel } from '@/components/panels/documents-panel'
+import { NanobotSessionPanel } from '@/components/panels/nanobot-session-panel'
+import { NanobotTokenPanel } from '@/components/panels/nanobot-token-panel'
 import { ChatPanel } from '@/components/chat/chat-panel'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { LocalModeBanner } from '@/components/layout/local-mode-banner'
@@ -174,6 +176,16 @@ export default function Home() {
 function ContentRouter({ tab }: { tab: string }) {
   const { dashboardMode } = useMissionControl()
   const isLocal = dashboardMode === 'local'
+
+  // Handle nanobot-sessions deep links: /nanobot-sessions/{agent}/{session}
+  if (tab === 'nanobot-sessions' || tab.startsWith('nanobot-sessions/')) {
+    return <NanobotSessionPanel />
+  }
+
+  // Unified token dashboard (replaces legacy /tokens as default nav target)
+  if (tab === 'nanobot-tokens') {
+    return <NanobotTokenPanel />
+  }
 
   switch (tab) {
     case 'overview':

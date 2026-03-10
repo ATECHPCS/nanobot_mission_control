@@ -25,7 +25,7 @@ const navGroups: NavGroup[] = [
       { id: 'overview', label: 'Overview', icon: <OverviewIcon />, priority: true },
       { id: 'agents', label: 'Agents', icon: <AgentsIcon />, priority: true },
       { id: 'tasks', label: 'Tasks', icon: <TasksIcon />, priority: true },
-      { id: 'sessions', label: 'Sessions', icon: <SessionsIcon />, priority: false },
+      { id: 'nanobot-sessions', label: 'Sessions', icon: <SessionsIcon />, priority: false },
       { id: 'office', label: 'Office', icon: <OfficeIcon />, priority: false },
       { id: 'documents', label: 'Documents', icon: <DocumentsIcon />, priority: false },
     ],
@@ -36,7 +36,7 @@ const navGroups: NavGroup[] = [
     items: [
       { id: 'activity', label: 'Activity', icon: <ActivityIcon />, priority: true },
       { id: 'logs', label: 'Logs', icon: <LogsIcon />, priority: false },
-      { id: 'tokens', label: 'Tokens', icon: <TokensIcon />, priority: false },
+      { id: 'nanobot-tokens', label: 'Tokens', icon: <TokensIcon />, priority: false },
       { id: 'agent-costs', label: 'Agent Costs', icon: <AgentCostsIcon />, priority: false },
       { id: 'memory', label: 'Memory', icon: <MemoryIcon />, priority: false },
     ],
@@ -165,11 +165,12 @@ export function NavRail() {
                   {group.items.map((item) => {
                     const disabled = isLocal && item.requiresGateway
                     const showBadge = item.id === 'agents' && hasRedAgent
+                    const isActive = activeTab === item.id || activeTab.startsWith(item.id + '/')
                     return (
                       <NavButton
                         key={item.id}
                         item={item}
-                        active={activeTab === item.id}
+                        active={isActive}
                         expanded={sidebarExpanded}
                         disabled={disabled}
                         showBadge={showBadge}
