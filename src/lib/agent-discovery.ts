@@ -65,7 +65,7 @@ function discoverRootAgent(): DiscoveredAgent | null {
       if (nameMatch) name = nameMatch[1].trim()
       if (!icon) {
         const iconMatch = content.match(/(?:Emoji|Icon)\s*:\s*(.+)/i)
-        if (iconMatch) icon = iconMatch[1].trim()
+        if (iconMatch) icon = iconMatch[1].trim().replace(/\*+/g, '').trim()
       }
     }
   } catch {
@@ -226,7 +226,8 @@ function readIconFromIdentity(workspacePath: string): string | undefined {
     if (!fs.existsSync(identityPath)) return undefined
     const content = fs.readFileSync(identityPath, 'utf-8')
     const match = content.match(/(?:Emoji|Icon)\s*:\s*(.+)/i)
-    return match ? match[1].trim() : undefined
+    // Strip markdown bold/italic markers (e.g., "**🤖**" → "🤖")
+    return match ? match[1].trim().replace(/\*+/g, '').trim() : undefined
   } catch {
     return undefined
   }
