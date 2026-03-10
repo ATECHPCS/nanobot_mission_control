@@ -155,10 +155,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GATE-01 | Phase 3 | Complete |
 | GATE-03 | Phase 3 | Complete |
 | GATE-04 | Phase 3 | Complete |
-| SESS-01 | Phase 4 | Pending |
-| SESS-02 | Phase 4 | Pending |
-| SESS-03 | Phase 4 | Pending |
-| SESS-04 | Phase 4 | Pending |
+| SESS-01 | Phase 4 | In Progress (data layer complete, UI pending 04-02) |
+| SESS-02 | Phase 4 | In Progress (data layer complete, UI pending 04-02) |
+| SESS-03 | Phase 4 | In Progress (data layer complete, UI pending 04-02) |
+| SESS-04 | Phase 4 | In Progress (data layer complete, UI pending 04-02) |
 | TOKN-01 | Phase 4 | Pending |
 | TOKN-02 | Phase 4 | Pending |
 | TOKN-03 | Phase 4 | Pending |

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Full lifecycle UI operational. Start/stop/restart/force-kill with confirmation modals, RBAC tab gating, operation history, card spinners, SSE real-time updates.
-stopped_at: Phase 4 context gathered
-last_updated: "2026-03-10T04:57:43.091Z"
-last_activity: 2026-03-10 -- Plan 03-02 executed (lifecycle UI, confirmation modal, process-based verification)
+status: Session data layer complete. JSONL parser, SQLite caching, streaming reader, and API routes for nanobot session browsing.
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-03-10T05:32:15.000Z"
+last_activity: 2026-03-10 -- Plan 04-01 executed (session data layer, JSONL parser, API routes)
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 11
-  completed_plans: 11
-  percent: 100
+  total_plans: 14
+  completed_plans: 12
+  percent: 86
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** At a glance, know whether every nanobot agent is alive, healthy, and doing what it should be -- and if not, fix it from the dashboard.
-**Current focus:** Phase 3 complete. Full agent lifecycle controls (server + UI). Next: Phase 4 (Alert Rules) or Phase 5 (Historical Metrics).
+**Current focus:** Phase 4 in progress. Session data layer complete (Plan 01). Next: Session Panel UI (Plan 02), then Token Tracking (Plan 03).
 
 ## Current Position
 
-Phase: 3 of 6 (Agent Lifecycle and Gateway) -- COMPLETE
-Plan: 2 of 2 in current phase (all complete)
-Status: Full lifecycle UI operational. Start/stop/restart/force-kill with confirmation modals, RBAC tab gating, operation history, card spinners, SSE real-time updates.
-Last activity: 2026-03-10 -- Plan 03-02 executed (lifecycle UI, confirmation modal, process-based verification)
+Phase: 4 of 6 (Session Viewer and Token Tracking) -- IN PROGRESS
+Plan: 1 of 3 in current phase (04-01 complete)
+Status: Session data layer complete. JSONL parser, SQLite caching, streaming reader, and API routes for nanobot session browsing.
+Last activity: 2026-03-10 -- Plan 04-01 executed (session data layer, JSONL parser, API routes)
 
-Progress: [██████████] 100%
+Progress: [████████░░] 86%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
+- Total plans completed: 12
 - Average duration: 14 min
-- Total execution time: 2.68 hours
+- Total execution time: 2.76 hours
 
 **By Phase:**
 
@@ -46,10 +46,11 @@ Progress: [██████████] 100%
 | 1. Foundation Strip | 5/5 | 68 min | 14 min |
 | 2. Agent Discovery | 3/3 | 43 min | 14 min |
 | 3. Agent Lifecycle | 2/2 | 52 min | 26 min |
+| 4. Session Viewer | 1/3 | 5 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01 (15 min), 02-02 (10 min), 02-03 (18 min), 03-01 (7 min), 03-02 (45 min)
-- Trend: 03-02 longer due to checkpoint verification + 5 bug fixes
+- Last 5 plans: 02-02 (10 min), 02-03 (18 min), 03-01 (7 min), 03-02 (45 min), 04-01 (5 min)
+- Trend: 04-01 fast -- pure server-side data layer with no UI or checkpoint verification
 
 *Updated after each plan completion*
 
@@ -97,6 +98,10 @@ Recent decisions affecting current work:
 - [03-02]: Process detection via pgrep instead of port-only lsof for reliable alive/dead checks
 - [03-02]: launchctl unload/load for launchd-managed agents instead of raw SIGTERM
 - [03-02]: Error log truncation on dismiss to prevent stale errors reappearing
+- [04-01]: 1MB file size threshold for switching from readFileSync to streaming readline
+- [04-01]: Session metadata key field (from JSONL metadata line) is authoritative for channel:identifier parsing
+- [04-01]: Sync compares file_size_bytes to skip unchanged files (no unnecessary re-parsing)
+- [04-01]: Last user message snippet capped at 60 characters for session list preview
 
 ### Pending Todos
 
@@ -110,6 +115,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T04:57:43.083Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-session-viewer-and-token-tracking/04-CONTEXT.md
+Last session: 2026-03-10T05:32:15.000Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: .planning/phases/04-session-viewer-and-token-tracking/04-01-SUMMARY.md
