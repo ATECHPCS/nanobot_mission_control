@@ -215,30 +215,31 @@ export function aggregateTokenStats(
 
   // -- Aggregate byAgent ---------------------------------------------------
 
-  // Nanobot agent tokens are already captured in claude_sessions (they run via Claude Code).
-  // Only show claude_sessions data in byAgent to avoid duplicates with mismatched names.
-  const agentMap = new Map<string, UnifiedTokenStats['byAgent'][number]>()
+  const byAgent: UnifiedTokenStats['byAgent'] = []
 
+  // Claude Code sessions grouped by project_slug
   for (const row of claudeByAgent) {
-    const name = cleanProjectSlug(row.project_slug)
-    const existing = agentMap.get(name)
-    if (existing) {
-      existing.inputTokens += row.input_tokens
-      existing.outputTokens += row.output_tokens
-      existing.sessionCount += row.session_count
-    } else {
-      agentMap.set(name, {
-        agent: name,
-        source: 'claude-code',
-        inputTokens: row.input_tokens,
-        outputTokens: row.output_tokens,
-        sessionCount: row.session_count,
-        messageCount: 0,
-      })
-    }
+    byAgent.push({
+      agent: row.project_slug,
+      source: 'claude-code',
+      inputTokens: row.input_tokens,
+      outputTokens: row.output_tokens,
+      sessionCount: row.session_count,
+      messageCount: 0,
+    })
   }
 
-  const byAgent: UnifiedTokenStats['byAgent'] = Array.from(agentMap.values())
+  // Nanobot agents with message counts (NOT token counts)
+  for (const row of nanobotAgents) {
+    byAgent.push({
+      agent: row.agent_id,
+      source: 'nanobot',
+      inputTokens: 0,
+      outputTokens: 0,
+      sessionCount: row.session_count,
+      messageCount: row.total_messages,
+    })
+  }
 
   // -- Aggregate byModel (merge claude_sessions + token_usage) -------------
 
@@ -336,7 +337,7 @@ export function aggregateTokenStats(
     for (const a of nanobotAgents) {
       if (a.total_messages > maxMsg) {
         maxMsg = a.total_messages
-        mostActiveAgent = a.agent_id.charAt(0).toUpperCase() + a.agent_id.slice(1)
+        mostActiveAgent = a.agent_id
       }
     }
   }

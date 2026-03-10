@@ -59,6 +59,24 @@ function getModelDisplayName(modelName: string): string {
   return parts[parts.length - 1] || modelName
 }
 
+/**
+ * Clean a Claude Code project_slug into a human-readable name for display.
+ * Slugs look like: "-Users-designmac-Nanobot-Bookkeeping-Bot"
+ */
+function cleanAgentName(name: string): string {
+  // If it doesn't look like a slug path, return as-is (e.g. nanobot agent IDs)
+  if (!name.startsWith('-') && !name.includes('-Users-')) return name
+
+  const parts = name.replace(/^-/, '').split('-')
+  let startIdx = 0
+  if (parts[0] === 'Users' && parts.length > 1) {
+    startIdx = 2
+  }
+  const remainder = parts.slice(startIdx).filter(Boolean)
+  if (remainder.length === 0) return 'Claude Code'
+  return remainder.join(' ').replace(/\b\w/g, c => c.toUpperCase())
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -100,14 +118,16 @@ export function NanobotTokenPanel() {
           const bTotal = b.inputTokens + b.outputTokens || b.messageCount
           return bTotal - aTotal
         })
-        .map(a => ({
-          agent: a.agent.length > 20 ? a.agent.slice(0, 18) + '..' : a.agent,
-          fullAgent: a.agent,
+        .map(a => {
+          const display = cleanAgentName(a.agent)
+          return {
+          agent: display.length > 20 ? display.slice(0, 18) + '..' : display,
+          fullAgent: display,
           inputTokens: a.inputTokens,
           outputTokens: a.outputTokens,
           messageCount: a.messageCount,
           source: a.source,
-        }))
+        }})
     : []
 
   const modelData = stats
@@ -209,8 +229,8 @@ export function NanobotTokenPanel() {
             </div>
 
             <div className="bg-card border border-border rounded-lg p-6">
-              <div className="text-3xl font-bold text-foreground truncate" title={stats.summary.mostActiveAgent}>
-                {stats.summary.mostActiveAgent || '-'}
+              <div className="text-3xl font-bold text-foreground truncate" title={cleanAgentName(stats.summary.mostActiveAgent)}>
+                {cleanAgentName(stats.summary.mostActiveAgent) || '-'}
               </div>
               <div className="text-sm text-muted-foreground mt-1">Most Active Agent</div>
             </div>
