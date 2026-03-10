@@ -12,7 +12,7 @@ import type {
   ModelConfig, StandupReport, CurrentUser, ConnectionStatus,
 } from '@/types/shared'
 
-import type { AgentHealthSnapshot } from '@/types/agent-health'
+import type { AgentHealthSnapshot, LifecycleOperation } from '@/types/agent-health'
 
 // Re-export all entity types so existing consumers
 // (e.g. `import { Agent } from '@/store'`) continue to work.
@@ -79,6 +79,14 @@ interface MissionControlStore {
   setDiscoveredAgentsLastChecked: (timestamp: number) => void
   setHealthCheckInterval: (ms: number) => void
   dismissAgentErrors: (agentId: string) => void
+
+  // Lifecycle Operations (Phase 3)
+  lifecycleOperations: Map<string, LifecycleOperation>  // agentId -> current in-progress operation
+  lifecycleHistory: LifecycleOperation[]  // newest first, capped at 100 entries
+  setLifecycleOperation: (agentId: string, op: LifecycleOperation | null) => void
+  addLifecycleHistory: (op: LifecycleOperation) => void
+  getAgentLifecycleHistory: (agentId: string) => LifecycleOperation[]
+  isAgentLocked: (agentId: string) => boolean
 
   // Mission Control Phase 2 - Activities
   activities: Activity[]
@@ -500,6 +508,40 @@ export const useMissionControl = create<MissionControlStore>()(
           a.id === agentId ? { ...a, errors: [], errorsDismissed: true } : a
         ),
       })),
+
+    // Lifecycle Operations (Phase 3)
+    lifecycleOperations: new Map<string, LifecycleOperation>(),
+    lifecycleHistory: [],
+    setLifecycleOperation: (agentId, op) =>
+      set((state) => {
+        const next = new Map(state.lifecycleOperations)
+        if (op) {
+          next.set(agentId, op)
+        } else {
+          next.delete(agentId)
+        }
+        return { lifecycleOperations: next }
+      }),
+    addLifecycleHistory: (op) =>
+      set((state) => {
+        const next = new Map(state.lifecycleOperations)
+        // Clear the active operation when status is terminal
+        if (op.status === 'success' || op.status === 'error') {
+          next.delete(op.agentId)
+        }
+        return {
+          lifecycleHistory: [op, ...state.lifecycleHistory].slice(0, 100),
+          lifecycleOperations: next,
+        }
+      }),
+    getAgentLifecycleHistory: (agentId) => {
+      const { lifecycleHistory } = get()
+      return lifecycleHistory.filter((op) => op.agentId === agentId).slice(0, 10)
+    },
+    isAgentLocked: (agentId) => {
+      const { lifecycleOperations } = get()
+      return lifecycleOperations.has(agentId)
+    },
 
     // Mission Control Phase 2 - Activities
     activities: [],

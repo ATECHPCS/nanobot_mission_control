@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { useMissionControl } from '@/store'
+import type { LifecycleOperation } from '@/types/agent-health'
 import { createClientLogger } from '@/lib/client-logger'
 
 const log = createClientLogger('SSE')
@@ -41,6 +42,8 @@ export function useServerEvents() {
     updateDiscoveredAgent,
     addDiscoveredAgent,
     removeDiscoveredAgent,
+    setLifecycleOperation,
+    addLifecycleHistory,
   } = useMissionControl()
 
   useEffect(() => {
@@ -155,6 +158,20 @@ export function useServerEvents() {
           }
           break
 
+        // Lifecycle events (Phase 3)
+        case 'agent.lifecycle': {
+          const { id, action, status, username, timestamp, error } = event.data
+          const op: LifecycleOperation = { agentId: id, action, status, timestamp, username, error }
+
+          if (status === 'pending') {
+            setLifecycleOperation(id, op)
+          } else {
+            // 'success' or 'error' -- add to history and clear active operation
+            addLifecycleHistory(op)
+          }
+          break
+        }
+
         // Chat events
         case 'chat.message':
           if (event.data?.id) {
@@ -230,5 +247,7 @@ export function useServerEvents() {
     updateDiscoveredAgent,
     addDiscoveredAgent,
     removeDiscoveredAgent,
+    setLifecycleOperation,
+    addLifecycleHistory,
   ])
 }
