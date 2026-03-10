@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 1: Foundation Strip** - Remove OpenClaw protocol and verify existing MC features work cleanly
 - [x] **Phase 2: Agent Discovery and Health** - Auto-discover nanobot agents and monitor their process/channel health
 - [ ] **Phase 3: Agent Lifecycle and Gateway** - Start/stop/restart agents and communicate via HTTP gateway
-- [ ] **Phase 4: Session Viewer and Token Tracking** - Browse JSONL conversation logs and visualize token usage
+- [x] **Phase 4: Session Viewer and Token Tracking** - Browse JSONL conversation logs and visualize token usage
 - [ ] **Phase 5: Memory Management** - Browse and edit agent memory files from the dashboard
 - [ ] **Phase 6: Overview Dashboard and Remote Access** - Unified multi-agent dashboard with Cloudflare Tunnel support
 
@@ -85,8 +85,8 @@ Plans:
 
 Plans:
 - [x] 04-01-PLAN.md -- Types, JSONL parser, SQLite migration, API routes, unit tests (Wave 1)
-- [ ] 04-02-PLAN.md -- Three-column Sessions panel UI with chat viewer, search/filter, deep linking (Wave 2)
-- [ ] 04-03-PLAN.md -- Unified Tokens panel with Recharts charts, stats cards, per-model breakdown (Wave 2)
+- [x] 04-02-PLAN.md -- Three-column Sessions panel UI with chat viewer, search/filter, deep linking (Wave 2)
+- [x] 04-03-PLAN.md -- Unified Tokens panel with Recharts charts, stats cards, per-model breakdown (Wave 2)
 
 ### Phase 5: Memory Management
 **Goal**: Users can browse and edit agent memory files (MEMORY.md, SOUL.md, IDENTITY.md, etc.) from the dashboard with RBAC-gated editing
@@ -128,6 +128,6 @@ Note: Phase 4 depends on Phase 2 (not Phase 3), so Phases 3 and 4 could theoreti
 | 1. Foundation Strip | 4/6 | Gap closure | - |
 | 2. Agent Discovery and Health | 3/3 | Complete | 2026-03-09 |
 | 3. Agent Lifecycle and Gateway | 1/2 | In progress | - |
-| 4. Session Viewer and Token Tracking | 1/3 | In progress | - |
+| 4. Session Viewer and Token Tracking | 3/3 | Complete | 2026-03-10 |
 | 5. Memory Management | 0/? | Not started | - |
 | 6. Overview Dashboard and Remote Access | 0/? | Not started | - |

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Session data layer complete. JSONL parser, SQLite caching, streaming reader, and API routes for nanobot session browsing.
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-03-10T05:32:15.000Z"
-last_activity: 2026-03-10 -- Plan 04-01 executed (session data layer, JSONL parser, API routes)
+status: Phase 4 complete. Unified token dashboard with Recharts charts, stats cards, per-agent and per-model breakdowns, time range filtering.
+stopped_at: Completed 04-03-PLAN.md
+last_updated: "2026-03-10T17:30:00.000Z"
+last_activity: 2026-03-10 -- Plan 04-03 executed (unified token panel, aggregation API, 14 unit tests)
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 14
-  completed_plans: 12
-  percent: 86
+  completed_plans: 14
+  percent: 100
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** At a glance, know whether every nanobot agent is alive, healthy, and doing what it should be -- and if not, fix it from the dashboard.
-**Current focus:** Phase 4 in progress. Session data layer complete (Plan 01). Next: Session Panel UI (Plan 02), then Token Tracking (Plan 03).
+**Current focus:** Phase 4 complete (all 3 plans). Session viewer and token tracking fully operational. Next: Phase 5 (Memory Management).
 
 ## Current Position
 
-Phase: 4 of 6 (Session Viewer and Token Tracking) -- IN PROGRESS
-Plan: 1 of 3 in current phase (04-01 complete)
-Status: Session data layer complete. JSONL parser, SQLite caching, streaming reader, and API routes for nanobot session browsing.
-Last activity: 2026-03-10 -- Plan 04-01 executed (session data layer, JSONL parser, API routes)
+Phase: 4 of 6 (Session Viewer and Token Tracking) -- COMPLETE
+Plan: 3 of 3 in current phase (04-01, 04-02, 04-03 complete)
+Status: Phase 4 complete. Unified token dashboard with Recharts charts, stats cards, per-agent and per-model breakdowns, time range filtering.
+Last activity: 2026-03-10 -- Plan 04-03 executed (unified token panel, aggregation API, 14 unit tests)
 
-Progress: [████████░░] 86%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
-- Average duration: 14 min
-- Total execution time: 2.76 hours
+- Total plans completed: 14
+- Average duration: 16 min
+- Total execution time: 3.63 hours
 
 **By Phase:**
 
@@ -46,11 +46,11 @@ Progress: [████████░░] 86%
 | 1. Foundation Strip | 5/5 | 68 min | 14 min |
 | 2. Agent Discovery | 3/3 | 43 min | 14 min |
 | 3. Agent Lifecycle | 2/2 | 52 min | 26 min |
-| 4. Session Viewer | 1/3 | 5 min | 5 min |
+| 4. Session Viewer | 3/3 | 57 min | 19 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-02 (10 min), 02-03 (18 min), 03-01 (7 min), 03-02 (45 min), 04-01 (5 min)
-- Trend: 04-01 fast -- pure server-side data layer with no UI or checkpoint verification
+- Last 5 plans: 03-01 (7 min), 03-02 (45 min), 04-01 (5 min), 04-02 (26 min), 04-03 (26 min)
+- Trend: Phase 4 complete. Token panel included human-verify checkpoint and bug fixes from previous partial execution
 
 *Updated after each plan completion*
 
@@ -102,6 +102,16 @@ Recent decisions affecting current work:
 - [04-01]: Session metadata key field (from JSONL metadata line) is authoritative for channel:identifier parsing
 - [04-01]: Sync compares file_size_bytes to skip unchanged files (no unnecessary re-parsing)
 - [04-01]: Last user message snippet capped at 60 characters for session list preview
+- [04-02]: Nav-rail Sessions item routes to /nanobot-sessions (replaces legacy /sessions as primary view)
+- [04-02]: URL deep linking uses window.history.replaceState for session changes within same agent
+- [04-02]: Agent sidebar auto-collapses on deep link navigation to maximize chat viewer space
+- [04-02]: Tool call results always expanded inline (no collapse toggle) per user decision
+- [04-02]: In-session search scrolls to first match only (no match counting or prev/next)
+- [04-02]: Session filename .jsonl suffix stripped for cleaner URLs
+- [04-03]: Token aggregation uses raw project_slug as agent identifier; display name cleaning in UI layer
+- [04-03]: Nanobot agents in byAgent with message counts (NOT token counts) -- JSONL lacks token fields
+- [04-03]: Dual Y-axis on LineChart for input vs output tokens at different scales
+- [04-03]: Per-model breakdown uses stacked horizontal bars (not pie chart) for readability
 
 ### Pending Todos
 
@@ -115,6 +125,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T05:32:15.000Z
-Stopped at: Completed 04-01-PLAN.md
-Resume file: .planning/phases/04-session-viewer-and-token-tracking/04-01-SUMMARY.md
+Last session: 2026-03-10T17:28:55.000Z
+Stopped at: Completed 04-02-PLAN.md
+Resume file: .planning/phases/04-session-viewer-and-token-tracking/04-02-SUMMARY.md

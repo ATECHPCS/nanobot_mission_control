@@ -50,10 +50,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Session Viewer
 
-- [ ] **SESS-01**: User can browse JSONL conversation sessions per agent
-- [ ] **SESS-02**: Sessions render as chat-style timeline with user messages, agent responses, and tool calls
-- [ ] **SESS-03**: User can search and filter sessions by date and keyword
-- [ ] **SESS-04**: Session viewer handles large JSONL files without blocking (streaming/virtualized rendering)
+- [x] **SESS-01**: User can browse JSONL conversation sessions per agent
+- [x] **SESS-02**: Sessions render as chat-style timeline with user messages, agent responses, and tool calls
+- [x] **SESS-03**: User can search and filter sessions by date and keyword
+- [x] **SESS-04**: Session viewer handles large JSONL files without blocking (streaming/virtualized rendering)
 
 ### Token Tracking
 
