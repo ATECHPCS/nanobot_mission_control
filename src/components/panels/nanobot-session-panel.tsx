@@ -54,7 +54,7 @@ export function NanobotSessionPanel() {
   const agentIcon = selectedAgentSnapshot?.agent?.icon
 
   return (
-    <div className="flex h-full overflow-hidden relative">
+    <div className="flex h-[calc(100dvh-3rem)] overflow-hidden relative">
       {/* Left: Agent sidebar */}
       <AgentSidebar />
 

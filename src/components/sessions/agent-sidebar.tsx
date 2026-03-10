@@ -1,7 +1,9 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useMissionControl } from '@/store'
 import { cn } from '@/lib/utils'
+import type { AgentHealthSnapshot } from '@/types/agent-health'
 
 const healthDotColor: Record<string, string> = {
   green: 'bg-green-500',
@@ -12,11 +14,33 @@ const healthDotColor: Record<string, string> = {
 export function AgentSidebar() {
   const {
     discoveredAgents,
+    discoveredAgentsLoading,
     sessionViewerAgent,
     sessionViewerAgentSidebarOpen,
+    setDiscoveredAgents,
+    setDiscoveredAgentsLoading,
     setSessionViewerAgent,
     toggleSessionViewerAgentSidebar,
   } = useMissionControl()
+
+  // Fetch agents if not already loaded
+  useEffect(() => {
+    if (discoveredAgents.length > 0) return
+    let cancelled = false
+    setDiscoveredAgentsLoading(true)
+    fetch('/api/agents/discover?refresh=true')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { agents: AgentHealthSnapshot[] } | null) => {
+        if (!cancelled && data?.agents) {
+          setDiscoveredAgents(data.agents)
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setDiscoveredAgentsLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [discoveredAgents.length, setDiscoveredAgents, setDiscoveredAgentsLoading])
 
   const isOpen = sessionViewerAgentSidebarOpen
 
@@ -51,7 +75,9 @@ export function AgentSidebar() {
       <div className="flex-1 overflow-y-auto py-1">
         {discoveredAgents.length === 0 ? (
           <div className={cn('text-xs text-muted-foreground', isOpen ? 'px-3 py-4 text-center' : 'px-1 py-4 text-center')}>
-            {isOpen ? 'No agents discovered' : ''}
+            {discoveredAgentsLoading
+              ? (isOpen ? 'Discovering agents...' : '')
+              : (isOpen ? 'No agents discovered' : '')}
           </div>
         ) : (
           discoveredAgents.map((agent) => {

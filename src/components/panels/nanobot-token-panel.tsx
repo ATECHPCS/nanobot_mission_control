@@ -236,13 +236,15 @@ export function NanobotTokenPanel() {
                   <LineChart data={stats.timeline}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" />
-                    <YAxis tickFormatter={formatNumber} />
+                    <YAxis yAxisId="input" tickFormatter={formatNumber} stroke="#8884d8" />
+                    <YAxis yAxisId="output" orientation="right" tickFormatter={formatNumber} stroke="#82ca9d" />
                     <Tooltip
-                      formatter={(value) => formatNumber(Number(value))}
+                      formatter={(value, name) => [formatNumber(Number(value)), name]}
                       labelFormatter={(label) => `Date: ${label}`}
                     />
                     <Legend />
                     <Line
+                      yAxisId="input"
                       type="monotone"
                       dataKey="inputTokens"
                       stroke="#8884d8"
@@ -251,6 +253,7 @@ export function NanobotTokenPanel() {
                       dot={false}
                     />
                     <Line
+                      yAxisId="output"
                       type="monotone"
                       dataKey="outputTokens"
                       stroke="#82ca9d"
@@ -282,7 +285,8 @@ export function NanobotTokenPanel() {
                       margin={{ left: 10, right: 20 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" tickFormatter={formatNumber} />
+                      <XAxis xAxisId="input" type="number" tickFormatter={formatNumber} orientation="bottom" stroke="#8884d8" />
+                      <XAxis xAxisId="output" type="number" tickFormatter={formatNumber} orientation="top" stroke="#82ca9d" />
                       <YAxis
                         type="category"
                         dataKey="agent"
@@ -290,30 +294,32 @@ export function NanobotTokenPanel() {
                         tick={{ fontSize: 12 }}
                       />
                       <Tooltip
-                        content={({ active, payload, label }) => {
+                        content={({ active, payload }) => {
                           if (!active || !payload?.length) return null
                           const item = payload[0]?.payload
+                          if (!item) return null
                           return (
                             <div className="bg-popover border border-border rounded-lg p-3 text-sm shadow-lg">
-                              <p className="font-medium mb-1">{item?.fullAgent || label}</p>
+                              <p className="font-medium mb-1">{item.fullAgent}</p>
                               <p className="text-xs text-muted-foreground mb-2">
-                                Source: {item?.source === 'nanobot' ? 'Nanobot Agent' : 'Claude Code'}
+                                Source: {item.source === 'nanobot' ? 'Nanobot Agent' : 'Claude Code'}
                               </p>
-                              {item?.source === 'nanobot' && item?.inputTokens === 0 && item?.outputTokens === 0 ? (
-                                <p className="text-xs">Messages: {formatNumber(item.messageCount)} (messages)</p>
-                              ) : (
+                              {(item.inputTokens > 0 || item.outputTokens > 0) && (
                                 <>
-                                  <p className="text-xs">Input: {formatNumber(item?.inputTokens ?? 0)}</p>
-                                  <p className="text-xs">Output: {formatNumber(item?.outputTokens ?? 0)}</p>
+                                  <p className="text-xs">Input: {formatNumber(item.inputTokens)}</p>
+                                  <p className="text-xs">Output: {formatNumber(item.outputTokens)}</p>
                                 </>
+                              )}
+                              {item.messageCount > 0 && (
+                                <p className="text-xs">Messages: {formatNumber(item.messageCount)}</p>
                               )}
                             </div>
                           )
                         }}
                       />
                       <Legend />
-                      <Bar dataKey="inputTokens" fill="#8884d8" name="Input Tokens" stackId="tokens" />
-                      <Bar dataKey="outputTokens" fill="#82ca9d" name="Output Tokens" stackId="tokens" />
+                      <Bar xAxisId="input" dataKey="inputTokens" fill="#8884d8" name="Input Tokens" />
+                      <Bar xAxisId="output" dataKey="outputTokens" fill="#82ca9d" name="Output Tokens" />
                     </BarChart>
                   </ResponsiveContainer>
                 )}

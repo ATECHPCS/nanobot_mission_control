@@ -157,11 +157,11 @@ export function SessionList({ agentId }: SessionListProps) {
 
               {/* Sessions in group */}
               {grouped[channel].map((session) => {
-                const isSelected = sessionViewerSession === session.filename
+                const isSelected = sessionViewerSession === session.filename.replace('.jsonl', '')
                 return (
                   <button
                     key={session.filename}
-                    onClick={() => setSessionViewerSession(session.filename)}
+                    onClick={() => setSessionViewerSession(session.filename.replace('.jsonl', ''))}
                     className={cn(
                       'w-full text-left px-3 py-2 border-b border-border/50 transition-colors',
                       isSelected

@@ -306,7 +306,7 @@ export async function syncNanobotSessions(): Promise<{ ok: boolean; message: str
 
     db.transaction(() => {
       for (const agent of agents) {
-        const sessionsDir = join(agent.homePath, '.nanobot', 'sessions')
+        const sessionsDir = join(agent.workspacePath, 'sessions')
         const sessions = scanAgentSessions(agent.id, sessionsDir)
 
         for (const session of sessions) {

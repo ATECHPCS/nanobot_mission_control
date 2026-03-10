@@ -77,7 +77,7 @@ export async function GET(
     )
   }
 
-  const filePath = join(agent.homePath, '.nanobot', 'sessions', filename)
+  const filePath = join(agent.workspacePath, 'sessions', filename)
 
   if (!existsSync(filePath)) {
     return NextResponse.json(

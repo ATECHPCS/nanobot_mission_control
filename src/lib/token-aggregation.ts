@@ -56,13 +56,18 @@ const RANGE_DAYS: Record<Range, number> = {
 
 function cutoffDate(range: Range, now: Date): string {
   const days = RANGE_DAYS[range] ?? 7
-  const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
+  const cutoff = new Date(now)
+  cutoff.setHours(0, 0, 0, 0) // midnight today
+  cutoff.setDate(cutoff.getDate() - (days - 1)) // "today" = since midnight, "week" = 7 days back from midnight
   return cutoff.toISOString()
 }
 
 function cutoffEpoch(range: Range, now: Date): number {
   const days = RANGE_DAYS[range] ?? 7
-  return Math.floor((now.getTime() - days * 24 * 60 * 60 * 1000) / 1000)
+  const cutoff = new Date(now)
+  cutoff.setHours(0, 0, 0, 0)
+  cutoff.setDate(cutoff.getDate() - (days - 1))
+  return Math.floor(cutoff.getTime() / 1000)
 }
 
 // -- Row types for query results -------------------------------------------
@@ -96,6 +101,44 @@ interface TimelineDateRow {
   date_bucket: string
   input_tokens: number
   output_tokens: number
+}
+
+// -- Display name helpers --------------------------------------------------
+
+/**
+ * Clean a Claude Code project_slug into a human-readable name.
+ * Slugs look like: "-Users-designmac-Nanobot-Bookkeeping-Bot"
+ * Strip the home dir prefix and format the remainder.
+ */
+function cleanProjectSlug(slug: string): string {
+  // Remove leading dash and split by dash
+  const parts = slug.replace(/^-/, '').split('-')
+
+  // Find where the home dir prefix ends (Users/username pattern)
+  // Typical: ["Users", "designmac", ...rest]
+  let startIdx = 0
+  if (parts[0] === 'Users' && parts.length > 1) {
+    startIdx = 2 // skip "Users" and username
+  }
+
+  const remainder = parts.slice(startIdx).filter(Boolean)
+
+  // If nothing left, it's the home directory itself
+  if (remainder.length === 0) return 'Claude Code'
+
+  // For hidden dir paths (e.g. .nanobot/workspace/agents/cody),
+  // use the agent name if present, otherwise the top-level dir name
+  if (parts[startIdx] === '') {
+    const agentsIdx = remainder.indexOf('agents')
+    const name = agentsIdx >= 0 && agentsIdx < remainder.length - 1
+      ? remainder[remainder.length - 1] // agent name after "agents/"
+      : remainder[0]                     // top-level dir name (e.g. "nanobot")
+    return name.charAt(0).toUpperCase() + name.slice(1)
+  }
+
+  // For regular project dirs, join with spaces and title-case
+  // e.g. "Nanobot-Bookkeeping-Bot" -> "Nanobot Bookkeeping Bot"
+  return remainder.join(' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
 // -- Main aggregation function ---------------------------------------------
@@ -172,29 +215,30 @@ export function aggregateTokenStats(
 
   // -- Aggregate byAgent ---------------------------------------------------
 
-  const byAgent: UnifiedTokenStats['byAgent'] = []
+  // Nanobot agent tokens are already captured in claude_sessions (they run via Claude Code).
+  // Only show claude_sessions data in byAgent to avoid duplicates with mismatched names.
+  const agentMap = new Map<string, UnifiedTokenStats['byAgent'][number]>()
 
   for (const row of claudeByAgent) {
-    byAgent.push({
-      agent: row.project_slug,
-      source: 'claude-code',
-      inputTokens: row.input_tokens,
-      outputTokens: row.output_tokens,
-      sessionCount: row.session_count,
-      messageCount: 0,
-    })
+    const name = cleanProjectSlug(row.project_slug)
+    const existing = agentMap.get(name)
+    if (existing) {
+      existing.inputTokens += row.input_tokens
+      existing.outputTokens += row.output_tokens
+      existing.sessionCount += row.session_count
+    } else {
+      agentMap.set(name, {
+        agent: name,
+        source: 'claude-code',
+        inputTokens: row.input_tokens,
+        outputTokens: row.output_tokens,
+        sessionCount: row.session_count,
+        messageCount: 0,
+      })
+    }
   }
 
-  for (const row of nanobotAgents) {
-    byAgent.push({
-      agent: row.agent_id,
-      source: 'nanobot',
-      inputTokens: 0,
-      outputTokens: 0,
-      sessionCount: row.session_count,
-      messageCount: row.total_messages,
-    })
-  }
+  const byAgent: UnifiedTokenStats['byAgent'] = Array.from(agentMap.values())
 
   // -- Aggregate byModel (merge claude_sessions + token_usage) -------------
 
@@ -292,7 +336,7 @@ export function aggregateTokenStats(
     for (const a of nanobotAgents) {
       if (a.total_messages > maxMsg) {
         maxMsg = a.total_messages
-        mostActiveAgent = a.agent_id
+        mostActiveAgent = a.agent_id.charAt(0).toUpperCase() + a.agent_id.slice(1)
       }
     }
   }
