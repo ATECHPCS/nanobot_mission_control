@@ -57,10 +57,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Token Tracking
 
-- [ ] **TOKN-01**: Dashboard extracts token counts from JSONL session data
-- [ ] **TOKN-02**: Dashboard displays per-agent token usage with Recharts visualizations
-- [ ] **TOKN-03**: Dashboard shows per-model token breakdown
-- [ ] **TOKN-04**: Dashboard shows token usage trends over time
+- [x] **TOKN-01**: Dashboard extracts token counts from JSONL session data
+- [x] **TOKN-02**: Dashboard displays per-agent token usage with Recharts visualizations
+- [x] **TOKN-03**: Dashboard shows per-model token breakdown
+- [x] **TOKN-04**: Dashboard shows token usage trends over time
 
 ### Memory Management
 
@@ -159,10 +159,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SESS-02 | Phase 4 | In Progress (data layer complete, UI pending 04-02) |
 | SESS-03 | Phase 4 | In Progress (data layer complete, UI pending 04-02) |
 | SESS-04 | Phase 4 | In Progress (data layer complete, UI pending 04-02) |
-| TOKN-01 | Phase 4 | Pending |
-| TOKN-02 | Phase 4 | Pending |
-| TOKN-03 | Phase 4 | Pending |
-| TOKN-04 | Phase 4 | Pending |
+| TOKN-01 | Phase 4 | Complete |
+| TOKN-02 | Phase 4 | Complete |
+| TOKN-03 | Phase 4 | Complete |
+| TOKN-04 | Phase 4 | Complete |
 | MEMO-01 | Phase 5 | Pending |
 | MEMO-02 | Phase 5 | Pending |
 | MEMO-03 | Phase 5 | Pending |

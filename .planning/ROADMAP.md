@@ -128,6 +128,6 @@ Note: Phase 4 depends on Phase 2 (not Phase 3), so Phases 3 and 4 could theoreti
 | 1. Foundation Strip | 4/6 | Gap closure | - |
 | 2. Agent Discovery and Health | 3/3 | Complete | 2026-03-09 |
 | 3. Agent Lifecycle and Gateway | 1/2 | In progress | - |
-| 4. Session Viewer and Token Tracking | 3/3 | Complete | 2026-03-10 |
+| 4. Session Viewer and Token Tracking | 3/3 | Complete   | 2026-03-10 |
 | 5. Memory Management | 0/? | Not started | - |
 | 6. Overview Dashboard and Remote Access | 0/? | Not started | - |
