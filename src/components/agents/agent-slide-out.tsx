@@ -8,23 +8,30 @@ import { AgentHealthDot } from './agent-health-dot'
 import { AgentOverviewTab } from './agent-overview-tab'
 import { AgentErrorsTab } from './agent-errors-tab'
 import { AgentChannelsTab } from './agent-channels-tab'
+import { AgentLifecycleTab } from './agent-lifecycle-tab'
 
 interface AgentSlideOutProps {
   agentId: string | null
   onClose: () => void
 }
 
-type TabId = 'overview' | 'errors' | 'channels'
+type TabId = 'overview' | 'errors' | 'channels' | 'lifecycle'
 
-const tabs: { id: TabId; label: string }[] = [
+const baseTabs: { id: TabId; label: string }[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'errors', label: 'Errors' },
   { id: 'channels', label: 'Channels' },
 ]
 
 export function AgentSlideOut({ agentId, onClose }: AgentSlideOutProps) {
-  const { discoveredAgents } = useMissionControl()
+  const { discoveredAgents, currentUser } = useMissionControl()
   const [activeTab, setActiveTab] = useState<TabId>('overview')
+
+  // Lifecycle tab is only visible for operator/admin roles (hidden entirely for viewers)
+  const isOperator = currentUser != null && (currentUser.role === 'operator' || currentUser.role === 'admin')
+  const tabs = isOperator
+    ? [...baseTabs, { id: 'lifecycle' as TabId, label: 'Lifecycle' }]
+    : baseTabs
   const [mounted, setMounted] = useState(false)
 
   const snapshot = agentId
@@ -162,6 +169,7 @@ export function AgentSlideOut({ agentId, onClose }: AgentSlideOutProps) {
               {activeTab === 'overview' && <AgentOverviewTab snapshot={snapshot} />}
               {activeTab === 'errors' && <AgentErrorsTab snapshot={snapshot} />}
               {activeTab === 'channels' && <AgentChannelsTab snapshot={snapshot} />}
+              {activeTab === 'lifecycle' && <AgentLifecycleTab snapshot={snapshot} />}
             </div>
           </>
         ) : (

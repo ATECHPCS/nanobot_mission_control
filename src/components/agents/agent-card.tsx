@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
+import { useMissionControl } from '@/store'
 import { AgentAvatar } from '@/components/ui/agent-avatar'
 import { AgentHealthDot } from './agent-health-dot'
 import type { AgentHealthSnapshot } from '@/types/agent-health'
@@ -30,6 +31,8 @@ function relativeTime(isoTimestamp: string): string {
 }
 
 export function AgentCard({ snapshot, onClick, selected }: AgentCardProps) {
+  const { isAgentLocked } = useMissionControl()
+  const lifecycleLocked = isAgentLocked(snapshot.id)
   const { name, health, lastActivity, errors, channels, agent } = snapshot
 
   const healthDimensions = Object.values(health.dimensions)
@@ -69,6 +72,12 @@ export function AgentCard({ snapshot, onClick, selected }: AgentCardProps) {
         )}
         <span className="text-sm font-medium text-foreground truncate flex-1">{name}</span>
         <AgentHealthDot level={health.overall} size="md" reasons={healthDimensions} />
+        {lifecycleLocked && (
+          <svg className="w-4 h-4 animate-spin text-primary shrink-0" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="opacity-25" />
+            <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          </svg>
+        )}
         {errors.length > 0 && (
           <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-destructive/15 text-destructive">
             {errors.length} err
