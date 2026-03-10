@@ -10,13 +10,15 @@
 import { eventBus } from '@/lib/event-bus'
 import { discoverAgents } from '@/lib/agent-discovery'
 import { checkAgentHealth } from '@/lib/agent-health'
-import type { AgentHealthSnapshot } from '@/types/agent-health'
+import type { AgentHealthSnapshot, LifecycleLock, LifecycleAction } from '@/types/agent-health'
 
 class HealthMonitor {
   private intervalId: ReturnType<typeof setInterval> | null = null
   private lastSnapshot: Map<string, AgentHealthSnapshot> = new Map()
   private intervalMs = 30_000
   private ticking = false
+  private lifecycleLocks: Map<string, LifecycleLock> = new Map()
+  private static LOCK_TIMEOUT_MS = 30_000 // auto-expire after 30s
 
   /**
    * Start the health check loop. Idempotent -- no-op if already running.
@@ -153,6 +155,63 @@ class HealthMonitor {
     })
 
     return true
+  }
+
+  // -------------------------------------------------------------------------
+  // Lifecycle Locks
+  // -------------------------------------------------------------------------
+
+  /**
+   * Acquire a lifecycle lock for an agent.
+   * Prevents concurrent operations on the same agent.
+   * Returns { acquired: true } on success, or { acquired: false, error } if locked.
+   */
+  acquireLock(
+    agentId: string,
+    action: LifecycleAction,
+    username: string
+  ): { acquired: boolean; error?: string } {
+    this.cleanExpiredLocks()
+    const existing = this.lifecycleLocks.get(agentId)
+    if (existing) {
+      return {
+        acquired: false,
+        error: `${existing.action} in progress -- please wait`,
+      }
+    }
+    this.lifecycleLocks.set(agentId, {
+      agentId,
+      action,
+      lockedBy: username,
+      lockedAt: Date.now(),
+      expiresAt: Date.now() + HealthMonitor.LOCK_TIMEOUT_MS,
+    })
+    return { acquired: true }
+  }
+
+  /**
+   * Release a lifecycle lock for an agent.
+   */
+  releaseLock(agentId: string): void {
+    this.lifecycleLocks.delete(agentId)
+  }
+
+  /**
+   * Get the current lifecycle lock for an agent, if any.
+   */
+  getLock(agentId: string): LifecycleLock | null {
+    this.cleanExpiredLocks()
+    return this.lifecycleLocks.get(agentId) ?? null
+  }
+
+  /**
+   * Remove all expired lifecycle locks.
+   */
+  private cleanExpiredLocks(): void {
+    const now = Date.now()
+    for (const [id, lock] of this.lifecycleLocks) {
+      if (lock.expiresAt <= now) this.lifecycleLocks.delete(id)
+    }
   }
 }
 
