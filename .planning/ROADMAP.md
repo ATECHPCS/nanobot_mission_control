@@ -69,7 +69,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01-PLAN.md -- Lifecycle service, gateway proxy, API routes, health monitor locks, unit tests (Wave 1)
+- [x] 03-01-PLAN.md -- Lifecycle service, gateway proxy, API routes, health monitor locks, unit tests (Wave 1)
 - [ ] 03-02-PLAN.md -- Zustand lifecycle state, Lifecycle tab, confirm modal, card spinner, SSE events, visual verification (Wave 2)
 
 ### Phase 4: Session Viewer and Token Tracking
@@ -126,7 +126,7 @@ Note: Phase 4 depends on Phase 2 (not Phase 3), so Phases 3 and 4 could theoreti
 |-------|----------------|--------|-----------|
 | 1. Foundation Strip | 4/6 | Gap closure | - |
 | 2. Agent Discovery and Health | 3/3 | Complete | 2026-03-09 |
-| 3. Agent Lifecycle and Gateway | 0/2 | Planning complete | - |
+| 3. Agent Lifecycle and Gateway | 1/2 | In progress | - |
 | 4. Session Viewer and Token Tracking | 0/? | Not started | - |
 | 5. Memory Management | 0/? | Not started | - |
 | 6. Overview Dashboard and Remote Access | 0/? | Not started | - |

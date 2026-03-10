@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Phase 3 context gathered
-last_updated: "2026-03-10T00:01:17.408Z"
-last_activity: 2026-03-09 -- Plan 02-03 executed (agent detail slide-out panel)
+status: in_progress
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-03-10T00:36:00Z"
+last_activity: 2026-03-10 -- Plan 03-01 executed (lifecycle service, gateway proxy, API routes)
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 9
-  completed_plans: 9
-  percent: 100
+  total_plans: 11
+  completed_plans: 10
+  percent: 91
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** At a glance, know whether every nanobot agent is alive, healthy, and doing what it should be -- and if not, fix it from the dashboard.
-**Current focus:** Phase 2 complete. Next: Phase 3 (Agent Lifecycle and Gateway) or Phase 4 (Session Viewer and Token Tracking)
+**Current focus:** Phase 3 in progress. Plan 03-01 complete (server-side lifecycle + gateway). Next: Plan 03-02 (UI integration).
 
 ## Current Position
 
-Phase: 2 of 6 (Agent Discovery and Health) -- COMPLETE
-Plan: 3 of 3 in current phase (02-03 complete, phase done)
-Status: Phase 2 fully complete -- agent discovery, health monitoring, card grid UI, slide-out detail panel, RBAC, SSE real-time updates. 175 tests pass.
-Last activity: 2026-03-09 -- Plan 02-03 executed (agent detail slide-out panel)
+Phase: 3 of 6 (Agent Lifecycle and Gateway)
+Plan: 1 of 2 in current phase (03-01 complete)
+Status: Server-side lifecycle and gateway infrastructure complete. Process management, gateway proxy, 4 API routes, lifecycle locks. 203 tests pass.
+Last activity: 2026-03-10 -- Plan 03-01 executed (lifecycle service, gateway proxy, API routes)
 
-Progress: [██████████] 100%
+Progress: [█████████░] 91%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
-- Average duration: 13 min
-- Total execution time: 1.82 hours
+- Total plans completed: 10
+- Average duration: 12 min
+- Total execution time: 1.93 hours
 
 **By Phase:**
 
@@ -45,10 +45,11 @@ Progress: [██████████] 100%
 |-------|-------|-------|----------|
 | 1. Foundation Strip | 5/5 | 68 min | 14 min |
 | 2. Agent Discovery | 3/3 | 43 min | 14 min |
+| 3. Agent Lifecycle | 1/2 | 7 min | 7 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-03 (5 min), 01-04 (4 min), 02-01 (15 min), 02-02 (10 min), 02-03 (18 min)
-- Trend: Stable (feature plans ~13 min)
+- Last 5 plans: 01-04 (4 min), 02-01 (15 min), 02-02 (10 min), 02-03 (18 min), 03-01 (7 min)
+- Trend: Stable (feature plans ~12 min)
 
 *Updated after each plan completion*
 
@@ -89,6 +90,10 @@ Recent decisions affecting current work:
 - [02-03]: Root workspace agent discovered via IDENTITY.md parsing (name + icon extraction)
 - [02-03]: SSE agent.created events with partial data (missing .agent) skipped; next poll picks them up
 - [02-03]: updateDiscoveredAgent merges partial SSE data with spread operator instead of full replacement
+- [03-01]: Server-side lifecycle locks in health monitor singleton (not client-side Zustand) for multi-user safety
+- [03-01]: Background verification polling (setTimeout) returns API response immediately while monitoring start/stop outcome
+- [03-01]: Force-stop allows escalation from existing stop/restart lock without acquiring new lock
+- [03-01]: Gateway proxy validates endpoint against allowlist before forwarding (health and status only)
 
 ### Pending Todos
 
@@ -96,12 +101,12 @@ None yet.
 
 ### Blockers/Concerns
 
-- Research gap: Exact nanobot gateway HTTP API contract unknown (affects Phase 3, 5)
-- Research gap: Agent process PID tracking mechanism unclear (affects Phase 3)
+- Research gap: Exact nanobot gateway HTTP API contract unknown (affects Phase 5)
+- RESOLVED: Agent process PID tracking via lsof port lookup + PGID kill (implemented in 03-01)
 - RESOLVED: JSONL session file format documented in 02-RESEARCH.md and implemented in agent-health.ts
 
 ## Session Continuity
 
-Last session: 2026-03-10T00:01:17.398Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-agent-lifecycle-and-gateway/03-CONTEXT.md
+Last session: 2026-03-10T00:36:00Z
+Stopped at: Completed 03-01-PLAN.md
+Resume file: .planning/phases/03-agent-lifecycle-and-gateway/03-02-PLAN.md

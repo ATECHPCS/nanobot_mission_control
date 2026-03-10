@@ -36,17 +36,17 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Agent Lifecycle
 
-- [ ] **LIFE-01**: Operator can start an agent from the dashboard by executing its launch script
-- [ ] **LIFE-02**: Operator can stop a running agent from the dashboard (proper process tree kill)
-- [ ] **LIFE-03**: Operator can restart an agent from the dashboard (stop + start)
+- [x] **LIFE-01**: Operator can start an agent from the dashboard by executing its launch script
+- [x] **LIFE-02**: Operator can stop a running agent from the dashboard (proper process tree kill)
+- [x] **LIFE-03**: Operator can restart an agent from the dashboard (stop + start)
 - [ ] **LIFE-04**: Dashboard shows confirmation dialog before stop/restart actions
-- [ ] **LIFE-05**: Dashboard handles process tree management correctly (kill grandchild processes, not just direct child)
+- [x] **LIFE-05**: Dashboard handles process tree management correctly (kill grandchild processes, not just direct child)
 
 ### Gateway Integration
 
-- [ ] **GATE-01**: Dashboard communicates with agents via HTTP requests to their gateway ports
-- [ ] **GATE-03**: Dashboard handles gateway connection failures gracefully (timeout, retry, error display)
-- [ ] **GATE-04**: All agent communication routes through MC API routes (browser never talks directly to agent ports)
+- [x] **GATE-01**: Dashboard communicates with agents via HTTP requests to their gateway ports
+- [x] **GATE-03**: Dashboard handles gateway connection failures gracefully (timeout, retry, error display)
+- [x] **GATE-04**: All agent communication routes through MC API routes (browser never talks directly to agent ports)
 
 ### Session Viewer
 
@@ -147,14 +147,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HLTH-04 | Phase 2 | Complete |
 | HLTH-05 | Phase 2 | Complete |
 | HLTH-06 | Phase 2 | Complete |
-| LIFE-01 | Phase 3 | Pending |
-| LIFE-02 | Phase 3 | Pending |
-| LIFE-03 | Phase 3 | Pending |
+| LIFE-01 | Phase 3 | Complete |
+| LIFE-02 | Phase 3 | Complete |
+| LIFE-03 | Phase 3 | Complete |
 | LIFE-04 | Phase 3 | Pending |
-| LIFE-05 | Phase 3 | Pending |
-| GATE-01 | Phase 3 | Pending |
-| GATE-03 | Phase 3 | Pending |
-| GATE-04 | Phase 3 | Pending |
+| LIFE-05 | Phase 3 | Complete |
+| GATE-01 | Phase 3 | Complete |
+| GATE-03 | Phase 3 | Complete |
+| GATE-04 | Phase 3 | Complete |
 | SESS-01 | Phase 4 | Pending |
 | SESS-02 | Phase 4 | Pending |
 | SESS-03 | Phase 4 | Pending |
