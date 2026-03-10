@@ -43,7 +43,7 @@ import { ToastProvider } from '@/components/ui/toast-provider'
 
 export default function Home() {
   const router = useRouter()
-  const { activeTab, setActiveTab, setCurrentUser, setDashboardMode, setGatewayAvailable, setSubscription, setUpdateAvailable, liveFeedOpen, toggleLiveFeed } = useMissionControl()
+  const { activeTab, setActiveTab, setCurrentUser, setDashboardMode, setGatewayAvailable, setSubscription, setUpdateAvailable } = useMissionControl()
 
   // Sync URL → Zustand activeTab
   const pathname = usePathname()
@@ -146,25 +146,10 @@ export default function Home() {
           </main>
         </div>
 
-        {/* Right: Live feed (hidden on mobile) */}
-        {liveFeedOpen && (
-          <div className="hidden lg:flex h-full">
-            <LiveFeed />
-          </div>
-        )}
-
-        {/* Floating button to reopen LiveFeed when closed */}
-        {!liveFeedOpen && (
-          <button
-            onClick={toggleLiveFeed}
-            className="hidden lg:flex fixed right-0 top-1/2 -translate-y-1/2 z-30 w-6 h-12 items-center justify-center bg-card border border-r-0 border-border rounded-l-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200"
-            title="Show live feed"
-          >
-            <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M10 3l-5 5 5 5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-        )}
+        {/* Right: Live feed (hidden on mobile, will be removed in Plan 02) */}
+        <div className="hidden lg:flex h-full">
+          <LiveFeed />
+        </div>
 
         {/* Chat panel overlay */}
         <ChatPanel />

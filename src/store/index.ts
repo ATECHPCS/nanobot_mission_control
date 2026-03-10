@@ -200,12 +200,10 @@ interface MissionControlStore {
   activeTab: string
   sidebarExpanded: boolean
   collapsedGroups: string[]
-  liveFeedOpen: boolean
   setActiveTab: (tab: string) => void
   toggleSidebar: () => void
   setSidebarExpanded: (expanded: boolean) => void
   toggleGroup: (groupId: string) => void
-  toggleLiveFeed: () => void
 }
 
 export const useMissionControl = create<MissionControlStore>()(
@@ -399,10 +397,6 @@ export const useMissionControl = create<MissionControlStore>()(
         return raw ? JSON.parse(raw) as string[] : []
       } catch { return [] as string[] }
     })(),
-    liveFeedOpen: (() => {
-      if (typeof window === 'undefined') return true
-      try { return localStorage.getItem('mc-livefeed-open') !== 'false' } catch { return true }
-    })(),
     setActiveTab: (tab) => set({ activeTab: tab }),
     toggleSidebar: () =>
       set((state) => {
@@ -422,13 +416,6 @@ export const useMissionControl = create<MissionControlStore>()(
         try { localStorage.setItem('mc-sidebar-groups', JSON.stringify(next)) } catch {}
         return { collapsedGroups: next }
       }),
-    toggleLiveFeed: () =>
-      set((state) => {
-        const next = !state.liveFeedOpen
-        try { localStorage.setItem('mc-livefeed-open', String(next)) } catch {}
-        return { liveFeedOpen: next }
-      }),
-
     // Mission Control Phase 2 - Tasks
     tasks: [],
     selectedTask: null,

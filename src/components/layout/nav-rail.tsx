@@ -23,7 +23,6 @@ const navGroups: NavGroup[] = [
     id: 'core',
     items: [
       { id: 'overview', label: 'Overview', icon: <OverviewIcon />, priority: true },
-      { id: 'agents', label: 'Agents', icon: <AgentsIcon />, priority: true },
       { id: 'tasks', label: 'Tasks', icon: <TasksIcon />, priority: true },
       { id: 'nanobot-sessions', label: 'Sessions', icon: <SessionsIcon />, priority: false },
       { id: 'office', label: 'Office', icon: <OfficeIcon />, priority: false },
@@ -46,8 +45,6 @@ const navGroups: NavGroup[] = [
     label: 'AUTOMATE',
     items: [
       { id: 'cron', label: 'Cron', icon: <CronIcon />, priority: false },
-      { id: 'spawn', label: 'Spawn', icon: <SpawnIcon />, priority: false, requiresGateway: true },
-      { id: 'webhooks', label: 'Webhooks', icon: <WebhookIcon />, priority: false },
       { id: 'alerts', label: 'Alerts', icon: <AlertIcon />, priority: false },
       { id: 'github', label: 'GitHub', icon: <GitHubIcon />, priority: false },
     ],
@@ -164,7 +161,7 @@ export function NavRail() {
                 <div className={`flex flex-col ${sidebarExpanded ? 'gap-0.5 px-2' : 'items-center gap-1'}`}>
                   {group.items.map((item) => {
                     const disabled = isLocal && item.requiresGateway
-                    const showBadge = item.id === 'agents' && hasRedAgent
+                    const showBadge = item.id === 'overview' && hasRedAgent
                     const isActive = activeTab === item.id || activeTab.startsWith(item.id + '/')
                     return (
                       <NavButton

@@ -4,7 +4,7 @@ import { useMissionControl } from '@/store'
 import { useEffect, useState } from 'react'
 
 export function LiveFeed() {
-  const { logs, sessions, activities, connection, dashboardMode, toggleLiveFeed } = useMissionControl()
+  const { logs, sessions, activities, connection, dashboardMode } = useMissionControl()
   const isLocal = dashboardMode === 'local'
   const [expanded, setExpanded] = useState(true)
   const [hasCollapsed, setHasCollapsed] = useState(false)
@@ -89,15 +89,7 @@ export function LiveFeed() {
               <path d="M6 3l5 5-5 5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
-          <button
-            onClick={toggleLiveFeed}
-            className="w-6 h-6 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-smooth flex items-center justify-center"
-            title="Close feed"
-          >
-            <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M4 4l8 8M12 4l-8 8" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
+          {/* Close button removed -- live-feed sidebar will be fully removed in Plan 02 */}
         </div>
       </div>
 
