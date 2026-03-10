@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Phase 6 context gathered
-last_updated: "2026-03-10T22:49:41.063Z"
-last_activity: 2026-03-10 -- Plan 05-02 executed (Memory tab UI with file tree, editor, slide-out wiring)
+status: executing
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-03-10T23:09:38Z"
+last_activity: 2026-03-10 -- Plan 06-01 executed (Dashboard components + nav cleanup)
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 16
-  completed_plans: 16
-  percent: 100
+  total_plans: 18
+  completed_plans: 17
+  percent: 94
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** At a glance, know whether every nanobot agent is alive, healthy, and doing what it should be -- and if not, fix it from the dashboard.
-**Current focus:** Phase 5 complete. All memory management delivered (data layer + UI). Next: Phase 6 (Overview Dashboard and Remote Access).
+**Current focus:** Phase 6 in progress. Dashboard components created, nav cleaned. Next: Plan 02 (landing page wiring).
 
 ## Current Position
 
-Phase: 5 of 6 (Memory Management) -- COMPLETE
-Plan: 2 of 2 in current phase (all plans complete)
-Status: Memory tab UI complete. File tree, editor/viewer, RBAC-gated editing, slide-out wiring all delivered and verified.
-Last activity: 2026-03-10 -- Plan 05-02 executed (Memory tab UI with file tree, editor, slide-out wiring)
+Phase: 6 of 6 (Overview Dashboard and Remote Access) -- IN PROGRESS
+Plan: 1 of 2 in current phase (Plan 01 complete, Plan 02 next)
+Status: MetricStrip, ActivityFeedInline, ErrorSummaryPanel components created. Nav rail cleaned. Store live-feed state removed.
+Last activity: 2026-03-10 -- Plan 06-01 executed (Dashboard components + nav cleanup)
 
-Progress: [██████████] 100%
+Progress: [█████████░] 94%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
+- Total plans completed: 17
 - Average duration: 14 min
-- Total execution time: 3.75 hours
+- Total execution time: 3.83 hours
 
 **By Phase:**
 
@@ -48,10 +48,11 @@ Progress: [██████████] 100%
 | 3. Agent Lifecycle | 2/2 | 52 min | 26 min |
 | 4. Session Viewer | 3/3 | 57 min | 19 min |
 | 5. Memory Management | 2/2 | 7 min | 4 min |
+| 6. Overview Dashboard | 1/2 | 5 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-01 (5 min), 04-02 (26 min), 04-03 (26 min), 05-01 (4 min), 05-02 (3 min)
-- Trend: Phase 5 completed in 7 min total (2 plans). Fastest phase in the project -- leveraged existing patterns from Phases 2-4.
+- Last 5 plans: 04-03 (26 min), 05-01 (4 min), 05-02 (3 min), 06-01 (5 min)
+- Trend: Phase 6 starting strong at 5 min for Plan 01. Component creation + cleanup leveraging established patterns.
 
 *Updated after each plan completion*
 
@@ -118,6 +119,9 @@ Recent decisions affecting current work:
 - [05-02]: Memory tab visible to all roles; editing gated at component level (not tab visibility)
 - [05-02]: Panel widens from 400px to 600px when Memory tab active for two-column layout
 - [05-02]: Negative margin (-m-4) on MemoryTab to negate parent padding rather than conditional padding on all tabs
+- [06-01]: Red-agent badge moved from agents to overview nav item (merged landing page)
+- [06-01]: LiveFeed sidebar kept always-visible temporarily until Plan 02 removes it entirely
+- [06-01]: Minimal surgical fixes to page.tsx and live-feed.tsx to maintain type-check after store cleanup
 
 ### Pending Todos
 
@@ -131,6 +135,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T22:49:41.053Z
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-overview-dashboard-and-remote-access/06-CONTEXT.md
+Last session: 2026-03-10T23:09:38Z
+Stopped at: Completed 06-01-PLAN.md
+Resume file: .planning/phases/06-overview-dashboard-and-remote-access/06-02-PLAN.md

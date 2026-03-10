@@ -73,9 +73,9 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Overview Dashboard
 
 - [ ] **DASH-01**: Landing page shows all agents with composite status cards
-- [ ] **DASH-02**: Each agent card shows: name, status (alive/dead/error), last activity, channel health, token usage
-- [ ] **DASH-03**: Activity feed shows real-time nanobot agent events via SSE
-- [ ] **DASH-04**: Error/failure counts displayed prominently with filtering capability
+- [x] **DASH-02**: Each agent card shows: name, status (alive/dead/error), last activity, channel health, token usage
+- [x] **DASH-03**: Activity feed shows real-time nanobot agent events via SSE
+- [x] **DASH-04**: Error/failure counts displayed prominently with filtering capability
 
 ### Remote Access
 
@@ -169,9 +169,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MEMO-04 | Phase 5 | Complete |
 | MEMO-05 | Phase 5 | Complete |
 | DASH-01 | Phase 6 | Pending |
-| DASH-02 | Phase 6 | Pending |
-| DASH-03 | Phase 6 | Pending |
-| DASH-04 | Phase 6 | Pending |
+| DASH-02 | Phase 6 | Complete |
+| DASH-03 | Phase 6 | Complete |
+| DASH-04 | Phase 6 | Complete |
 | REMT-01 | Phase 6 | Pending |
 | REMT-02 | Phase 6 | Pending |
 | REMT-03 | Phase 6 | Pending |

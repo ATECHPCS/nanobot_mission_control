@@ -113,7 +113,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 06-01-PLAN.md -- New dashboard components (MetricStrip, ActivityFeedInline, ErrorSummaryPanel), nav rail cleanup, live-feed removal (Wave 1)
+- [x] 06-01-PLAN.md -- New dashboard components (MetricStrip, ActivityFeedInline, ErrorSummaryPanel), nav rail cleanup, live-feed removal (Wave 1)
 - [ ] 06-02-PLAN.md -- OverviewLanding composition, ContentRouter wiring, legacy file deletion, visual verification (Wave 2)
 
 ## Progress
@@ -129,4 +129,4 @@ Note: Phase 4 depends on Phase 2 (not Phase 3), so Phases 3 and 4 could theoreti
 | 3. Agent Lifecycle and Gateway | 1/2 | In progress | - |
 | 4. Session Viewer and Token Tracking | 3/3 | Complete   | 2026-03-10 |
 | 5. Memory Management | 2/2 | Complete   | 2026-03-10 |
-| 6. Overview Dashboard and Remote Access | 0/2 | Not started | - |
+| 6. Overview Dashboard and Remote Access | 1/2 | In progress | - |
