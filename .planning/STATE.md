@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-03-10T23:09:38Z"
-last_activity: 2026-03-10 -- Plan 06-01 executed (Dashboard components + nav cleanup)
+status: Phase 6 Plan 02 complete. OverviewLanding wired, legacy files deleted. All 18 plans executed.
+stopped_at: Completed 06-02-PLAN.md
+last_updated: "2026-03-11T17:35:10Z"
+last_activity: 2026-03-11 -- Plan 06-02 executed (Overview landing page wiring + legacy cleanup)
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 18
-  completed_plans: 17
-  percent: 94
+  completed_plans: 18
+  percent: 100
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** At a glance, know whether every nanobot agent is alive, healthy, and doing what it should be -- and if not, fix it from the dashboard.
-**Current focus:** Phase 6 in progress. Dashboard components created, nav cleaned. Next: Plan 02 (landing page wiring).
+**Current focus:** All 6 phases complete. Remaining: Phase 1 gap closure (01-04, 01-05), Phase 3 Plan 02 (lifecycle UI).
 
 ## Current Position
 
-Phase: 6 of 6 (Overview Dashboard and Remote Access) -- IN PROGRESS
-Plan: 1 of 2 in current phase (Plan 01 complete, Plan 02 next)
-Status: MetricStrip, ActivityFeedInline, ErrorSummaryPanel components created. Nav rail cleaned. Store live-feed state removed.
-Last activity: 2026-03-10 -- Plan 06-01 executed (Dashboard components + nav cleanup)
+Phase: 6 of 6 (Overview Dashboard and Remote Access) -- COMPLETE
+Plan: 2 of 2 in current phase (all plans complete)
+Status: OverviewLanding wired into ContentRouter. Legacy dashboard, live-feed, agents-panel deleted. All 18 plans executed.
+Last activity: 2026-03-11 -- Plan 06-02 executed (Overview landing page wiring + legacy cleanup)
 
-Progress: [█████████░] 94%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 17
-- Average duration: 14 min
-- Total execution time: 3.83 hours
+- Total plans completed: 18
+- Average duration: 13 min
+- Total execution time: 3.85 hours
 
 **By Phase:**
 
@@ -48,11 +48,11 @@ Progress: [█████████░] 94%
 | 3. Agent Lifecycle | 2/2 | 52 min | 26 min |
 | 4. Session Viewer | 3/3 | 57 min | 19 min |
 | 5. Memory Management | 2/2 | 7 min | 4 min |
-| 6. Overview Dashboard | 1/2 | 5 min | 5 min |
+| 6. Overview Dashboard | 2/2 | 7 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-03 (26 min), 05-01 (4 min), 05-02 (3 min), 06-01 (5 min)
-- Trend: Phase 6 starting strong at 5 min for Plan 01. Component creation + cleanup leveraging established patterns.
+- Last 5 plans: 05-01 (4 min), 05-02 (3 min), 06-01 (5 min), 06-02 (2 min)
+- Trend: Phase 6 completed in 7 min total. Composition tasks leveraging established component patterns are fast.
 
 *Updated after each plan completion*
 
@@ -122,6 +122,9 @@ Recent decisions affecting current work:
 - [06-01]: Red-agent badge moved from agents to overview nav item (merged landing page)
 - [06-01]: LiveFeed sidebar kept always-visible temporarily until Plan 02 removes it entirely
 - [06-01]: Minimal surgical fixes to page.tsx and live-feed.tsx to maintain type-check after store cleanup
+- [06-02]: OverviewLanding hosts agent fetch/polling logic (moved from agents-panel.tsx) as the single source of agent data
+- [06-02]: Quick action buttons row between metric strip and agent grid for Tasks, Sessions, Tokens, Settings navigation
+- [06-02]: Bottom row uses lg:grid-cols-5 layout (3 cols activity, 2 cols errors) for responsive two-column display
 
 ### Pending Todos
 
@@ -135,6 +138,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T23:09:38Z
-Stopped at: Completed 06-01-PLAN.md
-Resume file: .planning/phases/06-overview-dashboard-and-remote-access/06-02-PLAN.md
+Last session: 2026-03-11T17:35:10Z
+Stopped at: Completed 06-02-PLAN.md (all plans complete)
+Resume file: None -- all 18 plans executed
