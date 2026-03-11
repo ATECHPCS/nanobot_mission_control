@@ -4,9 +4,7 @@ import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { NavRail } from '@/components/layout/nav-rail'
 import { HeaderBar } from '@/components/layout/header-bar'
-import { LiveFeed } from '@/components/layout/live-feed'
-import { Dashboard } from '@/components/dashboard/dashboard'
-import { AgentsPanel } from '@/components/agents/agents-panel'
+import { OverviewLanding } from '@/components/dashboard/overview-landing'
 import { AgentSpawnPanel } from '@/components/panels/agent-spawn-panel'
 import { LogViewerPanel } from '@/components/panels/log-viewer-panel'
 import { CronManagementPanel } from '@/components/panels/cron-management-panel'
@@ -146,11 +144,6 @@ export default function Home() {
           </main>
         </div>
 
-        {/* Right: Live feed (hidden on mobile, will be removed in Plan 02) */}
-        <div className="hidden lg:flex h-full">
-          <LiveFeed />
-        </div>
-
         {/* Chat panel overlay */}
         <ChatPanel />
       </div>
@@ -174,11 +167,10 @@ function ContentRouter({ tab }: { tab: string }) {
 
   switch (tab) {
     case 'overview':
-      return <Dashboard />
+    case 'agents':
+      return <OverviewLanding />
     case 'tasks':
       return <TaskBoardPanel />
-    case 'agents':
-      return <AgentsPanel />
     case 'activity':
       return <ActivityFeedPanel />
     case 'notifications':
@@ -224,6 +216,6 @@ function ContentRouter({ tab }: { tab: string }) {
     case 'workspaces':
       return <SuperAdminPanel />
     default:
-      return <Dashboard />
+      return <OverviewLanding />
   }
 }
