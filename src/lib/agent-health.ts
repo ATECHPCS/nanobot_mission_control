@@ -14,6 +14,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import net from 'node:net'
 import { execSync } from 'node:child_process'
+import { getDatabase } from '@/lib/db'
 import type {
   DiscoveredAgent,
   HealthLevel,
@@ -184,6 +185,22 @@ export function getLatestActivity(sessionsDir: string): SessionActivity | null {
   }
 
   return null
+}
+
+/**
+ * Get total message count for an agent from the nanobot_sessions SQLite table.
+ * Returns 0 if the agent has no sessions or on any error.
+ */
+export function getAgentMessageCount(agentId: string): number {
+  try {
+    const db = getDatabase()
+    const row = db.prepare(
+      'SELECT SUM(message_count) as total FROM nanobot_sessions WHERE agent_id = ?'
+    ).get(agentId) as { total: number | null } | undefined
+    return row?.total ?? 0
+  } catch {
+    return 0
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -415,6 +432,8 @@ export async function checkAgentHealth(agent: DiscoveredAgent): Promise<AgentHea
     totalChannels: channels.length,
   })
 
+  const messageCount = getAgentMessageCount(agent.id)
+
   return {
     id: agent.id,
     name: agent.name,
@@ -424,5 +443,6 @@ export async function checkAgentHealth(agent: DiscoveredAgent): Promise<AgentHea
     errors,
     channels,
     checkedAt: Date.now(),
+    messageCount,
   }
 }

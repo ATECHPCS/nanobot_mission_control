@@ -127,6 +127,8 @@ export interface AgentHealthSnapshot {
   channels: ChannelStatus[]
   /** Unix timestamp (ms) when this snapshot was taken */
   checkedAt: number
+  /** Total message count across all sessions (from nanobot_sessions table) */
+  messageCount?: number
   /** Whether errors have been dismissed by an operator */
   errorsDismissed?: boolean
 }
