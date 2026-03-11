@@ -13,6 +13,14 @@ import type Database from 'better-sqlite3'
 
 // -- Public types ----------------------------------------------------------
 
+export interface CacheStats {
+  totalCacheReadTokens: number
+  totalCacheCreationTokens: number
+  totalInputTokens: number      // Pure input (non-cache)
+  cacheHitRate: number           // 0-1, ratio of cache reads to total input
+  estimatedCacheSavings: number  // dollars saved by cache reads vs full-price input
+}
+
 export interface UnifiedTokenStats {
   summary: {
     totalInputTokens: number
@@ -41,6 +49,7 @@ export interface UnifiedTokenStats {
     outputTokens: number
   }>
   range: string
+  cacheStats?: CacheStats       // Only present when Claude Code sessions have cache data
 }
 
 // -- Range helpers ---------------------------------------------------------
@@ -213,6 +222,19 @@ export function aggregateTokenStats(
     GROUP BY date(created_at, 'unixepoch')
   `).all(epochCutoff) as TimelineDateRow[]
 
+  // Query 7: Cache token totals from Claude Code sessions
+  const cacheRow = db.prepare(`
+    SELECT
+      SUM(cache_read_tokens) as total_cache_read,
+      SUM(cache_creation_tokens) as total_cache_creation,
+      SUM(input_tokens) as total_pure_input
+    FROM claude_sessions
+    WHERE last_message_at >= ?
+  `).get(isoCutoff) as { total_cache_read: number | null; total_cache_creation: number | null; total_pure_input: number | null } | undefined
+
+  const totalCacheRead = cacheRow?.total_cache_read ?? 0
+  const totalCacheCreation = cacheRow?.total_cache_creation ?? 0
+
   // -- Aggregate byAgent ---------------------------------------------------
 
   const byAgent: UnifiedTokenStats['byAgent'] = []
@@ -305,7 +327,8 @@ export function aggregateTokenStats(
   const apiTotalInput = apiByModel.reduce((s, r) => s + r.input_tokens, 0)
   const apiTotalOutput = apiByModel.reduce((s, r) => s + r.output_tokens, 0)
 
-  const totalInput = claudeTotalInput + apiTotalInput
+  // Add cache tokens back for total display (they were separated in the DB)
+  const totalInput = claudeTotalInput + totalCacheRead + totalCacheCreation + apiTotalInput
   const totalOutput = claudeTotalOutput + apiTotalOutput
 
   const claudeSessionCount = claudeByAgent.reduce((s, r) => s + r.session_count, 0)
@@ -342,6 +365,28 @@ export function aggregateTokenStats(
     }
   }
 
+  // -- Compute cache stats (only when cache data exists) -------------------
+
+  let cacheStats: CacheStats | undefined
+  if (totalCacheRead > 0 || totalCacheCreation > 0) {
+    const totalPureInput = cacheRow?.total_pure_input ?? 0
+    const totalAllInput = totalPureInput + totalCacheRead + totalCacheCreation
+    const cacheHitRate = totalAllInput > 0 ? totalCacheRead / totalAllInput : 0
+
+    // Savings: cache reads cost 10% of input price vs 100% if they were full-price input
+    // Estimated savings = cacheReadTokens * avgInputPrice * 0.9 (the 90% discount)
+    const avgInputPrice = 3 / 1_000_000 // Default Sonnet pricing
+    const estimatedCacheSavings = totalCacheRead * avgInputPrice * 0.9
+
+    cacheStats = {
+      totalCacheReadTokens: totalCacheRead,
+      totalCacheCreationTokens: totalCacheCreation,
+      totalInputTokens: totalPureInput,
+      cacheHitRate,
+      estimatedCacheSavings: Math.round(estimatedCacheSavings * 10000) / 10000,
+    }
+  }
+
   return {
     summary: {
       totalInputTokens: totalInput,
@@ -355,5 +400,6 @@ export function aggregateTokenStats(
     byModel,
     timeline,
     range: validRange,
+    ...(cacheStats && { cacheStats }),
   }
 }

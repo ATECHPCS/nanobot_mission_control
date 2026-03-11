@@ -38,6 +38,13 @@ interface UnifiedTokenStats {
     outputTokens: number
   }>
   range: string
+  cacheStats?: {
+    totalCacheReadTokens: number
+    totalCacheCreationTokens: number
+    totalInputTokens: number
+    cacheHitRate: number
+    estimatedCacheSavings: number
+  }
 }
 
 type TimeRange = 'today' | 'week' | 'month' | 'year'
@@ -242,6 +249,61 @@ export function NanobotTokenPanel() {
               <div className="text-sm text-muted-foreground mt-1">Avg Tokens/Session</div>
             </div>
           </div>
+
+          {/* Cache Stats (only when Claude Code cache data available) */}
+          {stats.cacheStats && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Cache Hit Rate */}
+              <div className="bg-card border border-border rounded-lg p-6">
+                <div className="text-3xl font-bold" style={{ color: '#3fb950' }}>
+                  {(stats.cacheStats.cacheHitRate * 100).toFixed(1)}%
+                </div>
+                <div className="text-sm text-muted-foreground mt-1">Cache Hit Rate</div>
+                <div className="mt-2 h-2 bg-secondary rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${stats.cacheStats.cacheHitRate * 100}%`,
+                      backgroundColor: '#3fb950',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Cache Savings */}
+              <div className="bg-card border border-border rounded-lg p-6">
+                <div className="text-3xl font-bold" style={{ color: '#3fb950' }}>
+                  ${stats.cacheStats.estimatedCacheSavings.toFixed(2)}
+                </div>
+                <div className="text-sm text-muted-foreground mt-1">Est. Cache Savings</div>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  vs. full-price input tokens
+                </div>
+              </div>
+
+              {/* Cache Read Tokens */}
+              <div className="bg-card border border-border rounded-lg p-6">
+                <div className="text-3xl font-bold text-foreground">
+                  {formatNumber(stats.cacheStats.totalCacheReadTokens)}
+                </div>
+                <div className="text-sm text-muted-foreground mt-1">Cache Read Tokens</div>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  10% of input price
+                </div>
+              </div>
+
+              {/* Cache Write Tokens */}
+              <div className="bg-card border border-border rounded-lg p-6">
+                <div className="text-3xl font-bold text-foreground">
+                  {formatNumber(stats.cacheStats.totalCacheCreationTokens)}
+                </div>
+                <div className="text-sm text-muted-foreground mt-1">Cache Write Tokens</div>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  125% of input price
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Usage Over Time LineChart */}
           <div className="bg-card border border-border rounded-lg p-6">
