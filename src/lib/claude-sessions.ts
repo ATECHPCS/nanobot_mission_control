@@ -41,6 +41,8 @@ interface SessionStats {
   toolUses: number
   inputTokens: number
   outputTokens: number
+  cacheReadTokens: number
+  cacheCreationTokens: number
   estimatedCost: number
   firstMessageAt: string | null
   lastMessageAt: string | null
@@ -173,9 +175,6 @@ function parseSessionFile(filePath: string, projectSlug: string): SessionStats |
       ? (Date.now() - new Date(lastMessageAt).getTime()) < ACTIVE_THRESHOLD_MS
       : false
 
-    // Store total input tokens (including cache) for display
-    const totalInputTokens = inputTokens + cacheReadTokens + cacheCreationTokens
-
     return {
       sessionId,
       projectSlug,
@@ -185,8 +184,10 @@ function parseSessionFile(filePath: string, projectSlug: string): SessionStats |
       userMessages,
       assistantMessages,
       toolUses,
-      inputTokens: totalInputTokens,
+      inputTokens,           // Pure non-cache input tokens
       outputTokens,
+      cacheReadTokens,
+      cacheCreationTokens,
       estimatedCost: Math.round(estimatedCost * 10000) / 10000,
       firstMessageAt,
       lastMessageAt,
@@ -258,10 +259,11 @@ export async function syncClaudeSessions(): Promise<{ ok: boolean; message: stri
       INSERT INTO claude_sessions (
         session_id, project_slug, project_path, model, git_branch,
         user_messages, assistant_messages, tool_uses,
-        input_tokens, output_tokens, estimated_cost,
+        input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens,
+        estimated_cost,
         first_message_at, last_message_at, last_user_prompt,
         is_active, scanned_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(session_id) DO UPDATE SET
         model = excluded.model,
         git_branch = excluded.git_branch,
@@ -270,6 +272,8 @@ export async function syncClaudeSessions(): Promise<{ ok: boolean; message: stri
         tool_uses = excluded.tool_uses,
         input_tokens = excluded.input_tokens,
         output_tokens = excluded.output_tokens,
+        cache_read_tokens = excluded.cache_read_tokens,
+        cache_creation_tokens = excluded.cache_creation_tokens,
         estimated_cost = excluded.estimated_cost,
         last_message_at = excluded.last_message_at,
         last_user_prompt = excluded.last_user_prompt,
@@ -287,7 +291,8 @@ export async function syncClaudeSessions(): Promise<{ ok: boolean; message: stri
         upsert.run(
           s.sessionId, s.projectSlug, s.projectPath, s.model, s.gitBranch,
           s.userMessages, s.assistantMessages, s.toolUses,
-          s.inputTokens, s.outputTokens, s.estimatedCost,
+          s.inputTokens, s.outputTokens, s.cacheReadTokens, s.cacheCreationTokens,
+          s.estimatedCost,
           s.firstMessageAt, s.lastMessageAt, s.lastUserPrompt,
           s.isActive ? 1 : 0, now, now,
         )

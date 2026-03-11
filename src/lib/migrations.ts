@@ -857,6 +857,20 @@ const migrations: Migration[] = [
         CREATE INDEX IF NOT EXISTS idx_nanobot_sessions_last_message ON nanobot_sessions(last_message_at);
       `)
     }
+  },
+  {
+    id: '029_claude_sessions_cache_tokens',
+    up: (db) => {
+      const cols = db.prepare('PRAGMA table_info(claude_sessions)').all() as Array<{ name: string }>
+      const hasCol = (name: string) => cols.some((c) => c.name === name)
+
+      if (!hasCol('cache_read_tokens')) {
+        db.exec('ALTER TABLE claude_sessions ADD COLUMN cache_read_tokens INTEGER NOT NULL DEFAULT 0')
+      }
+      if (!hasCol('cache_creation_tokens')) {
+        db.exec('ALTER TABLE claude_sessions ADD COLUMN cache_creation_tokens INTEGER NOT NULL DEFAULT 0')
+      }
+    }
   }
 ]
 
