@@ -78,6 +78,9 @@ export function runNanobot(args: string[], options: CommandOptions = {}) {
   })
 }
 
+/** @deprecated Use runNanobot instead. Alias kept for upstream compatibility. */
+export const runOpenClaw = runNanobot
+
 export function runClawdbot(args: string[], options: CommandOptions = {}) {
   return runCommand(config.clawdbotBin, args, {
     ...options,

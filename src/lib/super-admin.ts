@@ -16,6 +16,8 @@ export interface TenantBootstrapRequest {
   linux_user?: string
   plan_tier?: string
   dashboard_port?: number
+  gateway_port?: number
+  owner_gateway?: string
   dry_run?: boolean
   config?: Record<string, unknown>
 }

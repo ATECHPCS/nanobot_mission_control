@@ -1,0 +1,68 @@
+▲ Next.js 16.1.6
+- Local:         http://localhost:3000
+- Network:       http://0.0.0.0:3000
+
+✓ Starting...
+✓ Ready in 556ms
+{"level":30,"time":1773253341190,"pid":81305,"hostname":"DesignMAC.local","msg":"Database migrations applied successfully"}
+{"level":30,"time":1773253341198,"pid":81305,"hostname":"DesignMAC.local","msg":"Scheduler initialized - backup at ~3AM, cleanup at ~4AM, heartbeat every 5m, webhook retry every 60s, claude scan every 60s"}
+▲ Next.js 16.1.6
+- Local:         http://localhost:3000
+- Network:       http://0.0.0.0:3000
+
+✓ Starting...
+✓ Ready in 513ms
+{"level":30,"time":1773253931234,"pid":83658,"hostname":"DesignMAC.local","msg":"Database migrations applied successfully"}
+{"level":30,"time":1773253931241,"pid":83658,"hostname":"DesignMAC.local","msg":"Scheduler initialized - backup at ~3AM, cleanup at ~4AM, heartbeat every 5m, webhook retry every 60s, claude scan every 60s"}
+{"level":30,"time":1773254390559,"pid":83658,"hostname":"DesignMAC.local","msg":"Database migrations applied successfully"}
+▲ Next.js 16.1.6
+- Local:         http://localhost:3000
+- Network:       http://0.0.0.0:3000
+
+✓ Starting...
+✓ Ready in 669ms
+{"level":30,"time":1773254397098,"pid":85423,"hostname":"DesignMAC.local","msg":"Database migrations applied successfully"}
+{"level":30,"time":1773254397108,"pid":85423,"hostname":"DesignMAC.local","msg":"Scheduler initialized - backup at ~3AM, cleanup at ~4AM, heartbeat every 5m, webhook retry every 60s, claude scan every 60s"}
+{"level":50,"time":1773254460706,"pid":85423,"hostname":"DesignMAC.local","err":{"type":"Error","message":"spawn ollama ENOENT","stack":"Error: spawn ollama ENOENT\n    at ChildProcess._handle.onexit (node:internal/child_process:286:19)\n    at onErrorNT (node:internal/child_process:507:16)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)","errno":-2,"code":"ENOENT","syscall":"spawn ollama","path":"ollama","spawnargs":["list"]},"msg":"Error checking Ollama models"}
+▲ Next.js 16.1.6
+- Local:         http://localhost:3000
+- Network:       http://0.0.0.0:3000
+
+✓ Starting...
+✓ Ready in 508ms
+{"level":30,"time":1773254624768,"pid":86311,"hostname":"DesignMAC.local","msg":"Database migrations applied successfully"}
+{"level":30,"time":1773254624776,"pid":86311,"hostname":"DesignMAC.local","msg":"Scheduler initialized - backup at ~3AM, cleanup at ~4AM, heartbeat every 5m, webhook retry every 60s, claude scan every 60s"}
+{"level":50,"time":1773254704306,"pid":86311,"hostname":"DesignMAC.local","err":{"type":"Error","message":"spawn ollama ENOENT","stack":"Error: spawn ollama ENOENT\n    at ChildProcess._handle.onexit (node:internal/child_process:286:19)\n    at onErrorNT (node:internal/child_process:507:16)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)","errno":-2,"code":"ENOENT","syscall":"spawn ollama","path":"ollama","spawnargs":["list"]},"msg":"Error checking Ollama models"}
+▲ Next.js 16.1.6
+- Local:         http://localhost:3000
+- Network:       http://0.0.0.0:3000
+
+✓ Starting...
+✓ Ready in 573ms
+{"level":30,"time":1773254882899,"pid":87365,"hostname":"DesignMAC.local","msg":"Database migrations applied successfully"}
+{"level":30,"time":1773254882907,"pid":87365,"hostname":"DesignMAC.local","msg":"Scheduler initialized - backup at ~3AM, cleanup at ~4AM, heartbeat every 5m, webhook retry every 60s, claude scan every 60s"}
+▲ Next.js 16.1.6
+- Local:         http://localhost:3000
+- Network:       http://0.0.0.0:3000
+
+✓ Starting...
+✓ Ready in 567ms
+{"level":30,"time":1773255318487,"pid":90569,"hostname":"DesignMAC.local","msg":"Database migrations applied successfully"}
+{"level":30,"time":1773255318500,"pid":90569,"hostname":"DesignMAC.local","msg":"Scheduler initialized - backup at ~3AM, cleanup at ~4AM, heartbeat every 5m, webhook retry every 60s, claude scan every 60s, nanobot scan every 60s"}
+▲ Next.js 16.1.6
+- Local:         http://localhost:3000
+- Network:       http://0.0.0.0:3000
+
+✓ Starting...
+✓ Ready in 2.3s
+{"level":30,"time":1773255696904,"pid":92209,"hostname":"DesignMAC.local","msg":"Database migrations applied successfully"}
+{"level":30,"time":1773255696920,"pid":92209,"hostname":"DesignMAC.local","msg":"Scheduler initialized - backup at ~3AM, cleanup at ~4AM, heartbeat every 5m, webhook retry every 60s, claude scan every 60s, nanobot scan every 60s"}
+{"level":30,"time":1773255996931,"pid":92209,"hostname":"DesignMAC.local","msg":"Database migrations applied successfully"}
+▲ Next.js 16.1.6
+- Local:         http://localhost:3000
+- Network:       http://0.0.0.0:3000
+
+✓ Starting...
+✓ Ready in 536ms
+{"level":30,"time":1773256002885,"pid":93454,"hostname":"DesignMAC.local","msg":"Database migrations applied successfully"}
+{"level":30,"time":1773256002899,"pid":93454,"hostname":"DesignMAC.local","msg":"Scheduler initialized - backup at ~3AM, cleanup at ~4AM, heartbeat every 5m, webhook retry every 60s, claude scan every 60s, nanobot scan every 60s"}

@@ -32,6 +32,8 @@ function createTestDb(): Database.Database {
       last_message_at TEXT,
       last_user_prompt TEXT,
       is_active INTEGER NOT NULL DEFAULT 0,
+      cache_read_tokens INTEGER NOT NULL DEFAULT 0,
+      cache_creation_tokens INTEGER NOT NULL DEFAULT 0,
       scanned_at INTEGER NOT NULL,
       created_at INTEGER NOT NULL DEFAULT (unixepoch()),
       updated_at INTEGER NOT NULL DEFAULT (unixepoch())

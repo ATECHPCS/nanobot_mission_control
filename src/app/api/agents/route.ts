@@ -7,6 +7,10 @@ import { requireRole } from '@/lib/auth';
 import { mutationLimiter } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { validateBody, createAgentSchema } from '@/lib/validation';
+import { config as appConfig } from '@/lib/config';
+import { runOpenClaw } from '@/lib/command';
+import { resolveWithin } from '@/lib/paths';
+import path from 'node:path';
 
 /**
  * GET /api/agents - List all agents with optional filtering
@@ -59,7 +63,8 @@ export async function GET(request: NextRequest) {
         COUNT(*) as total,
         SUM(CASE WHEN status = 'assigned' THEN 1 ELSE 0 END) as assigned,
         SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) as in_progress,
-        SUM(CASE WHEN status = 'done' THEN 1 ELSE 0 END) as completed
+        SUM(CASE WHEN status = 'quality_review' THEN 1 ELSE 0 END) as quality_review,
+        SUM(CASE WHEN status = 'done' THEN 1 ELSE 0 END) as done
       FROM tasks
       WHERE assigned_to = ? AND workspace_id = ?
     `);
@@ -73,7 +78,9 @@ export async function GET(request: NextRequest) {
           total: taskStats.total || 0,
           assigned: taskStats.assigned || 0,
           in_progress: taskStats.in_progress || 0,
-          completed: taskStats.completed || 0
+          quality_review: taskStats.quality_review || 0,
+          done: taskStats.done || 0,
+          completed: taskStats.done || 0
         }
       };
     });
@@ -154,6 +161,37 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Agent name already exists' }, { status: 409 });
     }
 
+    // Optional: provision a nanobot workspace on disk via CLI
+    const { provision_workspace, workspace_path } = body
+    const nanobotId = String(config?.nanobotId || config?.openclawId || name || '')
+      .toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || name
+    if (provision_workspace) {
+      const stateDir = appConfig.nanobotStateDir || appConfig.openclawStateDir
+      if (!stateDir) {
+        return NextResponse.json(
+          { error: 'NANOBOT_STATE_DIR is not configured; cannot provision workspace' },
+          { status: 500 }
+        );
+      }
+
+      const resolvedWorkspacePath = workspace_path
+        ? path.resolve(workspace_path)
+        : resolveWithin(stateDir, path.join('workspaces', nanobotId));
+
+      try {
+        await runOpenClaw(
+          ['agents', 'add', nanobotId, '--workspace', resolvedWorkspacePath, '--non-interactive'],
+          { timeoutMs: 20000 }
+        );
+      } catch (provisionError: any) {
+        logger.error({ err: provisionError, nanobotId, workspacePath: resolvedWorkspacePath }, 'Workspace provisioning failed');
+        return NextResponse.json(
+          { error: provisionError?.message || 'Failed to provision agent workspace' },
+          { status: 502 }
+        );
+      }
+    }
+
     const now = Math.floor(Date.now() / 1000);
 
     const stmt = db.prepare(`
@@ -201,7 +239,7 @@ export async function POST(request: NextRequest) {
     const parsedAgent = {
       ...createdAgent,
       config: JSON.parse(createdAgent.config || '{}'),
-      taskStats: { total: 0, assigned: 0, in_progress: 0, completed: 0 }
+      taskStats: { total: 0, assigned: 0, in_progress: 0, quality_review: 0, done: 0, completed: 0 }
     };
 
     // Broadcast to SSE clients

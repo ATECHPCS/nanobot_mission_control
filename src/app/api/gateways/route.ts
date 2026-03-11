@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireRole } from '@/lib/auth'
 import { getDatabase } from '@/lib/db'
+import { getDetectedGatewayPort, getDetectedGatewayToken } from '@/lib/gateway-runtime'
 
 interface GatewayEntry {
   id: number
@@ -53,12 +54,9 @@ export async function GET(request: NextRequest) {
   // If no gateways exist, seed defaults from environment
   if (gateways.length === 0) {
     const name = String(process.env.MC_DEFAULT_GATEWAY_NAME || 'primary')
-    const host = String(process.env.NANOBOT_GATEWAY_HOST || '127.0.0.1')
-    const mainPort = parseInt(process.env.NANOBOT_GATEWAY_PORT || process.env.GATEWAY_PORT || process.env.NEXT_PUBLIC_GATEWAY_PORT || '18789')
-    const mainToken =
-      process.env.NANOBOT_GATEWAY_TOKEN ||
-      process.env.GATEWAY_TOKEN ||
-      ''
+    const host = String(process.env.NANOBOT_GATEWAY_HOST || process.env.OPENCLAW_GATEWAY_HOST || '127.0.0.1')
+    const mainPort = getDetectedGatewayPort() || parseInt(process.env.NANOBOT_GATEWAY_PORT || process.env.GATEWAY_PORT || process.env.NEXT_PUBLIC_GATEWAY_PORT || '18789')
+    const mainToken = getDetectedGatewayToken() || process.env.NANOBOT_GATEWAY_TOKEN || process.env.GATEWAY_TOKEN || ''
 
     db.prepare(`
       INSERT INTO gateways (name, host, port, token, is_primary) VALUES (?, ?, ?, ?, 1)
