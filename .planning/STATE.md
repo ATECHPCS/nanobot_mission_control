@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 06-04-PLAN.md
-last_updated: "2026-03-11T18:08:04.312Z"
+stopped_at: Completed 06-03-PLAN.md
+last_updated: "2026-03-11T18:08:52.368Z"
 last_activity: 2026-03-11 -- Plan 06-04 executed (cache token columns, aggregation, and UI display)
 progress:
   total_phases: 6
@@ -51,10 +51,11 @@ Progress: [██████████] 100%
 | 6. Overview Dashboard | 2/2 + gap | 10 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-02 (3 min), 06-01 (5 min), 06-02 (2 min), 06-04 (3 min)
+- Last 5 plans: 06-01 (5 min), 06-02 (2 min), 06-03 (4 min), 06-04 (3 min)
 - Trend: Gap closure plans execute quickly when schema and component patterns are established.
 
 *Updated after each plan completion*
+| Phase 06 P03 | 4 | 2 tasks | 3 files |
 | Phase 06 P04 | 3 | 2 tasks | 4 files |
 
 ## Accumulated Context
@@ -126,10 +127,11 @@ Recent decisions affecting current work:
 - [06-02]: OverviewLanding hosts agent fetch/polling logic (moved from agents-panel.tsx) as the single source of agent data
 - [06-02]: Quick action buttons row between metric strip and agent grid for Tasks, Sessions, Tokens, Settings navigation
 - [06-02]: Bottom row uses lg:grid-cols-5 layout (3 cols activity, 2 cols errors) for responsive two-column display
+- [06-03]: Lifetime message count (no date filter) -- simple SUM query across all sessions per agent
+- [06-03]: Zero-message agents show no label (clean empty state, not "0 messages")
 - [06-04]: inputTokens column stores pure non-cache tokens after schema change; next sync corrects all rows
 - [06-04]: Cache stats section only renders when cacheStats field present in API response
 - [06-04]: Estimated savings use default Sonnet pricing ($3/1M input) for the 90% cache read discount
-- [Phase 06-04]: inputTokens column stores pure non-cache tokens after schema change; next sync corrects all rows
 
 ### Pending Todos
 
@@ -143,6 +145,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-11T18:07:59.739Z
-Stopped at: Completed 06-04-PLAN.md
+Last session: 2026-03-11T18:08:52.342Z
+Stopped at: Completed 06-03-PLAN.md
 Resume file: None
