@@ -12,6 +12,13 @@ interface AgentCardProps {
   selected?: boolean
 }
 
+/** Format a number with K/M suffixes for compact display */
+function formatNumber(num: number): string {
+  if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + 'M'
+  if (num >= 1_000) return (num / 1_000).toFixed(1) + 'K'
+  return num.toString()
+}
+
 /** Format a timestamp into a relative time string like "5m ago" */
 function relativeTime(isoTimestamp: string): string {
   const now = Date.now()
@@ -33,7 +40,7 @@ function relativeTime(isoTimestamp: string): string {
 export function AgentCard({ snapshot, onClick, selected }: AgentCardProps) {
   const { isAgentLocked } = useMissionControl()
   const lifecycleLocked = isAgentLocked(snapshot.id)
-  const { name, health, lastActivity, errors, channels, agent } = snapshot
+  const { name, health, lastActivity, errors, channels, agent, messageCount } = snapshot
 
   const healthDimensions = Object.values(health.dimensions)
 
@@ -93,11 +100,20 @@ export function AgentCard({ snapshot, onClick, selected }: AgentCardProps) {
         {activityText ?? 'No recent activity'}
       </p>
 
-      {/* Row 3: Last active */}
-      {lastActiveText && (
-        <p className="text-[10px] text-muted-foreground/60 mb-2">
-          Last active: {lastActiveText}
-        </p>
+      {/* Row 3: Message count + Last active */}
+      {((messageCount ?? 0) > 0 || lastActiveText) && (
+        <div className="flex items-center gap-2 mb-2">
+          {(messageCount ?? 0) > 0 && (
+            <span className="text-[10px] font-medium text-muted-foreground/70">
+              {formatNumber(messageCount!)} messages
+            </span>
+          )}
+          {lastActiveText && (
+            <span className="text-[10px] text-muted-foreground/60">
+              Active {lastActiveText}
+            </span>
+          )}
+        </div>
       )}
 
       {/* Row 4: Channel labels */}
