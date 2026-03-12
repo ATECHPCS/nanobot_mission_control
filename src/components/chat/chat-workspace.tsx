@@ -37,11 +37,16 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
     conversations,
     setAgents,
     notifications,
+    discoveredAgents,
+    dashboardMode,
   } = useMissionControl()
 
   const pendingIdRef = useRef(-1)
 
   const [showConversations, setShowConversations] = useState(true)
+  const [conversationListWide, setConversationListWide] = useState(() => {
+    try { return localStorage.getItem('mc-chat-list-wide') === '1' } catch { return false }
+  })
   const [isMobile, setIsMobile] = useState(false)
   const [focusMode, setFocusMode] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
@@ -333,7 +338,9 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
             <span className="text-sm font-semibold text-foreground">Agent Chat</span>
           </div>
           <span className="hidden text-xs text-muted-foreground sm:inline">
-            {agents.filter(a => a.status === 'busy' || a.status === 'idle').length} online
+            {dashboardMode === 'local'
+              ? `${discoveredAgents.filter(a => a.health.overall !== 'red').length} online`
+              : `${agents.filter(a => a.status === 'busy' || a.status === 'idle').length} online`}
           </span>
         </div>
 
@@ -389,8 +396,25 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
       <div className="flex flex-1 overflow-hidden">
         {/* Conversations sidebar */}
         {showConversations && !focusMode && (
-          <div className={`${isMobile ? 'w-full' : 'w-56 border-r border-border'} flex-shrink-0`}>
+          <div className={`${isMobile ? 'w-full' : conversationListWide ? 'w-96 border-r border-border' : 'w-56 border-r border-border'} flex-shrink-0 relative transition-[width] duration-200`}>
             <ConversationList onNewConversation={handleNewConversation} />
+            {!isMobile && (
+              <button
+                onClick={() => {
+                  const next = !conversationListWide
+                  setConversationListWide(next)
+                  try { localStorage.setItem('mc-chat-list-wide', next ? '1' : '0') } catch {}
+                }}
+                className="absolute top-2 right-1.5 z-10 w-5 h-5 rounded flex items-center justify-center text-muted-foreground/40 hover:text-foreground hover:bg-secondary transition-colors"
+                title={conversationListWide ? 'Narrow list' : 'Widen list'}
+              >
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="w-3 h-3">
+                  {conversationListWide
+                    ? <path d="M10 3l-4 5 4 5" />
+                    : <path d="M6 3l4 5-4 5" />}
+                </svg>
+              </button>
+            )}
           </div>
         )}
 

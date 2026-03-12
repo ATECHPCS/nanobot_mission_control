@@ -6,6 +6,27 @@ import { cn } from '@/lib/utils'
 import type { NanobotSessionMeta, SessionListResponse } from '@/types/nanobot-session'
 import { CHANNEL_ICONS } from '@/types/nanobot-session'
 
+// Persist channel collapse state to localStorage
+const LS_KEY = 'mc-session-collapsed-channels'
+
+function loadCollapsed(agentId: string): Set<string> {
+  try {
+    const stored = localStorage.getItem(LS_KEY)
+    if (!stored) return new Set()
+    const map: Record<string, string[]> = JSON.parse(stored)
+    return new Set(map[agentId] || [])
+  } catch { return new Set() }
+}
+
+function saveCollapsed(agentId: string, collapsed: Set<string>) {
+  try {
+    const stored = localStorage.getItem(LS_KEY)
+    const map: Record<string, string[]> = stored ? JSON.parse(stored) : {}
+    map[agentId] = [...collapsed]
+    localStorage.setItem(LS_KEY, JSON.stringify(map))
+  } catch { /* ignore */ }
+}
+
 type DateRange = 'today' | '7d' | '30d' | 'all'
 
 const DATE_RANGE_LABELS: Record<DateRange, string> = {
@@ -43,6 +64,9 @@ export function SessionList({ agentId }: SessionListProps) {
   const [dateRange, setDateRange] = useState<DateRange>('all')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [collapsedChannels, setCollapsedChannels] = useState<Set<string>>(() => {
+    return loadCollapsed(agentId)
+  })
 
   // Debounce search input
   const handleSearchChange = useCallback((value: string) => {
@@ -59,7 +83,22 @@ export function SessionList({ agentId }: SessionListProps) {
     }
   }, [])
 
-  // Fetch sessions when agentId, dateRange, or debouncedSearch changes
+  // Fetch sessions — called on mount and by poll interval
+  const fetchSessions = useCallback(async () => {
+    const params = new URLSearchParams({ agent: agentId })
+    if (dateRange !== 'all') params.set('dateRange', dateRange)
+    if (debouncedSearch) params.set('search', debouncedSearch)
+
+    try {
+      const res = await fetch(`/api/nanobot-sessions?${params.toString()}`)
+      if (res.ok) {
+        const data: SessionListResponse | null = await res.json()
+        if (data) setSessions(data.sessions)
+      }
+    } catch { /* ignore */ }
+  }, [agentId, dateRange, debouncedSearch])
+
+  // Initial fetch + poll every 30s for fresh data
   useEffect(() => {
     let cancelled = false
     setLoading(true)
@@ -84,6 +123,12 @@ export function SessionList({ agentId }: SessionListProps) {
 
     return () => { cancelled = true }
   }, [agentId, dateRange, debouncedSearch])
+
+  // Poll for fresh session data every 30s
+  useEffect(() => {
+    const interval = setInterval(fetchSessions, 30_000)
+    return () => clearInterval(interval)
+  }, [fetchSessions])
 
   // Group sessions by channel type
   const grouped = sessions.reduce<Record<string, NanobotSessionMeta[]>>((acc, s) => {
@@ -146,17 +191,38 @@ export function SessionList({ agentId }: SessionListProps) {
             No sessions found
           </div>
         ) : (
-          groupKeys.map((channel) => (
+          groupKeys.map((channel) => {
+            const isCollapsed = collapsedChannels.has(channel)
+            return (
             <div key={channel}>
               {/* Channel group header */}
-              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary/30 text-xs text-muted-foreground font-medium sticky top-0 z-10">
+              <button
+                onClick={() => setCollapsedChannels(prev => {
+                  const next = new Set(prev)
+                  if (next.has(channel)) next.delete(channel)
+                  else next.add(channel)
+                  saveCollapsed(agentId, next)
+                  return next
+                })}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary/30 text-xs text-muted-foreground font-medium sticky top-0 z-10 w-full text-left hover:bg-secondary/50 transition-colors"
+              >
+                <svg
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  className={cn('w-3 h-3 shrink-0 transition-transform', isCollapsed ? '-rotate-90' : '')}
+                >
+                  <path d="M4 6l4 4 4-4" />
+                </svg>
                 <span>{CHANNEL_ICONS[channel] || '\u{1F4C1}'}</span>
                 <span className="capitalize">{channel}</span>
                 <span className="ml-auto text-muted-foreground/60">{grouped[channel].length}</span>
-              </div>
+              </button>
 
               {/* Sessions in group */}
-              {grouped[channel].map((session) => {
+              {!isCollapsed && grouped[channel].map((session) => {
                 const isSelected = sessionViewerSession === session.filename.replace('.jsonl', '')
                 return (
                   <button
@@ -197,7 +263,7 @@ export function SessionList({ agentId }: SessionListProps) {
                 )
               })}
             </div>
-          ))
+          )})
         )}
       </div>
     </div>

@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       FROM users u
       LEFT JOIN workspaces w ON w.id = u.workspace_id
       WHERE (provider = 'google' AND provider_user_id = ?) OR lower(email) = ?
-      ORDER BY id ASC
+      ORDER BY u.id ASC
       LIMIT 1
     `).get(sub, email) as any
 

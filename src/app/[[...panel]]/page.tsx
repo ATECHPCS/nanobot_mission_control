@@ -1,40 +1,10 @@
 'use client'
 
-import { createElement, useEffect, useState } from 'react'
+import { createElement, lazy, Suspense, useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { NavRail } from '@/components/layout/nav-rail'
 import { HeaderBar } from '@/components/layout/header-bar'
 import { OverviewLanding } from '@/components/dashboard/overview-landing'
-import { LogViewerPanel } from '@/components/panels/log-viewer-panel'
-import { CronManagementPanel } from '@/components/panels/cron-management-panel'
-import { MemoryBrowserPanel } from '@/components/panels/memory-browser-panel'
-import { CostTrackerPanel } from '@/components/panels/cost-tracker-panel'
-import { TaskBoardPanel } from '@/components/panels/task-board-panel'
-import { ActivityFeedPanel } from '@/components/panels/activity-feed-panel'
-import { StandupPanel } from '@/components/panels/standup-panel'
-import { OrchestrationBar } from '@/components/panels/orchestration-bar'
-import { NotificationsPanel } from '@/components/panels/notifications-panel'
-import { UserManagementPanel } from '@/components/panels/user-management-panel'
-import { AuditTrailPanel } from '@/components/panels/audit-trail-panel'
-import { WebhookPanel } from '@/components/panels/webhook-panel'
-import { SettingsPanel } from '@/components/panels/settings-panel'
-import { IntegrationsPanel } from '@/components/panels/integrations-panel'
-import { AlertRulesPanel } from '@/components/panels/alert-rules-panel'
-import { SuperAdminPanel } from '@/components/panels/super-admin-panel'
-import { OfficePanel } from '@/components/panels/office-panel'
-import { GitHubSyncPanel } from '@/components/panels/github-sync-panel'
-import { DocumentsPanel } from '@/components/panels/documents-panel'
-import { NanobotSessionPanel } from '@/components/panels/nanobot-session-panel'
-import { NanobotTokenPanel } from '@/components/panels/nanobot-token-panel'
-import { SkillsPanel } from '@/components/panels/skills-panel'
-import { LocalAgentsDocPanel } from '@/components/panels/local-agents-doc-panel'
-import { ChannelsPanel } from '@/components/panels/channels-panel'
-import { DebugPanel } from '@/components/panels/debug-panel'
-import { SecurityAuditPanel } from '@/components/panels/security-audit-panel'
-import { NodesPanel } from '@/components/panels/nodes-panel'
-import { ExecApprovalPanel } from '@/components/panels/exec-approval-panel'
-import { ChatPagePanel } from '@/components/panels/chat-page-panel'
-import { ChatPanel } from '@/components/chat/chat-panel'
 import { getPluginPanel } from '@/lib/plugins'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { LocalModeBanner } from '@/components/layout/local-mode-banner'
@@ -51,6 +21,56 @@ import { clearOnboardingDismissedThisSession, clearOnboardingReplayFromStart, ge
 import { Button } from '@/components/ui/button'
 import { useMissionControl } from '@/store'
 import { ToastProvider } from '@/components/ui/toast-provider'
+
+// ---------------------------------------------------------------------------
+// Lazy-loaded panels — each chunk only downloads when the panel is visited.
+// ---------------------------------------------------------------------------
+const LogViewerPanel = lazy(() => import('@/components/panels/log-viewer-panel').then(m => ({ default: m.LogViewerPanel })))
+const CronManagementPanel = lazy(() => import('@/components/panels/cron-management-panel').then(m => ({ default: m.CronManagementPanel })))
+const MemoryBrowserPanel = lazy(() => import('@/components/panels/memory-browser-panel').then(m => ({ default: m.MemoryBrowserPanel })))
+const CostTrackerPanel = lazy(() => import('@/components/panels/cost-tracker-panel').then(m => ({ default: m.CostTrackerPanel })))
+const TaskBoardPanel = lazy(() => import('@/components/panels/task-board-panel').then(m => ({ default: m.TaskBoardPanel })))
+const ActivityFeedPanel = lazy(() => import('@/components/panels/activity-feed-panel').then(m => ({ default: m.ActivityFeedPanel })))
+const StandupPanel = lazy(() => import('@/components/panels/standup-panel').then(m => ({ default: m.StandupPanel })))
+const OrchestrationBar = lazy(() => import('@/components/panels/orchestration-bar').then(m => ({ default: m.OrchestrationBar })))
+const NotificationsPanel = lazy(() => import('@/components/panels/notifications-panel').then(m => ({ default: m.NotificationsPanel })))
+const UserManagementPanel = lazy(() => import('@/components/panels/user-management-panel').then(m => ({ default: m.UserManagementPanel })))
+const AuditTrailPanel = lazy(() => import('@/components/panels/audit-trail-panel').then(m => ({ default: m.AuditTrailPanel })))
+const WebhookPanel = lazy(() => import('@/components/panels/webhook-panel').then(m => ({ default: m.WebhookPanel })))
+const SettingsPanel = lazy(() => import('@/components/panels/settings-panel').then(m => ({ default: m.SettingsPanel })))
+const IntegrationsPanel = lazy(() => import('@/components/panels/integrations-panel').then(m => ({ default: m.IntegrationsPanel })))
+const AlertRulesPanel = lazy(() => import('@/components/panels/alert-rules-panel').then(m => ({ default: m.AlertRulesPanel })))
+const SuperAdminPanel = lazy(() => import('@/components/panels/super-admin-panel').then(m => ({ default: m.SuperAdminPanel })))
+const OfficePanel = lazy(() => import('@/components/panels/office-panel').then(m => ({ default: m.OfficePanel })))
+const GitHubSyncPanel = lazy(() => import('@/components/panels/github-sync-panel').then(m => ({ default: m.GitHubSyncPanel })))
+const DocumentsPanel = lazy(() => import('@/components/panels/documents-panel').then(m => ({ default: m.DocumentsPanel })))
+const NanobotSessionPanel = lazy(() => import('@/components/panels/nanobot-session-panel').then(m => ({ default: m.NanobotSessionPanel })))
+const NanobotTokenPanel = lazy(() => import('@/components/panels/nanobot-token-panel').then(m => ({ default: m.NanobotTokenPanel })))
+const SkillsPanel = lazy(() => import('@/components/panels/skills-panel').then(m => ({ default: m.SkillsPanel })))
+const LocalAgentsDocPanel = lazy(() => import('@/components/panels/local-agents-doc-panel').then(m => ({ default: m.LocalAgentsDocPanel })))
+const ChannelsPanel = lazy(() => import('@/components/panels/channels-panel').then(m => ({ default: m.ChannelsPanel })))
+const DebugPanel = lazy(() => import('@/components/panels/debug-panel').then(m => ({ default: m.DebugPanel })))
+const SecurityAuditPanel = lazy(() => import('@/components/panels/security-audit-panel').then(m => ({ default: m.SecurityAuditPanel })))
+const NodesPanel = lazy(() => import('@/components/panels/nodes-panel').then(m => ({ default: m.NodesPanel })))
+const ExecApprovalPanel = lazy(() => import('@/components/panels/exec-approval-panel').then(m => ({ default: m.ExecApprovalPanel })))
+const ChatPagePanel = lazy(() => import('@/components/panels/chat-page-panel').then(m => ({ default: m.ChatPagePanel })))
+const ChatPanel = lazy(() => import('@/components/chat/chat-panel').then(m => ({ default: m.ChatPanel })))
+const AgentsPanel = lazy(() => import('@/components/agents/agents-panel').then(m => ({ default: m.AgentsPanel })))
+
+/** Lightweight spinner shown while a lazy panel chunk is loading */
+function PanelFallback() {
+  return (
+    <div className="flex items-center justify-center py-24">
+      <div className="flex items-center gap-3 text-muted-foreground">
+        <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
+          <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+        </svg>
+        <span className="text-sm">Loading panel...</span>
+      </div>
+    </div>
+  )
+}
 
 interface GatewaySummary {
   id: number
@@ -69,7 +89,14 @@ function isLocalHost(hostname: string): boolean {
 export default function Home() {
   const router = useRouter()
   const { connect } = useWebSocket()
-  const { activeTab, setActiveTab, setCurrentUser, setDashboardMode, setGatewayAvailable, setCapabilitiesChecked, setSubscription, setDefaultOrgName, setUpdateAvailable, showOnboarding, setShowOnboarding, liveFeedOpen, toggleLiveFeed, showProjectManagerModal, setShowProjectManagerModal, fetchProjects, setChatPanelOpen, bootComplete, setBootComplete, setAgents, setSessions, setProjects, setInterfaceMode, setMemoryGraphAgents, setSkillsData } = useMissionControl()
+
+  // Subscribe only to state values used in render — setters accessed via getState() in effects
+  const activeTab = useMissionControl(s => s.activeTab)
+  const showOnboarding = useMissionControl(s => s.showOnboarding)
+  const liveFeedOpen = useMissionControl(s => s.liveFeedOpen)
+  const showProjectManagerModal = useMissionControl(s => s.showProjectManagerModal)
+  const bootComplete = useMissionControl(s => s.bootComplete)
+  const { setActiveTab, setChatPanelOpen, toggleLiveFeed, setShowOnboarding, setShowProjectManagerModal, fetchProjects, setBootComplete } = useMissionControl()
 
   // Sync URL → Zustand activeTab
   const pathname = usePathname()
@@ -120,6 +147,15 @@ export default function Home() {
     }
   }, [initSteps, bootComplete, setBootComplete])
 
+  // Boot timeout — force-complete after 5s so the dashboard always renders
+  useEffect(() => {
+    if (bootComplete) return
+    const t = setTimeout(() => {
+      if (!bootComplete) setBootComplete()
+    }, 5000)
+    return () => clearTimeout(t)
+  }, [bootComplete, setBootComplete])
+
   // Security console warning (anti-self-XSS)
   useEffect(() => {
     if (!bootComplete) return
@@ -144,6 +180,9 @@ export default function Home() {
 
   useEffect(() => {
     setIsClient(true)
+
+    // Access boot-only setters via getState() to avoid subscribing to them
+    const store = useMissionControl.getState()
 
     // Mission Control device identity requires a secure browser context.
     // Redirect remote HTTP sessions to HTTPS automatically to avoid handshake failures.
@@ -204,7 +243,7 @@ export default function Home() {
         }
         return null
       })
-      .then(data => { if (data?.user) setCurrentUser(data.user); markStep('auth') })
+      .then(data => { if (data?.user) store.setCurrentUser(data.user); markStep('auth') })
       .catch(() => { markStep('auth') })
 
     // Check for available updates
@@ -212,7 +251,7 @@ export default function Home() {
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data?.updateAvailable) {
-          setUpdateAvailable({
+          store.setUpdateAvailable({
             latestVersion: data.latestVersion,
             releaseUrl: data.releaseUrl,
             releaseNotes: data.releaseNotes,
@@ -226,28 +265,27 @@ export default function Home() {
       .then(res => res.ok ? res.json() : null)
       .then(async data => {
         if (data?.subscription) {
-          setSubscription(data.subscription)
+          store.setSubscription(data.subscription)
         }
         if (data?.processUser) {
-          setDefaultOrgName(data.processUser)
+          store.setDefaultOrgName(data.processUser)
         }
         if (data?.interfaceMode === 'essential' || data?.interfaceMode === 'full') {
-          setInterfaceMode(data.interfaceMode)
+          store.setInterfaceMode(data.interfaceMode)
         }
         if (data && data.gateway === false) {
-          setDashboardMode('local')
-          setGatewayAvailable(false)
-          setCapabilitiesChecked(true)
+          store.setDashboardMode('local')
+          store.setGatewayAvailable(false)
+          store.setCapabilitiesChecked(true)
           markStep('capabilities')
           markStep('connect')
-          // Skip WebSocket connect — no gateway to talk to
           return
         }
         if (data && data.gateway === true) {
-          setDashboardMode('full')
-          setGatewayAvailable(true)
+          store.setDashboardMode('full')
+          store.setGatewayAvailable(true)
         }
-        setCapabilitiesChecked(true)
+        store.setCapabilitiesChecked(true)
         markStep('capabilities')
 
         const primaryConnect = await connectWithPrimaryGateway()
@@ -257,8 +295,7 @@ export default function Home() {
         markStep('connect')
       })
       .catch(() => {
-        // If capabilities check fails, still try to connect
-        setCapabilitiesChecked(true)
+        store.setCapabilitiesChecked(true)
         markStep('capabilities')
         markStep('connect')
         connectWithEnvFallback()
@@ -293,45 +330,51 @@ export default function Home() {
       fetch('/api/agents')
         .then(r => r.ok ? r.json() : null)
         .then((agentsData) => {
-          if (agentsData?.agents) setAgents(agentsData.agents)
+          if (agentsData?.agents) store.setAgents(agentsData.agents)
         })
         .finally(() => { markStep('agents') }),
       fetch('/api/sessions')
         .then(r => r.ok ? r.json() : null)
         .then((sessionsData) => {
-          if (sessionsData?.sessions) setSessions(sessionsData.sessions)
+          if (sessionsData?.sessions) store.setSessions(sessionsData.sessions)
         })
         .finally(() => { markStep('sessions') }),
       fetch('/api/projects')
         .then(r => r.ok ? r.json() : null)
         .then((projectsData) => {
-          if (projectsData?.projects) setProjects(projectsData.projects)
+          if (projectsData?.projects) store.setProjects(projectsData.projects)
         })
         .finally(() => { markStep('projects') }),
       fetch('/api/memory/graph?agent=all')
         .then(r => r.ok ? r.json() : null)
         .then((graphData) => {
-          if (graphData?.agents) setMemoryGraphAgents(graphData.agents)
+          if (graphData?.agents) store.setMemoryGraphAgents(graphData.agents)
         })
         .finally(() => { markStep('memory') }),
       fetch('/api/skills')
         .then(r => r.ok ? r.json() : null)
         .then((skillsData) => {
-          if (skillsData?.skills) setSkillsData(skillsData.skills, skillsData.groups || [], skillsData.total || 0)
+          if (skillsData?.skills) store.setSkillsData(skillsData.skills, skillsData.groups || [], skillsData.total || 0)
         })
         .finally(() => { markStep('skills') }),
     ]).catch(() => { /* panels will lazy-load as fallback */ })
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- boot once on mount, not on every pathname change
-  }, [connect, router, setCurrentUser, setDashboardMode, setGatewayAvailable, setCapabilitiesChecked, setSubscription, setUpdateAvailable, setShowOnboarding, setAgents, setSessions, setProjects, setInterfaceMode, setMemoryGraphAgents, setSkillsData])
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- boot once on mount
+  }, [])
 
-  if (!isClient || !bootComplete) {
-    return <Loader variant="page" steps={isClient ? initSteps : undefined} />
+  if (!isClient) {
+    return <Loader variant="page" />
   }
 
   return (
     <ToastProvider>
-    <div className="flex h-screen bg-background overflow-hidden">
+    {/* Loader overlay — fades out when boot completes */}
+    {!bootComplete && (
+      <div className="fixed inset-0 z-50">
+        <Loader variant="page" steps={initSteps} />
+      </div>
+    )}
+    <div className={`flex h-screen bg-background overflow-hidden transition-opacity duration-500 ${bootComplete ? 'opacity-100' : 'opacity-0'}`}>
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:text-sm focus:font-medium">
         Skip to main content
       </a>
@@ -356,7 +399,9 @@ export default function Home() {
         >
           <div aria-live="polite" className="flex flex-col min-h-full">
             <ErrorBoundary key={activeTab}>
-              <ContentRouter tab={activeTab} />
+              <Suspense fallback={<PanelFallback />}>
+                <ContentRouter tab={activeTab} />
+              </Suspense>
             </ErrorBoundary>
           </div>
         </main>
@@ -383,7 +428,7 @@ export default function Home() {
       )}
 
       {/* Chat panel overlay */}
-      {!showOnboarding && <ChatPanel />}
+      {!showOnboarding && <Suspense fallback={null}><ChatPanel /></Suspense>}
 
       {/* Global exec approval overlay (shown regardless of active panel) */}
       {!showOnboarding && <ExecApprovalOverlay />}
@@ -457,11 +502,11 @@ function ContentRouter({ tab }: { tab: string }) {
     case 'tasks':
       return <TaskBoardPanel />
     case 'agents':
+      if (isLocal) return <AgentsPanel />
       return (
         <>
           <OrchestrationBar />
-          {isLocal && <LocalAgentsDocPanel />}
-          <OverviewLanding />
+          <AgentsPanel />
         </>
       )
     case 'notifications':

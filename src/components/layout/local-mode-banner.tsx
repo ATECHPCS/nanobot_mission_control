@@ -4,11 +4,16 @@ import { useMissionControl } from '@/store'
 import { useNavigateToPanel } from '@/lib/navigation'
 import { Button } from '@/components/ui/button'
 
+const DISMISS_KEY = 'mc-local-mode-banner-dismissed'
+
 export function LocalModeBanner() {
   const { dashboardMode, bannerDismissed, capabilitiesChecked, dismissBanner } = useMissionControl()
   const navigateToPanel = useNavigateToPanel()
 
-  if (!capabilitiesChecked || dashboardMode === 'full' || bannerDismissed) return null
+  // Persist dismiss across page reloads
+  const isDismissedLocal = typeof window !== 'undefined' && localStorage.getItem(DISMISS_KEY) === '1'
+
+  if (!capabilitiesChecked || dashboardMode === 'full' || bannerDismissed || isDismissedLocal) return null
 
   return (
     <div className="mx-4 mt-3 mb-0 flex items-center gap-3 px-4 py-2.5 rounded-lg bg-void-cyan/5 border border-void-cyan/15 text-sm">
@@ -28,7 +33,7 @@ export function LocalModeBanner() {
       <Button
         variant="ghost"
         size="icon-xs"
-        onClick={dismissBanner}
+        onClick={() => { dismissBanner(); try { localStorage.setItem(DISMISS_KEY, '1') } catch {} }}
         className="shrink-0 text-void-cyan/60 hover:text-void-cyan hover:bg-transparent"
         title="Dismiss"
       >

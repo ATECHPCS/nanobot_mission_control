@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import { AgentCard } from './agent-card'
 import type { AgentHealthSnapshot } from '@/types/agent-health'
 
@@ -9,7 +10,7 @@ interface AgentCardGridProps {
   onSelectAgent: (id: string) => void
 }
 
-export function AgentCardGrid({ snapshots, selectedId, onSelectAgent }: AgentCardGridProps) {
+export const AgentCardGrid = memo(function AgentCardGrid({ snapshots, selectedId, onSelectAgent }: AgentCardGridProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {snapshots.map((snapshot) => (
@@ -22,4 +23,4 @@ export function AgentCardGrid({ snapshots, selectedId, onSelectAgent }: AgentCar
       ))}
     </div>
   )
-}
+})

@@ -23,24 +23,26 @@ export function AgentSidebar() {
     toggleSessionViewerAgentSidebar,
   } = useMissionControl()
 
-  // Fetch agents if not already loaded
+  // Fetch agents on mount and poll every 30s for fresh data
   useEffect(() => {
-    if (discoveredAgents.length > 0) return
     let cancelled = false
-    setDiscoveredAgentsLoading(true)
-    fetch('/api/agents/discover?refresh=true')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data: { agents: AgentHealthSnapshot[] } | null) => {
+    const fetchAgents = async () => {
+      try {
+        if (discoveredAgents.length === 0) setDiscoveredAgentsLoading(true)
+        const res = await fetch('/api/agents/discover?refresh=true')
+        if (!res.ok || cancelled) return
+        const data: { agents: AgentHealthSnapshot[] } | null = await res.json()
         if (!cancelled && data?.agents) {
           setDiscoveredAgents(data.agents)
         }
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setDiscoveredAgentsLoading(false)
-      })
-    return () => { cancelled = true }
-  }, [discoveredAgents.length, setDiscoveredAgents, setDiscoveredAgentsLoading])
+      } catch { /* ignore */ }
+      finally { if (!cancelled) setDiscoveredAgentsLoading(false) }
+    }
+    fetchAgents()
+    const interval = setInterval(fetchAgents, 30_000)
+    return () => { cancelled = true; clearInterval(interval) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setDiscoveredAgents, setDiscoveredAgentsLoading])
 
   const isOpen = sessionViewerAgentSidebarOpen
 

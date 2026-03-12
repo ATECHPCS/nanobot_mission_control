@@ -281,9 +281,14 @@ export function ConversationList({ onNewConversation: _onNewConversation }: Conv
               : 'Gateway'
           const prefKey = `${sessionKind}:${s.id}`
           const pref = prefs[prefKey] || {}
+          const rawKey = s.key || s.id
+          // Strip full paths down to last segment (e.g. "/Users/designmac/projects/foo" → "foo")
+          const shorten = (v: string) => v.includes('/') ? v.split('/').filter(Boolean).pop() || v : v
+          const shortKey = shorten(rawKey)
+          const shortAgent = s.agent ? shorten(s.agent) : 'Gateway'
           const defaultName = dashboardMode === 'local'
-            ? `${kindLabel} • ${s.key || s.id}`
-            : `${s.agent || 'Gateway'} • ${s.key || s.id}`
+            ? `${kindLabel} • ${shortKey}`
+            : `${shortAgent} • ${shortKey}`
           const sessionName = pref.name || defaultName
 
           return {

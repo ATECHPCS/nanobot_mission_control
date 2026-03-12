@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import { cn } from '@/lib/utils'
 import { useMissionControl } from '@/store'
 import { AgentAvatar } from '@/components/ui/agent-avatar'
@@ -37,7 +38,7 @@ function relativeTime(isoTimestamp: string): string {
   return `${diffDays}d ago`
 }
 
-export function AgentCard({ snapshot, onClick, selected }: AgentCardProps) {
+export const AgentCard = memo(function AgentCard({ snapshot, onClick, selected }: AgentCardProps) {
   const { isAgentLocked } = useMissionControl()
   const lifecycleLocked = isAgentLocked(snapshot.id)
   const { name, health, lastActivity, errors, channels, agent, messageCount } = snapshot
@@ -62,7 +63,7 @@ export function AgentCard({ snapshot, onClick, selected }: AgentCardProps) {
       onClick={onClick}
       onKeyDown={(e) => { if (e.key === 'Enter') onClick() }}
       className={cn(
-        'bg-card border border-border rounded-lg p-4 cursor-pointer transition-all',
+        'bg-card border border-border rounded-lg p-4 cursor-pointer transition-[border-color,box-shadow] duration-200',
         'hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
         selected && 'ring-2 ring-primary',
         health.overall === 'red' && 'animate-pulse-border',
@@ -134,4 +135,4 @@ export function AgentCard({ snapshot, onClick, selected }: AgentCardProps) {
       )}
     </div>
   )
-}
+})

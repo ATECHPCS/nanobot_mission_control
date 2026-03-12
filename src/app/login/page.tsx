@@ -66,6 +66,7 @@ export default function LoginPage() {
   const [googleLoading, setGoogleLoading] = useState(false)
   const [googleReady, setGoogleReady] = useState(false)
   const googleCallbackRef = useRef<((response: GoogleCredentialResponse) => void) | null>(null)
+  const googleButtonContainerRef = useRef<HTMLDivElement>(null)
 
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''
 
@@ -137,6 +138,14 @@ export default function LoginPage() {
         client_id: googleClientId,
         callback: (response: GoogleCredentialResponse) => googleCallbackRef.current?.(response),
       })
+      // Render Google's own button into a hidden container so we get
+      // the full OAuth popup flow instead of the unreliable One Tap prompt.
+      if (googleButtonContainerRef.current) {
+        (window.google.accounts.id as any).renderButton(
+          googleButtonContainerRef.current,
+          { type: 'standard', theme: 'outline', size: 'large', width: 320 },
+        )
+      }
       setGoogleReady(true)
     }
 
@@ -158,7 +167,14 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = () => {
     if (!window.google || !googleReady) return
-    window.google.accounts.id.prompt()
+    // Click the hidden Google-rendered button to trigger the full OAuth popup.
+    // Falls back to prompt() if the button isn't available.
+    const btn = googleButtonContainerRef.current?.querySelector('[role="button"]') as HTMLElement | null
+    if (btn) {
+      btn.click()
+    } else {
+      window.google.accounts.id.prompt()
+    }
   }
 
   return (
@@ -229,6 +245,8 @@ export default function LoginPage() {
                 </>
               )}
             </button>
+            {/* Hidden Google-rendered button — our custom button delegates clicks here */}
+            <div ref={googleButtonContainerRef} className="hidden" aria-hidden="true" />
             {!googleReady && (
               <p className="text-center text-xs text-muted-foreground mt-2">Loading Google Sign-In...</p>
             )}

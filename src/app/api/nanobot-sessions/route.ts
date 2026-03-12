@@ -44,11 +44,9 @@ export async function GET(request: NextRequest) {
   const { agent, channel, search, dateRange, limit, offset } = parsed.data
   const db = getDatabase()
 
-  // Auto-sync on first request if table is empty
-  const rowCount = db.prepare('SELECT COUNT(*) as c FROM nanobot_sessions').get() as { c: number }
-  if (rowCount.c === 0) {
-    await syncNanobotSessions()
-  }
+  // Re-sync nanobot sessions from disk on every request so data stays fresh.
+  // syncNanobotSessions is fast (filesystem scan + upsert), typically <100ms.
+  await syncNanobotSessions()
 
   // Build dynamic WHERE clauses
   const conditions: string[] = []
