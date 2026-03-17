@@ -374,7 +374,7 @@ export default function Home() {
         <Loader variant="page" steps={initSteps} />
       </div>
     )}
-    <div className={`flex h-screen bg-background overflow-hidden transition-opacity duration-500 ${bootComplete ? 'opacity-100' : 'opacity-0'}`}>
+    <div className={`flex bg-background overflow-hidden transition-opacity duration-500 safe-area-shell ${bootComplete ? 'opacity-100' : 'opacity-0'}`}>
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:text-sm focus:font-medium">
         Skip to main content
       </a>

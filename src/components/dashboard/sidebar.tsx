@@ -57,6 +57,8 @@ const menuItems: MenuItem[] = [
   { id: 'cron', label: 'Cron Jobs', icon: '⏰', description: 'Automated tasks' },
   { id: 'memory', label: 'Memory', icon: '🧠', description: 'Knowledge browser' },
   { id: 'tokens', label: 'Tokens', icon: '💰', description: 'Usage & cost tracking' },
+  { id: 'github', label: 'GitHub', icon: '🐙', description: 'Repo sync & issue management' },
+  { id: 'integrations', label: 'Integrations', icon: '🔗', description: 'External service connections' },
   { id: 'channels', label: 'Channels', icon: '📡', description: 'Messaging platform status' },
   { id: 'nodes', label: 'Nodes', icon: '🖥', description: 'Connected instances' },
   { id: 'exec-approvals', label: 'Approvals', icon: '✅', description: 'Exec approval queue' },

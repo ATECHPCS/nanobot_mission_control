@@ -338,6 +338,9 @@ export function ProjectManagerModal({
                             className="w-full bg-surface-1 text-foreground border border-border rounded-md px-3 py-2 text-sm"
                             placeholder="owner/repo"
                           />
+                          <p className="mt-1 text-[10px] text-muted-foreground/60">
+                            Format: <span className="font-mono">owner/repo</span> (e.g. <span className="font-mono">acme/my-project</span>). Enables two-way task/issue sync with GitHub. Requires a <span className="font-mono">GITHUB_TOKEN</span> env var.
+                          </p>
                         </div>
                       </div>
 

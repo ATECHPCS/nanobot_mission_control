@@ -2,19 +2,24 @@
  * WebSocket stub — the legacy gateway WebSocket was removed.
  * This module provides no-op exports so upstream components that import
  * useWebSocket continue to compile without runtime errors.
+ *
+ * All returned functions are stable singletons so they can safely appear
+ * in React dependency arrays without triggering re-renders.
  */
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
+const noopConnect = (_url: string, _token?: string) => {}
+const noopSendMessage = (_payload: Record<string, unknown>): boolean => false
+const noopReconnect = () => {}
+
+const STUB = {
+  connect: noopConnect,
+  sendMessage: noopSendMessage,
+  isConnected: false as const,
+  reconnect: noopReconnect,
+}
+
 export function useWebSocket() {
-  return {
-    /** Initiate a WebSocket connection (no-op). */
-    connect: (_url: string, _token?: string) => {},
-    /** Send a JSON message over the WebSocket (no-op, returns false). */
-    sendMessage: (_payload: Record<string, unknown>): boolean => false,
-    /** Whether the socket is currently connected. Always false in stub. */
-    isConnected: false,
-    /** Attempt to reconnect (no-op). */
-    reconnect: () => {},
-  }
+  return STUB
 }

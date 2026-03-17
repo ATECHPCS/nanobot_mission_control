@@ -48,7 +48,17 @@ export async function GET(request: NextRequest) {
     }
 
     if (action === 'capabilities') {
-      const capabilities = await getCapabilities(request)
+      const capabilities = await Promise.race([
+        getCapabilities(request),
+        new Promise<Awaited<ReturnType<typeof getCapabilities>>>(resolve =>
+          setTimeout(() => resolve({
+            gateway: false, nanobotHome: false, claudeHome: false,
+            claudeSessions: 0, subscription: null, subscriptions: {},
+            processUser: os.userInfo().username, interfaceMode: 'essential',
+            dashboardRegistration: null,
+          }), 3000)
+        ),
+      ])
       return NextResponse.json(capabilities)
     }
 
@@ -694,7 +704,7 @@ async function getCapabilities(request?: NextRequest) {
 function isPortOpen(host: string, port: number): Promise<boolean> {
   return new Promise((resolve) => {
     const socket = new net.Socket()
-    const timeoutMs = 1500
+    const timeoutMs = 500
 
     const cleanup = () => {
       socket.removeAllListeners()

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react'
 import { MessageBubble } from './message-bubble'
+import { useSmartPoll } from '@/lib/use-smart-poll'
 import type { NanobotSessionMessage, SessionContentResponse } from '@/types/nanobot-session'
 
 interface ChatViewerProps {
@@ -29,6 +30,9 @@ export function ChatViewer({ agentId, sessionFilename, agentIcon }: ChatViewerPr
   const initialLoadDone = useRef(false)
   const messageCountRef = useRef(0)
 
+  // Track the known total for polling (how many messages the server had last time)
+  const knownTotalRef = useRef(0)
+
   // Fetch initial messages
   useEffect(() => {
     let cancelled = false
@@ -38,6 +42,7 @@ export function ChatViewer({ agentId, sessionFilename, agentIcon }: ChatViewerPr
     setSearchQuery('')
     setActiveSearch('')
     messageCountRef.current = 0
+    knownTotalRef.current = 0
 
     fetch(`/api/nanobot-sessions/${encodeURIComponent(agentId)}/${encodeURIComponent(sessionFilename)}?offset=0&limit=${PAGE_SIZE}`)
       .then((res) => (res.ok ? res.json() : null))
@@ -47,6 +52,7 @@ export function ChatViewer({ agentId, sessionFilename, agentIcon }: ChatViewerPr
           setTotal(data.total)
           setHasMore(data.hasMore)
           messageCountRef.current = data.messages.length
+          knownTotalRef.current = data.total
         }
       })
       .catch(() => {
@@ -58,6 +64,47 @@ export function ChatViewer({ agentId, sessionFilename, agentIcon }: ChatViewerPr
 
     return () => { cancelled = true }
   }, [agentId, sessionFilename])
+
+  // Poll for new messages appended to the session file every 5s
+  const pollNewMessages = useCallback(async () => {
+    if (loading) return // Don't poll while initial load is in progress
+    const currentTotal = knownTotalRef.current
+    if (currentTotal === 0) return // Not initialized yet
+
+    try {
+      // Fetch from offset=knownTotal — if no new messages, returns empty array
+      // The response always includes the up-to-date total count
+      const res = await fetch(
+        `/api/nanobot-sessions/${encodeURIComponent(agentId)}/${encodeURIComponent(sessionFilename)}?offset=${currentTotal}&limit=${PAGE_SIZE}`
+      )
+      if (!res.ok) return
+
+      const data: SessionContentResponse = await res.json()
+
+      if (data.messages.length > 0) {
+        setMessages((prev) => [...prev, ...data.messages])
+        messageCountRef.current += data.messages.length
+        knownTotalRef.current = currentTotal + data.messages.length
+        setTotal(data.total)
+
+        // Auto-scroll to bottom if user was already at the bottom
+        if (isAtBottom) {
+          requestAnimationFrame(() => {
+            const el = scrollRef.current
+            if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+          })
+        }
+      } else if (data.total !== currentTotal) {
+        // Total changed but no new messages at this offset — update total
+        knownTotalRef.current = data.total
+        setTotal(data.total)
+      }
+    } catch {
+      // Ignore poll errors
+    }
+  }, [agentId, sessionFilename, loading, isAtBottom])
+
+  useSmartPoll(pollNewMessages, 5_000)
 
   // Scroll to bottom after initial load
   useLayoutEffect(() => {

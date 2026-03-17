@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useMissionControl } from '@/store'
 import { cn } from '@/lib/utils'
+import { useSmartPoll } from '@/lib/use-smart-poll'
 import type { NanobotSessionMeta, SessionListResponse } from '@/types/nanobot-session'
 import { CHANNEL_ICONS } from '@/types/nanobot-session'
 
@@ -83,7 +84,7 @@ export function SessionList({ agentId }: SessionListProps) {
     }
   }, [])
 
-  // Fetch sessions — called on mount and by poll interval
+  // Fetch sessions — called on mount by useSmartPoll and on every poll tick
   const fetchSessions = useCallback(async () => {
     const params = new URLSearchParams({ agent: agentId })
     if (dateRange !== 'all') params.set('dateRange', dateRange)
@@ -93,42 +94,18 @@ export function SessionList({ agentId }: SessionListProps) {
       const res = await fetch(`/api/nanobot-sessions?${params.toString()}`)
       if (res.ok) {
         const data: SessionListResponse | null = await res.json()
-        if (data) setSessions(data.sessions)
-      }
-    } catch { /* ignore */ }
-  }, [agentId, dateRange, debouncedSearch])
-
-  // Initial fetch + poll every 30s for fresh data
-  useEffect(() => {
-    let cancelled = false
-    setLoading(true)
-
-    const params = new URLSearchParams({ agent: agentId })
-    if (dateRange !== 'all') params.set('dateRange', dateRange)
-    if (debouncedSearch) params.set('search', debouncedSearch)
-
-    fetch(`/api/nanobot-sessions?${params.toString()}`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data: SessionListResponse | null) => {
-        if (!cancelled && data) {
+        if (data) {
           setSessions(data.sessions)
+          setLoading(false)
         }
-      })
-      .catch(() => {
-        if (!cancelled) setSessions([])
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => { cancelled = true }
+      }
+    } catch {
+      setLoading(false)
+    }
   }, [agentId, dateRange, debouncedSearch])
 
-  // Poll for fresh session data every 30s
-  useEffect(() => {
-    const interval = setInterval(fetchSessions, 30_000)
-    return () => clearInterval(interval)
-  }, [fetchSessions])
+  // Smart poll: initial fetch on mount + every 10s, visibility-aware
+  useSmartPoll(fetchSessions, 10_000)
 
   // Group sessions by channel type
   const grouped = sessions.reduce<Record<string, NanobotSessionMeta[]>>((acc, s) => {

@@ -228,48 +228,50 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
     !!activeConversation &&
     !activeConversation.startsWith('session:')
 
-  useEffect(() => {
+  // Stable transcript fetch callback for both initial load and polling
+  const fetchSessionTranscript = useCallback(async () => {
     const sessionMeta = selectedSession
-    if (!sessionMeta) {
+    if (!sessionMeta) return
+
+    const url = sessionMeta.sessionKind === 'gateway'
+      ? `/api/sessions/transcript/gateway?key=${encodeURIComponent(sessionMeta.sessionKey || sessionMeta.sessionId)}&limit=50`
+      : `/api/sessions/transcript?kind=${encodeURIComponent(sessionMeta.sessionKind)}&id=${encodeURIComponent(sessionMeta.sessionId)}&limit=40`
+
+    const res = await fetch(url)
+    if (!res.ok) {
+      const payload = await res.json().catch(() => ({}))
+      throw new Error(payload?.error || 'Failed to load transcript')
+    }
+    const data = await res.json()
+    setSessionTranscript(Array.isArray(data?.messages) ? data.messages : [])
+    setSessionTranscriptError(null)
+  }, [selectedSession])
+
+  // Initial load when session changes or manual refresh
+  useEffect(() => {
+    if (!selectedSession) {
       setSessionTranscript([])
       setSessionTranscriptError(null)
       return
     }
 
-    let cancelled = false
     setSessionTranscriptLoading(true)
     setSessionTranscriptError(null)
 
-    // Gateway sessions use the gateway transcript API
-    const url = sessionMeta.sessionKind === 'gateway'
-      ? `/api/sessions/transcript/gateway?key=${encodeURIComponent(sessionMeta.sessionKey || sessionMeta.sessionId)}&limit=50`
-      : `/api/sessions/transcript?kind=${encodeURIComponent(sessionMeta.sessionKind)}&id=${encodeURIComponent(sessionMeta.sessionId)}&limit=40`
-
-    fetch(url)
-      .then(async (res) => {
-        if (!res.ok) {
-          const payload = await res.json().catch(() => ({}))
-          throw new Error(payload?.error || 'Failed to load transcript')
-        }
-        return res.json()
-      })
-      .then((data) => {
-        if (cancelled) return
-        setSessionTranscript(Array.isArray(data?.messages) ? data.messages : [])
-      })
+    fetchSessionTranscript()
       .catch((err) => {
-        if (cancelled) return
         setSessionTranscript([])
         setSessionTranscriptError(err instanceof Error ? err.message : 'Failed to load transcript')
       })
       .finally(() => {
-        if (!cancelled) setSessionTranscriptLoading(false)
+        setSessionTranscriptLoading(false)
       })
+  }, [selectedSession, sessionReloadNonce, fetchSessionTranscript])
 
-    return () => {
-      cancelled = true
-    }
-  }, [selectedSession, sessionReloadNonce])
+  // Poll transcript for updates every 10s when a session is selected
+  useSmartPoll(fetchSessionTranscript, 10000, {
+    enabled: !!selectedSession,
+  })
 
   const refreshSessionTranscript = useCallback(() => {
     setSessionReloadNonce((v) => v + 1)

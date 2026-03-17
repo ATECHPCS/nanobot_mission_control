@@ -8,4 +8,11 @@ export NODE_ENV="production"
 
 cd /Users/designmac/projects/nanobot_mission_control
 
-exec /usr/local/bin/node node_modules/.bin/next start --hostname 0.0.0.0 --port 3000
+# Load env vars (.env.local not auto-loaded by next start in production)
+if [ -f .env.local ]; then
+  set -a
+  . .env.local
+  set +a
+fi
+
+exec /usr/local/bin/node node_modules/next/dist/bin/next start --hostname 0.0.0.0 --port 3000

@@ -187,9 +187,9 @@
     box-shadow: 0 0 20px hsl(var(--success) / 0.15);
   }
 
-  /* Smooth transitions */
+  /* Smooth transitions — specific properties to avoid animating expensive layout/paint props */
   .transition-smooth {
-    @apply transition-all duration-200 ease-out;
+    transition: color 200ms ease-out, background-color 200ms ease-out, border-color 200ms ease-out, opacity 200ms ease-out, box-shadow 200ms ease-out;
   }
 
   /* Void glow utilities */
@@ -242,7 +242,7 @@
 
   /* Neon button hover effect */
   .btn-neon {
-    @apply transition-all duration-200;
+    transition: color 200ms ease-out, background-color 200ms ease-out, box-shadow 200ms ease-out;
   }
   .btn-neon:hover {
     box-shadow: 0 0 16px hsl(var(--void-cyan) / 0.25);
@@ -391,6 +391,19 @@
   /* iOS safe area for bottom nav */
   .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* iOS safe area for top (notch / Dynamic Island) */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  /* Full-height container that respects both top and bottom safe areas */
+  .safe-area-shell {
+    padding-top: env(safe-area-inset-top, 0px);
+    height: 100vh;
+    height: 100dvh;
+    box-sizing: border-box;
   }
 
   /* Touch-friendly tap targets */

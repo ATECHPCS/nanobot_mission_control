@@ -85,8 +85,8 @@ const gatewayOnlyPanels = new Set([
   // Require a live gateway connection
   'gateways', 'gateway-config', 'channels', 'nodes', 'exec-approvals',
   // Empty / non-functional without a gateway writing events
-  'activity', 'standup', 'webhooks', 'alerts', 'github',
-  'integrations', 'notifications', 'cost-tracker',
+  'activity', 'standup', 'webhooks', 'alerts',
+  'notifications', 'cost-tracker',
   ...getPluginNavItems().filter(pi => pi.gatewayOnly).map(pi => pi.id),
 ])
 const adminOnlyPanels = new Set<string>([])
