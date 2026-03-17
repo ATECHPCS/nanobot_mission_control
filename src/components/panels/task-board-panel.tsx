@@ -633,7 +633,7 @@ export function TaskBoardPanel() {
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="flex justify-between items-center p-4 border-b border-border flex-shrink-0">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-4 border-b border-border flex-shrink-0">
         <div className="flex items-center gap-3">
           <h2 className="text-xl font-bold text-foreground">Task Board</h2>
           <div className="relative">
@@ -654,7 +654,7 @@ export function TaskBoardPanel() {
             </svg>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={() => setShowProjectManager(true)}>
             Projects
           </Button>

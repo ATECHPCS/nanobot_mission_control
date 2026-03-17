@@ -53,15 +53,23 @@ export function NanobotSessionPanel() {
   const selectedAgentSnapshot = discoveredAgents.find((a) => a.id === sessionViewerAgent)
   const agentIcon = selectedAgentSnapshot?.agent?.icon
 
+  // Mobile drill-down: determine which pane to show
+  // Level 0: agent sidebar (no agent selected)
+  // Level 1: session list (agent selected, no session)
+  // Level 2: chat viewer (session selected)
+  const mobileLevel = sessionViewerSession ? 2 : sessionViewerAgent ? 1 : 0
+
   return (
-    <div className="flex h-[calc(100dvh-3rem)] overflow-hidden relative">
-      {/* Left: Agent sidebar */}
-      <AgentSidebar />
+    <div className="flex flex-col md:flex-row h-[calc(100dvh-3rem)] overflow-hidden relative">
+      {/* Left: Agent sidebar — always visible on desktop, only visible on mobile at level 0 */}
+      <div className={`${mobileLevel === 0 ? 'flex' : 'hidden'} md:flex shrink-0`}>
+        <AgentSidebar />
+      </div>
 
       {/* Center + Right */}
       {!sessionViewerAgent ? (
-        /* No agent selected */
-        <div className="flex-1 flex items-center justify-center text-muted-foreground">
+        /* No agent selected — placeholder visible on desktop */
+        <div className="hidden md:flex flex-1 items-center justify-center text-muted-foreground">
           <div className="text-center">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1" className="w-12 h-12 mx-auto mb-3 opacity-30">
               <circle cx="8" cy="5" r="3" />
@@ -75,18 +83,29 @@ export function NanobotSessionPanel() {
         </div>
       ) : (
         <>
-          {/* Center: Session list */}
-          <SessionList agentId={sessionViewerAgent} />
-
-          {/* Right: Chat viewer */}
-          {sessionViewerSession ? (
-            <ChatViewer
+          {/* Center: Session list — always on desktop, only at level 1 on mobile */}
+          <div className={`${mobileLevel === 1 ? 'flex' : 'hidden'} md:flex h-full`}>
+            <SessionList
               agentId={sessionViewerAgent}
-              sessionFilename={sessionViewerSession}
-              agentIcon={agentIcon}
+              onBack={() => {
+                setSessionViewerAgent('')
+                setSessionViewerSession('')
+              }}
             />
+          </div>
+
+          {/* Right: Chat viewer — always on desktop when session selected, only at level 2 on mobile */}
+          {sessionViewerSession ? (
+            <div className={`${mobileLevel === 2 ? 'flex' : 'hidden'} md:flex flex-1 min-w-0`}>
+              <ChatViewer
+                agentId={sessionViewerAgent}
+                sessionFilename={sessionViewerSession}
+                agentIcon={agentIcon}
+                onBack={() => setSessionViewerSession('')}
+              />
+            </div>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-muted-foreground">
+            <div className="hidden md:flex flex-1 items-center justify-center text-muted-foreground">
               <div className="text-center">
                 <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1" className="w-10 h-10 mx-auto mb-2 opacity-30">
                   <path d="M2 3h12v9H2zM5 12v2M11 12v2M4 14h8" />

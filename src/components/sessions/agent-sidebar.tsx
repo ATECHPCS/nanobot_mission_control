@@ -50,7 +50,7 @@ export function AgentSidebar() {
     <div
       className={cn(
         'flex flex-col border-r border-border bg-card shrink-0 transition-all duration-200 ease-in-out overflow-hidden',
-        isOpen ? 'w-[200px]' : 'w-12'
+        isOpen ? 'w-full md:w-[200px]' : 'w-12'
       )}
     >
       {/* Toggle button */}

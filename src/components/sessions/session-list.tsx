@@ -55,9 +55,10 @@ function formatRelativeTime(isoDate: string | null): string {
 
 interface SessionListProps {
   agentId: string
+  onBack?: () => void
 }
 
-export function SessionList({ agentId }: SessionListProps) {
+export function SessionList({ agentId, onBack }: SessionListProps) {
   const { sessionViewerSession, setSessionViewerSession } = useMissionControl()
   const [sessions, setSessions] = useState<NanobotSessionMeta[]>([])
   const [loading, setLoading] = useState(true)
@@ -117,9 +118,20 @@ export function SessionList({ agentId }: SessionListProps) {
   const groupKeys = Object.keys(grouped).sort()
 
   return (
-    <div className="flex flex-col h-full border-r border-border bg-card w-[320px] shrink-0">
+    <div className="flex flex-col h-full border-r border-border bg-card w-full md:w-[320px] shrink-0">
       {/* Search */}
       <div className="px-3 pt-3 pb-2 space-y-2 border-b border-border shrink-0">
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="md:hidden flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+          >
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+              <path d="M10 3L5 8l5 5" />
+            </svg>
+            Back to agents
+          </button>
+        )}
         <div className="relative">
           <svg
             viewBox="0 0 16 16"

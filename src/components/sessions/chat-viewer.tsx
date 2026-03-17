@@ -9,11 +9,12 @@ interface ChatViewerProps {
   agentId: string
   sessionFilename: string
   agentIcon?: string
+  onBack?: () => void
 }
 
 const PAGE_SIZE = 100
 
-export function ChatViewer({ agentId, sessionFilename, agentIcon }: ChatViewerProps) {
+export function ChatViewer({ agentId, sessionFilename, agentIcon, onBack }: ChatViewerProps) {
   const [messages, setMessages] = useState<NanobotSessionMessage[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -229,6 +230,17 @@ export function ChatViewer({ agentId, sessionFilename, agentIcon }: ChatViewerPr
     <div className="flex-1 flex flex-col min-w-0">
       {/* In-session search bar */}
       <div className="px-3 py-2 border-b border-border shrink-0 bg-card">
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="md:hidden flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground mb-2"
+          >
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+              <path d="M10 3L5 8l5 5" />
+            </svg>
+            Back to sessions
+          </button>
+        )}
         <div className="relative max-w-md">
           <svg
             viewBox="0 0 16 16"

@@ -146,22 +146,22 @@ export function NanobotTokenPanel() {
   // -- Render --------------------------------------------------------------
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header + time range selector */}
       <div className="border-b border-border pb-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Token Usage</h1>
-            <p className="text-muted-foreground mt-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Token Usage</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
               Unified token and message analytics across all sources
             </p>
           </div>
-          <div className="flex space-x-2">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {(['today', 'week', 'month', 'year'] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setRange(t)}
-                className={`px-4 py-2 text-sm rounded-md font-medium transition-colors ${
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 text-sm rounded-md font-medium transition-colors ${
                   range === t
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80'

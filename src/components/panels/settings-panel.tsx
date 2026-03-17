@@ -262,12 +262,12 @@ export function SettingsPanel() {
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold text-foreground">Settings</h2>
           <p className="text-xs text-muted-foreground mt-0.5">Configure Mission Control behavior and retention policies</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {hasChanges && (
             <Button
               onClick={handleDiscard}
@@ -331,11 +331,12 @@ export function SettingsPanel() {
           )}
 
           {/* Backup Actions */}
-          <div className="flex items-center gap-3 p-3 bg-surface-1/50 border border-border/30 rounded-lg">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-surface-1/50 border border-border/30 rounded-lg">
             <div className="flex-1">
               <p className="text-xs font-medium">Backups</p>
               <p className="text-2xs text-muted-foreground">Create on-demand backups of MC database or gateway state</p>
             </div>
+            <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
               size="xs"
@@ -384,6 +385,7 @@ export function SettingsPanel() {
             >
               {gwBackupRunning ? 'Backing up...' : 'Backup Gateway State'}
             </Button>
+            </div>
           </div>
 
           {/* Replay Onboarding */}

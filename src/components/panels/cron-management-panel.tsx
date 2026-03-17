@@ -679,16 +679,16 @@ export function CronManagementPanel() {
         : calendarDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       <div className="border-b border-border pb-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Cron Management</h1>
-            <p className="text-muted-foreground mt-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Cron Management</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
               Manage automated tasks and scheduled jobs
             </p>
           </div>
-          <div className="flex space-x-2">
+          <div className="flex gap-2">
             <Button
               onClick={loadCronJobs}
               disabled={isLoading}
