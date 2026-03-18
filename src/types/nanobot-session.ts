@@ -67,6 +67,8 @@ export interface SessionContentResponse {
   messages: NanobotSessionMessage[]
   total: number
   hasMore: boolean
+  /** The offset used to produce this page (useful when tail=1 computed the offset) */
+  offset?: number
   agentId: string
   filename: string
 }

@@ -587,6 +587,16 @@ interface MissionControlStore {
   addExecApproval: (approval: ExecApprovalRequest) => void
   updateExecApproval: (id: string, updates: Partial<ExecApprovalRequest>) => void
 
+  // Office Panel (persisted across tab switches)
+  officeSessionAgents: Agent[]
+  officeLocalAgents: Agent[]
+  officeNanobotStatus: Record<string, { status: string; lastActivity: number | null; activeSession: string | null }>
+  officeDataFetched: boolean
+  setOfficeSessionAgents: (agents: Agent[]) => void
+  setOfficeLocalAgents: (agents: Agent[]) => void
+  setOfficeNanobotStatus: (status: Record<string, { status: string; lastActivity: number | null; activeSession: string | null }>) => void
+  setOfficeDataFetched: (fetched: boolean) => void
+
   // Skills (persisted across tab switches)
   skillsList: { id: string; name: string; source: string; path: string; description?: string; registry_slug?: string | null; security_status?: string | null }[] | null
   skillGroups: { source: string; path: string; skills: { id: string; name: string; source: string; path: string; description?: string; registry_slug?: string | null; security_status?: string | null }[] }[] | null
@@ -912,6 +922,16 @@ export const useMissionControl = create<MissionControlStore>()(
       set((state) => ({
         execApprovals: state.execApprovals.map(a => a.id === id ? { ...a, ...updates } : a),
       })),
+
+    // Office Panel
+    officeSessionAgents: [],
+    officeLocalAgents: [],
+    officeNanobotStatus: {},
+    officeDataFetched: false,
+    setOfficeSessionAgents: (agents) => set({ officeSessionAgents: agents }),
+    setOfficeLocalAgents: (agents) => set({ officeLocalAgents: agents }),
+    setOfficeNanobotStatus: (status) => set({ officeNanobotStatus: status }),
+    setOfficeDataFetched: (fetched) => set({ officeDataFetched: fetched }),
 
     // Skills
     skillsList: null,

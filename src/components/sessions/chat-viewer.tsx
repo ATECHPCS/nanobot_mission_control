@@ -45,7 +45,7 @@ export function ChatViewer({ agentId, sessionFilename, agentIcon, onBack }: Chat
     messageCountRef.current = 0
     knownTotalRef.current = 0
 
-    fetch(`/api/nanobot-sessions/${encodeURIComponent(agentId)}/${encodeURIComponent(sessionFilename)}?offset=0&limit=${PAGE_SIZE}`)
+    fetch(`/api/nanobot-sessions/${encodeURIComponent(agentId)}/${encodeURIComponent(sessionFilename)}?tail=1&limit=${PAGE_SIZE}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data: SessionContentResponse | null) => {
         if (!cancelled && data) {
@@ -175,7 +175,7 @@ export function ChatViewer({ agentId, sessionFilename, agentIcon, onBack }: Chat
     if (!activeSearch) return
     const lowerSearch = activeSearch.toLowerCase()
     const matchIdx = messages.findIndex(
-      (m) => m.content.toLowerCase().includes(lowerSearch)
+      (m) => (m.content ?? '').toLowerCase().includes(lowerSearch)
     )
     if (matchIdx >= 0) {
       const el = document.getElementById(`session-msg-${matchIdx}`)

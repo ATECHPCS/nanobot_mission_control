@@ -213,4 +213,5 @@ export const sessionListQuerySchema = z.object({
 export const sessionContentQuerySchema = z.object({
   offset: z.coerce.number().int().min(0).default(0),
   limit: z.coerce.number().int().min(1).max(500).default(100),
+  tail: z.coerce.number().int().min(0).max(1).default(0),
 })

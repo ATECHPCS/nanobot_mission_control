@@ -54,7 +54,7 @@ const SOURCE_LABELS: Record<string, string> = {
   'user-codex': '~/.codex/skills (global)',
   'project-agents': '.agents/skills (project)',
   'project-codex': '.codex/skills (project)',
-  'openclaw': '~/.openclaw/skills (gateway)',
+  'nanobot': '~/.nanobot/workspace/skills (nanobot)',
 }
 
 export function SkillsPanel() {
@@ -68,7 +68,7 @@ export function SkillsPanel() {
   const [draftContent, setDraftContent] = useState('')
   const [drawerLoading, setDrawerLoading] = useState(false)
   const [drawerError, setDrawerError] = useState<string | null>(null)
-  const [createSource, setCreateSource] = useState(dashboardMode === 'full' ? 'openclaw' : 'user-codex')
+  const [createSource, setCreateSource] = useState(dashboardMode === 'full' ? 'nanobot' : 'user-codex')
   const [createName, setCreateName] = useState('')
   const [createContent, setCreateContent] = useState('# new-skill\n\nDescribe this skill.\n')
   const [createError, setCreateError] = useState<string | null>(null)
@@ -80,7 +80,7 @@ export function SkillsPanel() {
   const [registryLoading, setRegistryLoading] = useState(false)
   const [registryError, setRegistryError] = useState<string | null>(null)
   const [registrySearched, setRegistrySearched] = useState(false)
-  const [installTarget, setInstallTarget] = useState(dashboardMode === 'full' ? 'openclaw' : 'user-agents')
+  const [installTarget, setInstallTarget] = useState(dashboardMode === 'full' ? 'nanobot' : 'user-agents')
   const [installing, setInstalling] = useState<string | null>(null)
   const [installMessage, setInstallMessage] = useState<string | null>(null)
   const [scanAll, setScanAll] = useState<{
@@ -509,7 +509,7 @@ export function SkillsPanel() {
                 <option value="project-agents">{SOURCE_LABELS['project-agents']}</option>
                 <option value="project-codex">{SOURCE_LABELS['project-codex']}</option>
                 {dashboardMode === 'full' && (
-                  <option value="openclaw">{SOURCE_LABELS['openclaw']}</option>
+                  <option value="nanobot">{SOURCE_LABELS['nanobot']}</option>
                 )}
               </select>
               <input
@@ -538,9 +538,9 @@ export function SkillsPanel() {
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-                {(skillGroups || []).filter(g => g.skills.length > 0 || ['user-agents', 'user-codex', 'openclaw'].includes(g.source)).map((group) => (
+                {(skillGroups || []).filter(g => g.skills.length > 0 || ['user-agents', 'user-codex', 'nanobot'].includes(g.source)).map((group) => (
                   <div key={group.source} className={`rounded-lg border bg-card p-3 ${
-                    group.source === 'openclaw' ? 'border-cyan-500/30' : 'border-border'
+                    group.source === 'nanobot' ? 'border-cyan-500/30' : 'border-border'
                   }`}>
                     <div className="text-xs font-medium text-muted-foreground">{SOURCE_LABELS[group.source] || group.source}</div>
                     <div className="mt-1 text-lg font-semibold text-foreground">{group.skills.length}</div>
@@ -571,7 +571,7 @@ export function SkillsPanel() {
                           <div className="flex items-center gap-2">
                             {securityBadge(skill.security_status)}
                             <span className={`text-2xs rounded-full border px-2 py-0.5 ${
-                              skill.source === 'openclaw'
+                              skill.source === 'nanobot'
                                 ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30'
                                 : skill.source.startsWith('project-')
                                   ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
@@ -637,7 +637,7 @@ export function SkillsPanel() {
                 <option value="project-agents">{SOURCE_LABELS['project-agents']}</option>
                 <option value="project-codex">{SOURCE_LABELS['project-codex']}</option>
                 {dashboardMode === 'full' && (
-                  <option value="openclaw">{SOURCE_LABELS['openclaw']}</option>
+                  <option value="nanobot">{SOURCE_LABELS['nanobot']}</option>
                 )}
               </select>
             </div>

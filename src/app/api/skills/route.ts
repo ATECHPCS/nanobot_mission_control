@@ -84,10 +84,10 @@ function getSkillRoots(): SkillRoot[] {
     { source: 'project-agents', path: resolveSkillRoot('MC_SKILLS_PROJECT_AGENTS_DIR', join(cwd, '.agents', 'skills')) },
     { source: 'project-codex', path: resolveSkillRoot('MC_SKILLS_PROJECT_CODEX_DIR', join(cwd, '.codex', 'skills')) },
   ]
-  // Add OpenClaw gateway skill roots when configured
-  const openclawState = process.env.OPENCLAW_STATE_DIR || process.env.OPENCLAW_HOME || join(home, '.openclaw')
-  const openclawSkills = resolveSkillRoot('MC_SKILLS_OPENCLAW_DIR', join(openclawState, 'skills'))
-  roots.push({ source: 'openclaw', path: openclawSkills })
+  // Add nanobot workspace skills
+  const nanobotWorkspace = process.env.NANOBOT_WORKSPACE_DIR || join(home, '.nanobot', 'workspace')
+  const nanobotSkills = resolveSkillRoot('MC_SKILLS_NANOBOT_DIR', join(nanobotWorkspace, 'skills'))
+  roots.push({ source: 'nanobot', path: nanobotSkills })
   return roots
 }
 

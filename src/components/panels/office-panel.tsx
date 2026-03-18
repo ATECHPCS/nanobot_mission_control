@@ -81,8 +81,8 @@ function crewColorClass(name: string): string {
 }
 
 const statusDot: Record<string, string> = {
-  idle: 'bg-emerald-400',
-  busy: 'bg-amber-400',
+  idle: 'bg-amber-400',
+  busy: 'bg-emerald-400',
   error: 'bg-red-400',
   offline: 'bg-gray-500',
 }
@@ -107,9 +107,9 @@ function formatLastSeen(ts?: number): string {
 
 /** Map session slugs / working dirs to known nanobot agent names. */
 const SLUG_TO_AGENT: [RegExp, string][] = [
-  [/agents[/-]cody/i, 'Cody'],
-  [/agents[/-]stefany|bookkeeping.bot/i, 'Stefany'],
-  [/agents[/-]andy/i, 'Andy'],
+  [/\bcody\b/i, 'Cody'],
+  [/\bstefany\b|bookkeeping.bot/i, 'Stefany'],
+  [/\bandy\b/i, 'Andy'],
 ]
 
 function resolveAgentName(row: SessionAgentRow): string {
@@ -457,23 +457,27 @@ function OfficeRoom({ room, agents, onAgentClick, zoom }: {
 /* ── Main Panel ───────────────────────────────────────────── */
 
 export function OfficePanel() {
-  const { agents, dashboardMode } = useMissionControl()
+  const {
+    agents, dashboardMode,
+    officeSessionAgents: sessionAgents, setOfficeSessionAgents: setSessionAgents,
+    officeLocalAgents: localAgents, setOfficeLocalAgents: setLocalAgents,
+    officeNanobotStatus: nanobotStatusObj, setOfficeNanobotStatus: setNanobotStatusObj,
+    officeDataFetched, setOfficeDataFetched,
+  } = useMissionControl()
   const isLocalMode = dashboardMode === 'local'
 
-  const [localAgents, setLocalAgents] = useState<Agent[]>([])
-  const [sessionAgents, setSessionAgents] = useState<Agent[]>([])
-  const [nanobotStatus, setNanobotStatus] = useState<Map<string, { status: string; lastActivity: number | null; activeSession: string | null }>>(new Map())
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
   const [hideGsd, setHideGsd] = useState(() => {
     if (typeof window !== 'undefined') return localStorage.getItem('office-hide-gsd') === '1'
     return false
   })
   const [sidebarFilter, setSidebarFilter] = useState<SidebarFilter>('all')
-  const [loading, setLoading] = useState(true)
-  const [localBootstrapping, setLocalBootstrapping] = useState(isLocalMode)
+  const [loading, setLoading] = useState(!officeDataFetched)
+  const [localBootstrapping, setLocalBootstrapping] = useState(isLocalMode && !officeDataFetched)
   const [localSessionFilter, setLocalSessionFilter] = useState<'running' | 'not-running'>('running')
   const [mapZoom, setMapZoom] = useState(1)
   const [mapPan, setMapPan] = useState({ x: 0, y: 0 })
+  const [refreshing, setRefreshing] = useState(false)
 
   const mapViewportRef = useRef<HTMLDivElement | null>(null)
   const localBootstrapRetries = useRef(0)
@@ -496,17 +500,17 @@ export function OfficePanel() {
 
       if (isLocalMode && nanobotRes?.ok) {
         const nbJson = await nanobotRes.json().catch(() => ({}))
-        const statusMap = new Map<string, { status: string; lastActivity: number | null; activeSession: string | null }>()
+        const statusObj: Record<string, { status: string; lastActivity: number | null; activeSession: string | null }> = {}
         if (Array.isArray(nbJson?.agents)) {
           for (const a of nbJson.agents) {
-            statusMap.set(String(a.name).toLowerCase(), {
+            statusObj[String(a.name).toLowerCase()] = {
               status: a.status,
               lastActivity: a.lastActivity,
               activeSession: a.activeSession,
-            })
+            }
           }
         }
-        setNanobotStatus(statusMap)
+        setNanobotStatusObj(statusObj)
       }
 
       if (agentRes.ok) {
@@ -530,7 +534,7 @@ export function OfficePanel() {
           const candidate: Agent = {
             id: -5000 - idx,
             name,
-            role: inferLocalRole(row),
+            role: NANOBOT_AGENT_DEFS.find(d => d.name === name)?.role || inferLocalRole(row),
             status: row.active ? 'busy' : 'idle',
             last_seen: lastSeenSec,
             last_activity: `${row.kind || 'session'} · ${row.model || 'unknown model'}`,
@@ -575,16 +579,18 @@ export function OfficePanel() {
     }
 
     setLoading(false)
-  }, [isLocalMode])
+    setOfficeDataFetched(true)
+  }, [isLocalMode, setLocalAgents, setSessionAgents, setNanobotStatusObj, setOfficeDataFetched])
 
   useEffect(() => { fetchAgents() }, [fetchAgents])
 
   useEffect(() => {
     if (!isLocalMode) { setLocalBootstrapping(false); return }
+    if (officeDataFetched) { setLocalBootstrapping(false); return }
     setLocalBootstrapping(true)
     const timer = setTimeout(() => setLocalBootstrapping(false), 4500)
     return () => clearTimeout(timer)
-  }, [isLocalMode])
+  }, [isLocalMode, officeDataFetched])
 
   useEffect(() => {
     const interval = setInterval(fetchAgents, 10000)
@@ -595,11 +601,12 @@ export function OfficePanel() {
 
   const displayAgents = useMemo(() => {
     let result: Agent[]
-    if (agents.length > 0) {
-      result = agents
-    } else if (isLocalMode) {
+    if (isLocalMode) {
+      // Merge DB agents, local agents, and session agents — session agents
+      // represent active Claude Code / Codex sessions that should appear in
+      // the session pool alongside registered DB agents.
       const merged = new Map<string, Agent>()
-      for (const agent of [...sessionAgents, ...localAgents]) {
+      for (const agent of [...sessionAgents, ...localAgents, ...agents]) {
         const key = (agent.name || '').trim().toLowerCase()
         if (!key) continue
         const existing = merged.get(key)
@@ -610,6 +617,8 @@ export function OfficePanel() {
         if (shouldReplace) merged.set(key, agent)
       }
       result = Array.from(merged.values())
+    } else if (agents.length > 0) {
+      result = agents
     } else {
       result = localAgents.length > 0 ? localAgents : []
     }
@@ -644,6 +653,7 @@ export function OfficePanel() {
       : displayAgents.filter(a => !isInactiveLocalSession(a))
   }, [displayAgents, isLocalMode, localSessionFilter])
 
+  const nanobotStatus = useMemo(() => new Map(Object.entries(nanobotStatusObj)), [nanobotStatusObj])
   const layout = useMemo(() => buildOfficeLayout(visibleAgents, hideGsd, nanobotStatus), [visibleAgents, hideGsd, nanobotStatus])
 
   const agentsByRoom = useMemo(() => {
@@ -718,8 +728,8 @@ export function OfficePanel() {
           </div>
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             <div className="flex items-center gap-2 sm:gap-3 text-xs text-muted-foreground">
-              {counts.busy > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400" />{counts.busy} active</span>}
-              {counts.idle > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400" />{counts.idle} idle</span>}
+              {counts.busy > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400" />{counts.busy} active</span>}
+              {counts.idle > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400" />{counts.idle} idle</span>}
               {counts.error > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400" />{counts.error} alert</span>}
             </div>
 
@@ -735,8 +745,14 @@ export function OfficePanel() {
                 {hideGsd ? `Show GSD (${layout.gsdCount})` : `Hide GSD (${layout.gsdCount})`}
               </Button>
 
-              <Button variant="secondary" size="sm" onClick={fetchAgents} className="text-xs">
-                Refresh
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={refreshing}
+                onClick={async () => { setRefreshing(true); await fetchAgents(); setRefreshing(false) }}
+                className="text-xs"
+              >
+                {refreshing ? 'Refreshing…' : 'Refresh'}
               </Button>
             </div>
           </div>

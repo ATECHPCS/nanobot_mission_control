@@ -2,9 +2,11 @@
 
 import { useCallback } from 'react'
 import { useMissionControl } from '@/store'
+import { useSmartPoll } from '@/lib/use-smart-poll'
 import { AgentCardGrid } from './agent-card-grid'
 import { AgentSkeletonGrid } from './agent-skeleton'
 import { AgentSlideOut } from './agent-slide-out'
+import type { AgentHealthSnapshot } from '@/types/agent-health'
 
 /**
  * Dedicated agents view — focused on the agent card grid + detail slide-out.
@@ -17,8 +19,30 @@ export function AgentsPanel() {
     discoveredAgentsLoading,
     selectedDiscoveredAgentId,
     setSelectedDiscoveredAgentId,
+    setDiscoveredAgents,
+    setDiscoveredAgentsLoading,
+    setDiscoveredAgentsLastChecked,
     healthCheckInterval,
   } = useMissionControl()
+
+  // Fetch discovered agents — mirrors overview-landing but without toast notifications
+  const fetchAgents = useCallback(async () => {
+    try {
+      const res = await fetch('/api/agents/discover')
+      if (!res.ok) return
+      const data = await res.json()
+      const agents: AgentHealthSnapshot[] = data.agents ?? []
+      setDiscoveredAgents(agents)
+      setDiscoveredAgentsLastChecked(data.checkedAt ?? Date.now())
+      setDiscoveredAgentsLoading(false)
+    } catch {
+      setDiscoveredAgentsLoading(false)
+    }
+  }, [setDiscoveredAgents, setDiscoveredAgentsLastChecked, setDiscoveredAgentsLoading])
+
+  useSmartPoll(fetchAgents, healthCheckInterval, {
+    pauseWhenSseConnected: false,
+  })
 
   const handleSelectAgent = useCallback((id: string) => {
     setSelectedDiscoveredAgentId(

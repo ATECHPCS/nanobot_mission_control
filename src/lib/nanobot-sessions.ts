@@ -137,11 +137,13 @@ export function scanAgentSessions(agentId: string, sessionsDir: string): Nanobot
  * @param filePath - Absolute path to the JSONL file
  * @param offset - Number of messages to skip (default 0)
  * @param limit - Maximum messages to return (default 100)
+ * @param tail - If true, return the last `limit` messages (offset is ignored)
  */
 export function readSessionContent(
   filePath: string,
   offset: number = 0,
   limit: number = 100,
+  tail: boolean = false,
 ): SessionContentResponse {
   const stat = statSync(filePath)
 
@@ -165,7 +167,7 @@ export function readSessionContent(
       if (entry.role) {
         allMessages.push({
           role: entry.role,
-          content: entry.content,
+          content: entry.content ?? '',
           timestamp: entry.timestamp,
           ...(entry.tool_calls && { tool_calls: entry.tool_calls }),
           ...(entry.tool_call_id && { tool_call_id: entry.tool_call_id }),
@@ -178,6 +180,20 @@ export function readSessionContent(
   }
 
   const total = allMessages.length
+
+  if (tail) {
+    const tailOffset = Math.max(0, total - limit)
+    const paginated = allMessages.slice(tailOffset)
+    return {
+      messages: paginated,
+      total,
+      hasMore: tailOffset > 0,
+      offset: tailOffset,
+      agentId: '',
+      filename: '',
+    }
+  }
+
   const paginated = allMessages.slice(offset, offset + limit)
   const hasMore = offset + limit < total
 
@@ -185,6 +201,7 @@ export function readSessionContent(
     messages: paginated,
     total,
     hasMore,
+    offset,
     agentId: '',
     filename: '',
   }
@@ -198,22 +215,63 @@ export function readSessionContent(
  * @param filePath - Absolute path to the JSONL file
  * @param offset - Number of messages to skip (default 0)
  * @param limit - Maximum messages to return (default 100)
+ * @param tail - If true, return the last `limit` messages (offset is ignored)
  */
 export async function readSessionContentStream(
   filePath: string,
   offset: number = 0,
   limit: number = 100,
+  tail: boolean = false,
 ): Promise<SessionContentResponse> {
   return new Promise((resolve, reject) => {
-    const messages: NanobotSessionMessage[] = []
-    let messageIndex = 0
-    let total = 0
-    let collected = 0
-
     const rl = createInterface({
       input: createReadStream(filePath, { encoding: 'utf-8' }),
       crlfDelay: Infinity,
     })
+
+    if (tail) {
+      // For tail mode, collect all messages then return the last `limit`
+      const allMessages: NanobotSessionMessage[] = []
+
+      rl.on('line', (line: string) => {
+        if (!line.trim()) return
+        try {
+          const entry = JSON.parse(line)
+          if (entry._type === 'metadata') return
+          if (!entry.role) return
+          allMessages.push({
+            role: entry.role,
+            content: entry.content ?? '',
+            timestamp: entry.timestamp,
+            ...(entry.tool_calls && { tool_calls: entry.tool_calls }),
+            ...(entry.tool_call_id && { tool_call_id: entry.tool_call_id }),
+            ...(entry.name && { name: entry.name }),
+          })
+        } catch { /* skip */ }
+      })
+
+      rl.on('close', () => {
+        const total = allMessages.length
+        const tailOffset = Math.max(0, total - limit)
+        resolve({
+          messages: allMessages.slice(tailOffset),
+          total,
+          hasMore: tailOffset > 0,
+          offset: tailOffset,
+          agentId: '',
+          filename: '',
+        })
+      })
+
+      rl.on('error', reject)
+      return
+    }
+
+    // Normal offset-based pagination
+    const messages: NanobotSessionMessage[] = []
+    let messageIndex = 0
+    let total = 0
+    let collected = 0
 
     rl.on('line', (line: string) => {
       if (!line.trim()) return
@@ -228,7 +286,7 @@ export async function readSessionContentStream(
         if (messageIndex >= offset && collected < limit) {
           messages.push({
             role: entry.role,
-            content: entry.content,
+            content: entry.content ?? '',
             timestamp: entry.timestamp,
             ...(entry.tool_calls && { tool_calls: entry.tool_calls }),
             ...(entry.tool_call_id && { tool_call_id: entry.tool_call_id }),
@@ -247,6 +305,7 @@ export async function readSessionContentStream(
         messages,
         total,
         hasMore: offset + limit < total,
+        offset,
         agentId: '',
         filename: '',
       })

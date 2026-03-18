@@ -59,13 +59,13 @@ function extractDescription(content: string): string | undefined {
 function getSkillRoots(): Array<{ source: string; path: string }> {
   const home = homedir()
   const cwd = process.cwd()
-  const openclawState = process.env.OPENCLAW_STATE_DIR || process.env.OPENCLAW_HOME || join(home, '.openclaw')
+  const nanobotWorkspace = process.env.NANOBOT_WORKSPACE_DIR || join(home, '.nanobot', 'workspace')
   return [
     { source: 'user-agents', path: process.env.MC_SKILLS_USER_AGENTS_DIR || join(home, '.agents', 'skills') },
     { source: 'user-codex', path: process.env.MC_SKILLS_USER_CODEX_DIR || join(home, '.codex', 'skills') },
     { source: 'project-agents', path: process.env.MC_SKILLS_PROJECT_AGENTS_DIR || join(cwd, '.agents', 'skills') },
     { source: 'project-codex', path: process.env.MC_SKILLS_PROJECT_CODEX_DIR || join(cwd, '.codex', 'skills') },
-    { source: 'openclaw', path: process.env.MC_SKILLS_OPENCLAW_DIR || join(openclawState, 'skills') },
+    { source: 'nanobot', path: process.env.MC_SKILLS_NANOBOT_DIR || join(nanobotWorkspace, 'skills') },
   ]
 }
 
@@ -126,7 +126,7 @@ export async function syncSkillsFromDisk(): Promise<{ ok: boolean; message: stri
     }
 
     // Fetch current DB rows (only local sources, not registry-installed via slug)
-    const localSources = ['user-agents', 'user-codex', 'project-agents', 'project-codex', 'openclaw']
+    const localSources = ['user-agents', 'user-codex', 'project-agents', 'project-codex', 'nanobot']
     const dbRows = db.prepare(
       `SELECT * FROM skills WHERE source IN (${localSources.map(() => '?').join(',')})`
     ).all(...localSources) as SkillRow[]

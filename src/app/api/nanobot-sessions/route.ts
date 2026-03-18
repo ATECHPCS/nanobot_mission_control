@@ -5,6 +5,8 @@ import { syncNanobotSessions } from '@/lib/nanobot-sessions'
 import { sessionListQuerySchema } from '@/lib/validation'
 import type { SessionListResponse } from '@/types/nanobot-session'
 
+export const dynamic = 'force-dynamic'
+
 interface SessionRow {
   agent_id: string
   filename: string

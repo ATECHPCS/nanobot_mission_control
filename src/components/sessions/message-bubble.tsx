@@ -41,6 +41,7 @@ export function MessageBubble({ message, agentIcon, toolResult, searchHighlight,
   const isUser = message.role === 'user'
   const isTool = message.role === 'tool'
   const isAssistant = message.role === 'assistant'
+  const content = message.content ?? ''
 
   return (
     <div
@@ -98,25 +99,25 @@ export function MessageBubble({ message, agentIcon, toolResult, searchHighlight,
         {/* Message content */}
         {isUser ? (
           <div className="whitespace-pre-wrap break-words">
-            {searchHighlight ? highlightText(message.content, searchHighlight) : message.content}
+            {searchHighlight ? highlightText(content, searchHighlight) : content}
           </div>
         ) : isTool ? (
           <div className="font-mono text-xs whitespace-pre-wrap break-words text-muted-foreground">
             {searchHighlight ? highlightText(
-              message.content.length > 500 ? message.content.slice(0, 500) + '...' : message.content,
+              content.length > 500 ? content.slice(0, 500) + '...' : content,
               searchHighlight
             ) : (
-              message.content.length > 500 ? message.content.slice(0, 500) + '...' : message.content
+              content.length > 500 ? content.slice(0, 500) + '...' : content
             )}
           </div>
         ) : (
           <div className="overflow-x-auto max-w-full">
             {searchHighlight ? (
               <div className="whitespace-pre-wrap break-words">
-                {highlightText(message.content, searchHighlight)}
+                {highlightText(content, searchHighlight)}
               </div>
             ) : (
-              <MarkdownRenderer content={message.content} />
+              <MarkdownRenderer content={content} />
             )}
           </div>
         )}

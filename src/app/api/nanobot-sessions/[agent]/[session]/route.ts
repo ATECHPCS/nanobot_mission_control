@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { existsSync } from 'fs'
+import { existsSync, statSync } from 'fs'
 import { join } from 'path'
 import { requireRole } from '@/lib/auth'
 import { getDatabase } from '@/lib/db'
@@ -8,11 +8,7 @@ import { readSessionContent, readSessionContentStream } from '@/lib/nanobot-sess
 import { sessionContentQuerySchema } from '@/lib/validation'
 import type { SessionContentResponse } from '@/types/nanobot-session'
 
-interface SessionRow {
-  filename: string
-  agent_id: string
-  file_size_bytes: number
-}
+export const dynamic = 'force-dynamic'
 
 /**
  * GET /api/nanobot-sessions/{agent}/{session} - Read session messages with pagination
@@ -49,24 +45,10 @@ export async function GET(
     )
   }
 
-  const { offset, limit } = parsed.data
+  const { offset, limit, tail } = parsed.data
   const filename = `${sessionSlug}.jsonl`
 
-  // Look up session in DB
-  const db = getDatabase()
-  const sessionRow = db.prepare(
-    `SELECT filename, agent_id, file_size_bytes FROM nanobot_sessions
-     WHERE agent_id = ? AND filename = ?`,
-  ).get(agentId, filename) as SessionRow | undefined
-
-  if (!sessionRow) {
-    return NextResponse.json(
-      { error: `Session not found: ${agentId}/${filename}` },
-      { status: 404 },
-    )
-  }
-
-  // Discover agent to get homePath for file access
+  // Discover agent to get workspacePath for file access
   const agents = discoverAgents()
   const agent = agents.find(a => a.id === agentId)
 
@@ -86,15 +68,24 @@ export async function GET(
     )
   }
 
+  // Get file size for streaming threshold (prefer DB cache, fall back to stat)
+  let fileSizeBytes: number
+  const db = getDatabase()
+  const sessionRow = db.prepare(
+    `SELECT file_size_bytes FROM nanobot_sessions
+     WHERE agent_id = ? AND filename = ?`,
+  ).get(agentId, filename) as { file_size_bytes: number } | undefined
+  fileSizeBytes = sessionRow?.file_size_bytes ?? statSync(filePath).size
+
   try {
     // Use streaming for large files (>=1MB)
     const STREAM_THRESHOLD = 1 * 1024 * 1024
     let result: SessionContentResponse
 
-    if (sessionRow.file_size_bytes >= STREAM_THRESHOLD) {
-      result = await readSessionContentStream(filePath, offset, limit)
+    if (fileSizeBytes >= STREAM_THRESHOLD) {
+      result = await readSessionContentStream(filePath, offset, limit, Boolean(tail))
     } else {
-      result = readSessionContent(filePath, offset, limit)
+      result = readSessionContent(filePath, offset, limit, Boolean(tail))
     }
 
     // Populate agentId and filename on the response

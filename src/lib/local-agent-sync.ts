@@ -17,6 +17,7 @@ import { join } from 'node:path'
 import { homedir } from 'node:os'
 import { getDatabase, logAuditEvent } from './db'
 import { logger } from './logger'
+import { discoverAgents } from './agent-discovery'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -214,6 +215,42 @@ function scanLocalAgents(): DiskAgent[] {
     }
   }
 
+  // --- Nanobot workspace agents (from ~/.nanobot/workspace/agents/) ---
+  try {
+    const nanobotAgents = discoverAgents()
+    for (const na of nanobotAgents) {
+      if (seen.has(na.name)) continue
+      seen.add(na.name)
+
+      // Read IDENTITY.md as soul content if available
+      let soulContent: string | null = null
+      const identityPath = join(na.workspacePath, 'IDENTITY.md')
+      if (existsSync(identityPath)) {
+        try { soulContent = readFileSync(identityPath, 'utf8') } catch { /* ignore */ }
+      }
+
+      const configObj: Record<string, unknown> = {
+        model: na.model,
+        gatewayPort: na.gatewayPort,
+        gatewayHost: na.gatewayHost,
+      }
+      if (na.icon) configObj.icon = na.icon
+      const configJson = JSON.stringify(configObj)
+
+      const hashInput = (soulContent || '') + configJson
+      agents.push({
+        name: na.name,
+        dir: na.workspacePath,
+        role: extractRole(soulContent || ''),
+        soulContent,
+        configContent: configJson,
+        contentHash: sha256(hashInput),
+      })
+    }
+  } catch {
+    // Non-fatal — nanobot workspace may not exist
+  }
+
   return agents
 }
 
@@ -242,6 +279,15 @@ export async function syncLocalAgents(): Promise<{ ok: boolean; message: string 
       dbMap.set(r.name, r)
     }
 
+    // Also index all agents by name (any source) to avoid UNIQUE constraint violations
+    const allDbRows = db.prepare(
+      `SELECT id, name, role, soul_content, status, source, content_hash, workspace_path, config FROM agents`
+    ).all() as AgentRow[]
+    const allDbByName = new Map<string, AgentRow>()
+    for (const r of allDbRows) {
+      allDbByName.set(r.name, r)
+    }
+
     let created = 0
     let updated = 0
     let removed = 0
@@ -252,6 +298,10 @@ export async function syncLocalAgents(): Promise<{ ok: boolean; message: string 
     `)
     const updateStmt = db.prepare(`
       UPDATE agents SET role = ?, soul_content = ?, content_hash = ?, workspace_path = ?, config = ?, updated_at = ?
+      WHERE id = ?
+    `)
+    const adoptStmt = db.prepare(`
+      UPDATE agents SET source = 'local', role = ?, soul_content = ?, content_hash = ?, workspace_path = ?, config = ?, updated_at = ?
       WHERE id = ?
     `)
     const markRemovedStmt = db.prepare(`
@@ -265,8 +315,16 @@ export async function syncLocalAgents(): Promise<{ ok: boolean; message: string 
         const configJson = disk.configContent ? disk.configContent : null
 
         if (!existing) {
-          insertStmt.run(name, disk.role, disk.soulContent, disk.contentHash, disk.dir, configJson, now, now)
-          created++
+          // Check if agent exists under a different source (e.g. 'manual')
+          const anyExisting = allDbByName.get(name)
+          if (anyExisting) {
+            // Adopt: switch source to 'local' so future syncs manage it
+            adoptStmt.run(disk.role, disk.soulContent, disk.contentHash, disk.dir, configJson, now, anyExisting.id)
+            updated++
+          } else {
+            insertStmt.run(name, disk.role, disk.soulContent, disk.contentHash, disk.dir, configJson, now, now)
+            created++
+          }
         } else if (existing.content_hash !== disk.contentHash) {
           updateStmt.run(disk.role, disk.soulContent, disk.contentHash, disk.dir, configJson, now, existing.id)
           updated++
