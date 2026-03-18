@@ -100,8 +100,8 @@ export function AgentSlideOut({ agentId, onClose }: AgentSlideOutProps) {
           mounted ? 'translate-x-0' : 'translate-x-full',
         )}
       >
-        {/* Header */}
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-border shrink-0">
+        {/* Header — pt accounts for mobile safe area (notch / status bar) */}
+        <div className="flex items-center gap-2 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] border-b border-border shrink-0">
           {snapshot ? (
             <>
               {snapshot.agent.icon ? (
@@ -127,7 +127,7 @@ export function AgentSlideOut({ agentId, onClose }: AgentSlideOutProps) {
           {/* Close button */}
           <button
             onClick={onClose}
-            className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors shrink-0"
+            className="w-9 h-9 md:w-7 md:h-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors shrink-0"
             aria-label="Close panel"
           >
             <svg
@@ -137,7 +137,7 @@ export function AgentSlideOut({ agentId, onClose }: AgentSlideOutProps) {
               strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="w-4 h-4"
+              className="w-5 h-5 md:w-4 md:h-4"
             >
               <path d="M4 4l8 8M12 4l-8 8" />
             </svg>

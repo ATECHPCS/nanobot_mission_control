@@ -131,6 +131,8 @@ export interface AgentHealthSnapshot {
   messageCount?: number
   /** Whether errors have been dismissed by an operator */
   errorsDismissed?: boolean
+  /** ISO timestamp of last dismiss — errors before this are suppressed */
+  errorsDismissedAt?: string
 }
 
 // ---------------------------------------------------------------------------

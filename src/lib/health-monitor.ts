@@ -11,7 +11,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { eventBus } from '@/lib/event-bus'
 import { discoverAgents } from '@/lib/agent-discovery'
-import { checkAgentHealth } from '@/lib/agent-health'
+import { checkAgentHealth, computeCompositeHealth } from '@/lib/agent-health'
 import type { AgentHealthSnapshot, LifecycleLock, LifecycleAction } from '@/types/agent-health'
 
 class HealthMonitor {
@@ -105,11 +105,40 @@ class HealthMonitor {
         }
       }
 
-      // Preserve dismissed state from previous snapshot
+      // Preserve dismissed state from previous snapshot and filter pre-dismiss errors
       for (const snapshot of snapshots) {
         const prev = this.lastSnapshot.get(snapshot.id)
-        if (prev?.errorsDismissed) {
-          snapshot.errorsDismissed = true
+        if (prev?.errorsDismissed && prev.errorsDismissedAt) {
+          const dismissedAt = new Date(prev.errorsDismissedAt).getTime()
+          const originalCount = snapshot.errors.length
+          // Keep only errors that occurred after the dismiss
+          snapshot.errors = snapshot.errors.filter(
+            e => new Date(e.timestamp).getTime() > dismissedAt
+          )
+          // If new errors appeared, clear dismissed flag; otherwise preserve it
+          if (snapshot.errors.length === 0) {
+            snapshot.errorsDismissed = true
+            snapshot.errorsDismissedAt = prev.errorsDismissedAt
+          }
+          // else: new errors → don't carry over dismissed flag
+
+          // Recompute health if errors were filtered out
+          if (snapshot.errors.length !== originalCount) {
+            const criticalErrors = snapshot.errors.some(e => e.type === 'crash')
+            const channelsDown = snapshot.channels
+              .filter(c => c.enabled && !c.connected)
+              .map(c => c.name)
+            snapshot.health = computeCompositeHealth({
+              processAlive: snapshot.health.dimensions.process.level !== 'red',
+              lastActivityMs: snapshot.lastActivity
+                ? new Date(snapshot.lastActivity.timestamp).getTime()
+                : null,
+              errorCount24h: snapshot.errors.length,
+              criticalErrors,
+              channelsDown,
+              totalChannels: snapshot.channels.length,
+            })
+          }
         }
       }
 
@@ -146,6 +175,7 @@ class HealthMonitor {
     if (!snapshot) return false
 
     snapshot.errorsDismissed = true
+    snapshot.errorsDismissedAt = new Date().toISOString()
     snapshot.errors = []
 
     // Truncate the error log file on disk so errors don't reappear after restart
