@@ -25,7 +25,13 @@ export function getOnboardingSessionDecision(
     return { shouldOpen: true, replayFromStart: false }
   }
 
-  if (params.completed || params.skipped) {
+  // Completed onboarding replays from the start on a fresh session
+  // (i.e. when not dismissed in the current session).
+  if (params.completed) {
+    return { shouldOpen: true, replayFromStart: true }
+  }
+
+  if (params.skipped) {
     return { shouldOpen: false, replayFromStart: false }
   }
 

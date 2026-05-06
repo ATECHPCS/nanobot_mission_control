@@ -169,6 +169,8 @@ describe('agent-lifecycle', () => {
     it('kills process group with SIGTERM by default', () => {
       // findPidByPort returns 12345
       mockExecSync.mockReturnValueOnce('12345\n')
+      // findLaunchdService — empty launchctl list, no match
+      mockExecSync.mockReturnValueOnce('')
       // getProcessGroupId returns 12340
       mockExecSync.mockReturnValueOnce('  12340\n')
 
@@ -184,6 +186,7 @@ describe('agent-lifecycle', () => {
 
     it('kills process group with SIGKILL when specified', () => {
       mockExecSync.mockReturnValueOnce('12345\n')
+      mockExecSync.mockReturnValueOnce('') // findLaunchdService — no match
       mockExecSync.mockReturnValueOnce('  12340\n')
 
       const killSpy = vi.spyOn(process, 'kill').mockImplementation(() => true)
@@ -206,6 +209,7 @@ describe('agent-lifecycle', () => {
 
     it('returns error when PGID lookup fails', () => {
       mockExecSync.mockReturnValueOnce('12345\n')
+      mockExecSync.mockReturnValueOnce('') // findLaunchdService — no match
       mockExecSync.mockImplementationOnce(() => { throw new Error('no such process') })
 
       const result = stopAgent(18793)
@@ -215,6 +219,7 @@ describe('agent-lifecycle', () => {
 
     it('returns error when process.kill throws', () => {
       mockExecSync.mockReturnValueOnce('12345\n')
+      mockExecSync.mockReturnValueOnce('') // findLaunchdService — no match
       mockExecSync.mockReturnValueOnce('  12340\n')
 
       const killSpy = vi.spyOn(process, 'kill').mockImplementation(() => {
@@ -266,14 +271,17 @@ describe('agent-lifecycle', () => {
 
   describe('restartAgent', () => {
     it('stops then starts the agent', async () => {
-      // stopAgent: findPidByPort returns PID, getProcessGroupId returns PGID
+      // stopAgent: findPidByPort returns PID, findLaunchdService no match, getProcessGroupId returns PGID
       mockExecSync.mockReturnValueOnce('12345\n')
+      mockExecSync.mockReturnValueOnce('') // findLaunchdService — no match
       mockExecSync.mockReturnValueOnce('  12340\n')
 
-      const killSpy = vi.spyOn(process, 'kill').mockImplementation(() => true)
-
-      // waitForPortRelease: port is released immediately
-      mockExecSync.mockImplementationOnce(() => { throw new Error('exit code 1') })
+      // process.kill: returns true on real signals; throws on probe (signal 0)
+      // so waitForProcessExit reports the process as gone immediately.
+      const killSpy = vi.spyOn(process, 'kill').mockImplementation(((pid: number, signal: any) => {
+        if (signal === 0) throw new Error('ESRCH')
+        return true
+      }) as any)
 
       // startAgent: spawn succeeds
       const mockChild = {
