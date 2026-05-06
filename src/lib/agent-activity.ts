@@ -33,6 +33,7 @@ export interface ActivitySignals {
 const RECENT_WINDOW_SEC = 60
 const IDLE_THRESHOLD_SEC = 5 * 60
 
+/** Returns the current unix epoch in seconds (integer). */
 export function nowSec(): number {
   return Math.floor(Date.now() / 1000)
 }
@@ -42,6 +43,7 @@ const READING_TOOLS = new Set(['Read', 'Grep', 'Glob'])
 const SEARCHING_TOOLS = new Set(['WebFetch', 'WebSearch'])
 const BASH_TOOLS = new Set(['Bash'])
 
+/** Returns the activity kind for a known tool name, or null if not classified. */
 export function classifyTool(toolName: string): ActivityKind | null {
   if (TYPING_TOOLS.has(toolName)) return 'typing'
   if (READING_TOOLS.has(toolName)) return 'reading'
@@ -93,6 +95,9 @@ export function inferActivityState(
 /**
  * Cross-agent post-pass: if N+ agents are in active states, promote them all to in-meeting.
  * Active states for this purpose: thinking/typing/reading/on-call.
+ *
+ * The `subject` field carries the joined names of the meeting participants,
+ * truncated to the first 5 to keep speech-bubble copy readable.
  */
 export function promoteMeeting(
   states: Map<string, ActivityState>,
