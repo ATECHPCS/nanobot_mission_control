@@ -3,6 +3,13 @@ import type { ActivityKind, ActivityState } from './agent-activity'
 
 /* ── Among Us-style office room types ─────────────────────── */
 
+export interface ZonePalette {
+  primary: string
+  accent: string
+  detail: string
+  outline?: string  // defaults to 'rgba(0,0,0,0.4)' in furniture
+}
+
 export type RoomId =
   | 'home-main'
   | 'home-gsd'
@@ -24,6 +31,8 @@ export interface RoomDefinition {
   y: number              // % from top
   w: number              // % width
   h: number              // % height
+  palette: ZonePalette
+  floorPattern: string | null  // CSS background-image value
 }
 
 export interface SeatPosition {
@@ -48,19 +57,76 @@ export interface OfficeLayout {
 /* ── Room layout — top-down Among Us map ─────────────────── */
 
 export const ROOM_DEFS: RoomDefinition[] = [
-  // home rooms — left/right edges
-  { id: 'home-main',    label: 'Main Office',  color: 'border-cyan-500/40 bg-cyan-500/8',     wallColor: '#0c1a2e', x:  2, y:  4, w: 22, h: 44 },
-  { id: 'home-session', label: 'Session Pool', color: 'border-violet-500/40 bg-violet-500/8', wallColor: '#140c24', x:  2, y: 52, w: 22, h: 44 },
-  { id: 'home-gsd',     label: 'GSD Wing',     color: 'border-emerald-500/40 bg-emerald-500/8', wallColor: '#0c1a14', x: 76, y:  4, w: 22, h: 44 },
-  { id: 'break-room',   label: 'Break Room',   color: 'border-slate-500/30 bg-slate-500/6',   wallColor: '#12141a', x: 76, y: 52, w: 22, h: 44 },
-
-  // corridor activity zones — center column
-  { id: 'library',      label: 'Library',      color: 'border-amber-500/40 bg-amber-500/8',   wallColor: '#1a1408', x: 28, y:  6, w: 20, h: 22 },
-  { id: 'lab',          label: 'Lab',          color: 'border-rose-500/40 bg-rose-500/8',     wallColor: '#1a0c14', x: 52, y:  6, w: 20, h: 22 },
-  { id: 'phone-booth',  label: 'Phone Booths', color: 'border-sky-500/40 bg-sky-500/8',       wallColor: '#0c1620', x: 28, y: 32, w: 20, h: 18 },
-  { id: 'war-room',     label: 'War Room',     color: 'border-orange-500/40 bg-orange-500/8', wallColor: '#1a1208', x: 52, y: 32, w: 20, h: 18 },
-  { id: 'workshop',     label: 'Workshop',     color: 'border-teal-500/40 bg-teal-500/8',     wallColor: '#0c1a18', x: 28, y: 54, w: 44, h: 24 },
-  { id: 'waiting-bench',label: 'Waiting Bench',color: 'border-yellow-500/40 bg-yellow-500/6', wallColor: '#1a1808', x: 28, y: 82, w: 44, h: 12 },
+  {
+    id: 'home-main', label: 'Main Office',
+    color: 'border-cyan-500/40 bg-cyan-500/8', wallColor: '#0c1a2e',
+    x:  2, y:  4, w: 22, h: 44,
+    palette: { primary: '#d4b896', accent: '#22d3ee', detail: '#7c5e3a' },
+    floorPattern: 'radial-gradient(circle at 4px 4px, rgba(255,255,255,0.04) 1px, transparent 1.2px) 0 0/8px 8px',
+  },
+  {
+    id: 'home-session', label: 'Session Pool',
+    color: 'border-violet-500/40 bg-violet-500/8', wallColor: '#140c24',
+    x:  2, y: 52, w: 22, h: 44,
+    palette: { primary: '#334155', accent: '#a78bfa', detail: '#f0abfc' },
+    floorPattern: 'linear-gradient(rgba(255,255,255,0.02), rgba(0,0,0,0.05))',
+  },
+  {
+    id: 'home-gsd', label: 'GSD Wing',
+    color: 'border-emerald-500/40 bg-emerald-500/8', wallColor: '#0c1a14',
+    x: 76, y:  4, w: 22, h: 44,
+    palette: { primary: '#86efac', accent: '#10b981', detail: '#065f46' },
+    floorPattern: 'radial-gradient(circle at 4px 4px, rgba(134,239,172,0.05) 1px, transparent 1.2px) 0 0/8px 8px',
+  },
+  {
+    id: 'break-room', label: 'Break Room',
+    color: 'border-slate-500/30 bg-slate-500/6', wallColor: '#12141a',
+    x: 76, y: 52, w: 22, h: 44,
+    palette: { primary: '#a16940', accent: '#fbbf24', detail: '#78350f' },
+    floorPattern: 'repeating-linear-gradient(90deg, rgba(122,72,42,0.10) 0 30px, rgba(70,40,20,0.10) 30px 32px)',
+  },
+  {
+    id: 'library', label: 'Library',
+    color: 'border-amber-500/40 bg-amber-500/8', wallColor: '#1a1408',
+    x: 28, y:  6, w: 20, h: 22,
+    palette: { primary: '#92400e', accent: '#f59e0b', detail: '#fde68a' },
+    floorPattern: 'repeating-linear-gradient(90deg, rgba(146,64,14,0.14) 0 36px, rgba(100,40,8,0.14) 36px 38px)',
+  },
+  {
+    id: 'lab', label: 'Lab',
+    color: 'border-rose-500/40 bg-rose-500/8', wallColor: '#1a0c14',
+    x: 52, y:  6, w: 20, h: 22,
+    palette: { primary: '#cbd5e1', accent: '#fb7185', detail: '#22d3ee' },
+    floorPattern: 'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px) 0 0/24px 24px, linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px) 0 0/24px 24px',
+  },
+  {
+    id: 'phone-booth', label: 'Phone Booths',
+    color: 'border-sky-500/40 bg-sky-500/8', wallColor: '#0c1620',
+    x: 28, y: 32, w: 20, h: 18,
+    palette: { primary: '#1e3a8a', accent: '#38bdf8', detail: '#facc15' },
+    floorPattern: 'radial-gradient(circle at 4px 4px, rgba(56,189,248,0.04) 1px, transparent 1.2px) 0 0/8px 8px',
+  },
+  {
+    id: 'war-room', label: 'War Room',
+    color: 'border-orange-500/40 bg-orange-500/8', wallColor: '#1a1208',
+    x: 52, y: 32, w: 20, h: 18,
+    palette: { primary: '#d97706', accent: '#fb923c', detail: '#fde68a' },
+    floorPattern: 'repeating-linear-gradient(90deg, rgba(120,60,15,0.14) 0 40px, rgba(80,40,10,0.14) 40px 43px)',
+  },
+  {
+    id: 'workshop', label: 'Workshop',
+    color: 'border-teal-500/40 bg-teal-500/8', wallColor: '#0c1a18',
+    x: 28, y: 54, w: 44, h: 24,
+    palette: { primary: '#94a3b8', accent: '#14b8a6', detail: '#5eead4' },
+    floorPattern: 'linear-gradient(rgba(255,255,255,0.015), rgba(0,0,0,0.04))',
+  },
+  {
+    id: 'waiting-bench', label: 'Waiting Bench',
+    color: 'border-yellow-500/40 bg-yellow-500/6', wallColor: '#1a1808',
+    x: 28, y: 82, w: 44, h: 12,
+    palette: { primary: '#ca8a04', accent: '#facc15', detail: '#fef3c7' },
+    floorPattern: 'linear-gradient(rgba(250,204,21,0.06) 1px, transparent 1px) 0 0/28px 28px, linear-gradient(90deg, rgba(250,204,21,0.06) 1px, transparent 1px) 0 0/28px 28px',
+  },
 ]
 
 /* ── Hallway segments for the corridor between rooms ──────── */
