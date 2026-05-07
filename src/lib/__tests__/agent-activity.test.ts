@@ -86,4 +86,72 @@ describe('inferActivityState', () => {
     expect(result.kind).not.toBe('typing')
     expect(result.kind).not.toBe('reading')
   })
+
+  it('returns blocked when assigned task is in review', () => {
+    const result = inferActivityState({
+      ...baseSignals,
+      blockedOnTaskTitle: 'PR-23: refactor auth',
+    }, NOW)
+    expect(result.kind).toBe('blocked')
+    expect(result.subject).toBe('PR-23: refactor auth')
+  })
+
+  it('returns thinking when busy with no recent signals', () => {
+    const result = inferActivityState(baseSignals, NOW)
+    expect(result.kind).toBe('thinking')
+  })
+
+  it('returns idle when status idle and last_seen older than 5min', () => {
+    const result = inferActivityState({
+      status: 'idle',
+      lastSeen: NOW - 600,
+    }, NOW)
+    expect(result.kind).toBe('idle')
+  })
+
+  it('returns idle (no subject) by default for fresh idle agent', () => {
+    const result = inferActivityState({
+      status: 'idle',
+      lastSeen: NOW - 10,
+    }, NOW)
+    expect(result.kind).toBe('idle')
+    expect(result.subject).toBeUndefined()
+  })
+})
+
+describe('promoteMeeting', () => {
+  it('does nothing below threshold', () => {
+    const states = new Map<string, ActivityState>([
+      ['a', { kind: 'thinking', since: NOW * 1000 }],
+      ['b', { kind: 'typing', since: NOW * 1000 }],
+    ])
+    const result = promoteMeeting(states, 3)
+    expect(result.get('a')!.kind).toBe('thinking')
+    expect(result.get('b')!.kind).toBe('typing')
+  })
+
+  it('promotes all active agents to in-meeting at threshold', () => {
+    const states = new Map<string, ActivityState>([
+      ['a', { kind: 'thinking', since: NOW * 1000 }],
+      ['b', { kind: 'typing', since: NOW * 1000 }],
+      ['c', { kind: 'reading', since: NOW * 1000 }],
+    ])
+    const result = promoteMeeting(states, 3)
+    expect(result.get('a')!.kind).toBe('in-meeting')
+    expect(result.get('b')!.kind).toBe('in-meeting')
+    expect(result.get('c')!.kind).toBe('in-meeting')
+  })
+
+  it('does not promote idle/blocked/error agents even at threshold', () => {
+    const states = new Map<string, ActivityState>([
+      ['a', { kind: 'thinking', since: NOW * 1000 }],
+      ['b', { kind: 'typing', since: NOW * 1000 }],
+      ['c', { kind: 'reading', since: NOW * 1000 }],
+      ['d', { kind: 'idle', since: NOW * 1000 }],
+      ['e', { kind: 'blocked', since: NOW * 1000 }],
+    ])
+    const result = promoteMeeting(states, 3)
+    expect(result.get('d')!.kind).toBe('idle')
+    expect(result.get('e')!.kind).toBe('blocked')
+  })
 })
