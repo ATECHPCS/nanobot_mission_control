@@ -186,6 +186,50 @@ function FloorLamp({ palette, size = 22 }: FurnitureProps) {
   )
 }
 
+function Couch({ palette, size = 50 }: FurnitureProps) {
+  return (
+    <svg width={size} height={size * 0.47} viewBox="0 0 60 28" fill="none">
+      <rect x="4" y="4" width="52" height="14" rx="3"
+            fill={palette.primary} stroke={OUTLINE_COLOR} strokeWidth="1.2" />
+      <rect x="6"  y="14" width="14" height="8" rx="2" fill={palette.accent} opacity="0.8" stroke={OUTLINE_COLOR} strokeWidth="0.6" />
+      <rect x="22" y="14" width="14" height="8" rx="2" fill={palette.accent} opacity="0.8" stroke={OUTLINE_COLOR} strokeWidth="0.6" />
+      <rect x="38" y="14" width="14" height="8" rx="2" fill={palette.accent} opacity="0.8" stroke={OUTLINE_COLOR} strokeWidth="0.6" />
+      <rect x="2"  y="8" width="4" height="14" rx="1.5" fill={palette.detail} stroke={OUTLINE_COLOR} strokeWidth="0.8" />
+      <rect x="54" y="8" width="4" height="14" rx="1.5" fill={palette.detail} stroke={OUTLINE_COLOR} strokeWidth="0.8" />
+      <rect x="6"  y="22" width="3" height="3" fill={palette.detail} />
+      <rect x="51" y="22" width="3" height="3" fill={palette.detail} />
+    </svg>
+  )
+}
+
+function Fridge({ palette, size = 24 }: FurnitureProps) {
+  return (
+    <svg width={size} height={size * 1.83} viewBox="0 0 24 44" fill="none">
+      <rect x="2" y="2" width="20" height="40" rx="1.5"
+            fill={palette.primary} stroke={OUTLINE_COLOR} strokeWidth="1.2" />
+      <line x1="2" y1="14" x2="22" y2="14" stroke={OUTLINE_COLOR} strokeWidth="1" />
+      <rect x="14" y="8" width="6" height="2" rx="0.5" fill={palette.detail} />
+      <rect x="14" y="20" width="6" height="2" rx="0.5" fill={palette.detail} />
+      <circle cx="5" cy="6" r="0.9" fill={palette.accent} />
+    </svg>
+  )
+}
+
+function SnackTable({ palette, size = 28 }: FurnitureProps) {
+  return (
+    <svg width={size} height={size * 0.69} viewBox="0 0 32 22" fill="none">
+      <ellipse cx="16" cy="10" rx="14" ry="4"
+               fill={palette.primary} stroke={OUTLINE_COLOR} strokeWidth="1.2" />
+      <rect x="14" y="13" width="4" height="7" fill={palette.detail} />
+      <rect x="10" y="19" width="12" height="2" rx="0.5" fill={palette.detail} />
+      <rect x="9" y="5" width="4" height="4" rx="0.5" fill={palette.detail} stroke={OUTLINE_COLOR} strokeWidth="0.5" />
+      <ellipse cx="11" cy="5" rx="2" ry="0.7" fill="#3b2a1a" />
+      <circle cx="20" cy="7" r="1.5" fill={palette.accent} stroke={OUTLINE_COLOR} strokeWidth="0.4" />
+      <circle cx="23" cy="9" r="1.2" fill={palette.accent} stroke={OUTLINE_COLOR} strokeWidth="0.4" />
+    </svg>
+  )
+}
+
 export const FURNITURE_COMPONENTS: Record<FurnitureKind, React.FC<FurnitureProps>> = {
   'desk': Desk,
   'whiteboard': Whiteboard,
@@ -195,9 +239,9 @@ export const FURNITURE_COMPONENTS: Record<FurnitureKind, React.FC<FurnitureProps
   'bookshelf': Bookshelf,
   'reading-chair': ReadingChair,
   'floor-lamp': FloorLamp,
-  'couch': Placeholder,
-  'fridge': Placeholder,
-  'snack-table': Placeholder,
+  'couch': Couch,
+  'fridge': Fridge,
+  'snack-table': SnackTable,
   'conference-table': Placeholder,
   'sticky-note-wall': Placeholder,
   'poster': Placeholder,
