@@ -172,6 +172,22 @@ export function proxy(request: NextRequest) {
     }
   }
 
+  // Kiosk: allow /office/tv and /api/agents/activity with valid ?token= to bypass session auth.
+  // Token is read from MC_OFFICE_TV_TOKEN. Compared with constant-time equality via safeCompare.
+  const KIOSK_TOKEN = process.env.MC_OFFICE_TV_TOKEN
+  if (KIOSK_TOKEN && KIOSK_TOKEN.length > 0) {
+    const isKioskPath = pathname === '/office/tv' || pathname === '/api/agents/activity'
+    if (isKioskPath) {
+      const provided = request.nextUrl.searchParams.get('token') || ''
+      if (provided.length === KIOSK_TOKEN.length && safeCompare(provided, KIOSK_TOKEN)) {
+        return NextResponse.next()
+      }
+    }
+  } else if (pathname === '/office/tv') {
+    // Kiosk feature disabled — return 404 instead of redirecting to login.
+    return new NextResponse('Not Found', { status: 404 })
+  }
+
   // Allow login page, auth API, and docs without session
   if (pathname === '/login' || pathname.startsWith('/api/auth/') || pathname === '/api/docs' || pathname === '/docs') {
     return addSecurityHeaders(NextResponse.next(), request)
