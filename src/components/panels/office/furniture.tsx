@@ -129,15 +129,72 @@ function ServerRack({ palette, size = 24 }: FurnitureProps) {
   )
 }
 
+function Bookshelf({ palette, size = 32 }: FurnitureProps) {
+  const shelves = [
+    { y: 4, books: ['accent', 'detail', 'accent', 'primary', 'detail'] },
+    { y: 14, books: ['detail', 'accent', 'detail', 'primary', 'accent'] },
+    { y: 24, books: ['primary', 'detail', 'accent', 'detail', 'accent'] },
+    { y: 34, books: ['accent', 'primary', 'detail', 'accent', 'detail'] },
+  ] as const
+  const colorFor = (k: 'accent' | 'detail' | 'primary') =>
+    k === 'accent' ? palette.accent : k === 'detail' ? palette.detail : palette.primary
+
+  return (
+    <svg width={size} height={size * 1.4} viewBox="0 0 36 50" fill="none">
+      <rect x="2" y="2" width="32" height="46" rx="1.5"
+            fill={palette.primary} stroke={OUTLINE_COLOR} strokeWidth="1.2" />
+      {shelves.map((s, si) => (
+        <g key={si}>
+          <line x1="2" y1={s.y + 9} x2="34" y2={s.y + 9} stroke={OUTLINE_COLOR} strokeWidth="0.8" />
+          {s.books.map((b, bi) => (
+            <rect key={bi}
+                  x={4 + bi * 5.5} y={s.y}
+                  width="5" height="9" rx="0.3"
+                  fill={colorFor(b)} stroke={OUTLINE_COLOR} strokeWidth="0.5" />
+          ))}
+        </g>
+      ))}
+    </svg>
+  )
+}
+
+function ReadingChair({ palette, size = 30 }: FurnitureProps) {
+  return (
+    <svg width={size} height={size * 0.9} viewBox="0 0 36 32" fill="none">
+      <path d="M5 12 Q5 4 18 4 Q31 4 31 12 L31 22 L5 22 Z"
+            fill={palette.primary} stroke={OUTLINE_COLOR} strokeWidth="1.2" />
+      <rect x="6" y="20" width="24" height="6" rx="2"
+            fill={palette.accent} opacity="0.85" stroke={OUTLINE_COLOR} strokeWidth="0.8" />
+      <rect x="2" y="14" width="4" height="14" rx="1.5" fill={palette.detail} stroke={OUTLINE_COLOR} strokeWidth="0.8" />
+      <rect x="30" y="14" width="4" height="14" rx="1.5" fill={palette.detail} stroke={OUTLINE_COLOR} strokeWidth="0.8" />
+      <rect x="6" y="28" width="2" height="3" fill={palette.detail} />
+      <rect x="28" y="28" width="2" height="3" fill={palette.detail} />
+    </svg>
+  )
+}
+
+function FloorLamp({ palette, size = 22 }: FurnitureProps) {
+  return (
+    <svg width={size} height={size * 2.1} viewBox="0 0 24 50" fill="none">
+      <circle cx="12" cy="12" r="9" fill={palette.accent} opacity="0.25" />
+      <path d="M5 12 L8 2 L16 2 L19 12 Z"
+            fill={palette.primary} stroke={OUTLINE_COLOR} strokeWidth="1" />
+      <rect x="11" y="12" width="2" height="32" fill={palette.detail} />
+      <rect x="6" y="43" width="12" height="4" rx="1"
+            fill={palette.detail} stroke={OUTLINE_COLOR} strokeWidth="1" />
+    </svg>
+  )
+}
+
 export const FURNITURE_COMPONENTS: Record<FurnitureKind, React.FC<FurnitureProps>> = {
   'desk': Desk,
   'whiteboard': Whiteboard,
   'coffee-machine': CoffeeMachine,
   'plant': Plant,
   'server-rack': ServerRack,
-  'bookshelf': Placeholder,
-  'reading-chair': Placeholder,
-  'floor-lamp': Placeholder,
+  'bookshelf': Bookshelf,
+  'reading-chair': ReadingChair,
+  'floor-lamp': FloorLamp,
   'couch': Placeholder,
   'fridge': Placeholder,
   'snack-table': Placeholder,
