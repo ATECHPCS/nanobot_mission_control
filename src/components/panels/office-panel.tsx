@@ -16,7 +16,6 @@ import {
   isGsdAgent,
   isLocalSession,
   isNamedNanobotAgent,
-  NANOBOT_AGENT_NAMES,
   NANOBOT_AGENT_DEFS,
   ROOM_DEFS,
   HALLWAYS,

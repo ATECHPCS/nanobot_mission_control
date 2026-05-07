@@ -60,6 +60,7 @@ export function WalkingCrewmate({
     lastRoomRef.current = targetRoom
 
     return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- targetSeat is intentionally tracked by its x/y to avoid object-identity churn driving infinite re-renders
   }, [agentId, targetSeat.x, targetSeat.y, targetRoom, legDurationMs])
 
   return (
