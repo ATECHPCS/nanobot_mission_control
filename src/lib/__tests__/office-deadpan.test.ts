@@ -43,4 +43,24 @@ describe('pickDeadpanLine', () => {
     expect(line.length).toBeLessThanOrEqual(80)
     vi.restoreAllMocks()
   })
+
+  it('uses per-nanobot personality lines when an agent name matches', () => {
+    // Stefany has unique idle lines that don't appear in DEADPAN_LINES.idle.
+    const stefanyIdle = ['Tea break.', 'Color-coded inbox zero.', 'Filing complete.']
+    const seen = new Set<string>()
+    for (let i = 0; i < 30; i++) {
+      seen.add(pickDeadpanLine('idle', undefined, null, 'Stefany'))
+    }
+    // Every produced line should be in Stefany's set, not the generic pool.
+    for (const line of seen) expect(stefanyIdle).toContain(line)
+  })
+
+  it('falls back to generic lines when the agent has no override for the kind', () => {
+    // Stefany doesn't define a 'searching' override → generic pool wins.
+    const generic = ['Looking for {subject}.', 'Grep harder.', 'It must be somewhere.']
+    const result = pickDeadpanLine('searching', 'foo', null, 'Stefany')
+    // Should match one of the generic patterns (with subject substituted).
+    const expectations = generic.map(t => t.replace('{subject}', 'foo'))
+    expect(expectations).toContain(result)
+  })
 })

@@ -11,6 +11,7 @@ import {
   type ActivityState,
 } from '@/lib/agent-activity'
 import { getRecentToolUsesByAgent } from '@/lib/claude-sessions'
+import { getNanobotStatuses, NANOBOT_AGENTS } from '@/lib/nanobot-status'
 
 interface CachedPayload {
   generated_at: number
@@ -140,14 +141,46 @@ export async function GET(request: NextRequest) {
       states.set(agent.name, inferActivityState(signals, nowS))
     }
 
+    // Synthesize states for the named nanobot agents (Andy/Stefany/Cody),
+    // which are not backed by DB rows. A DB row with the same name wins if
+    // present. Offline nanobots are skipped so they don't render at all.
+    let nanobotStatuses: ReturnType<typeof getNanobotStatuses> = []
+    try {
+      nanobotStatuses = getNanobotStatuses()
+      for (const nb of nanobotStatuses) {
+        if (states.has(nb.name)) continue
+        if (nb.status === 'offline') continue
+        const isBusy = nb.status === 'busy'
+        states.set(nb.name, {
+          kind: isBusy ? 'thinking' : 'idle',
+          subject: isBusy ? (nb.activeSession ?? undefined) : undefined,
+          since: nb.lastActivity ? nb.lastActivity * 1000 : Date.now(),
+        })
+      }
+    } catch (e) {
+      logger.warn({ err: e }, 'getNanobotStatuses failed in activity route')
+    }
+
     const promoted = promoteMeeting(states, getMeetingThreshold())
 
+    const dbAgentNames = new Set(agents.map(a => a.name))
+    const nanobotResponseRows = NANOBOT_AGENTS
+      .filter(def => states.has(def.name) && !dbAgentNames.has(def.name))
+      .map((def, i) => ({
+        id: -9000 - i,  // stable synthetic id per nanobot index
+        name: def.name,
+        activity: promoted.get(def.name)!,
+      }))
+
     const body = {
-      agents: agents.map(a => ({
-        id: a.id,
-        name: a.name,
-        activity: promoted.get(a.name)!,
-      })),
+      agents: [
+        ...agents.map(a => ({
+          id: a.id,
+          name: a.name,
+          activity: promoted.get(a.name)!,
+        })),
+        ...nanobotResponseRows,
+      ],
       generated_at: now,
     }
 

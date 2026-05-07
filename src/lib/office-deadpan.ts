@@ -14,10 +14,46 @@ export const DEADPAN_LINES: Record<ActivityKind, string[]> = {
   error:     ['Apologies.', 'As foretold.', 'I have failed.'],
 }
 
+/**
+ * Per-nanobot personality lines. When an agent name matches one of these keys,
+ * the picker prefers the agent's lines for that kind. Falls back to DEADPAN_LINES
+ * if the agent doesn't have lines for the requested kind.
+ */
+export const NANOBOT_LINES: Record<string, Partial<Record<ActivityKind, string[]>>> = {
+  Stefany: {
+    typing:   ['Editing the books.', 'Reconciling Q3.', 'Adjusting accruals.', 'Receipts. So many receipts.'],
+    reading:  ['Triple-checking the ledger.', 'Reviewing the GL.', 'This invoice. Again.', 'Auditing.'],
+    bash:     ['$ {subject}', 'Running close.', 'Will the trial balance balance?'],
+    thinking: ['Mentally allocating.', 'There is always a Q4 question.', 'Categorizing.', 'Hmm.'],
+    idle:     ['Tea break.', 'Color-coded inbox zero.', 'Filing complete.'],
+    'on-call':['Auditor on the line.', 'Talking to {subject}.'],
+    blocked:  ['Awaiting clarification on cost basis.', 'Pinged the CFO.'],
+  },
+  Cody: {
+    typing:   ['Refactoring something that worked.', 'Editing {subject}.', 'Adding a TODO.', 'It compiles.'],
+    reading:  ['Reading the diff.', 'This file. Again.', 'Skimming {subject}.'],
+    bash:     ['$ {subject}', 'pnpm test --watch.', 'Hoping for green.', 'There is no rollback plan.'],
+    thinking: ['Stack overflow tab open.', 'There are several wrong answers.', 'Considering options.'],
+    idle:     ['Coffee.', 'Reviewing PRs in head.', 'Existential pair programming.'],
+    'on-call':['On a call with {subject}.', 'Mostly listening.'],
+    blocked:  ['Awaiting review.', 'Unblocking PR.'],
+  },
+  Andy: {
+    typing:   ['Updating the roadmap.', 'Drafting the standup.', 'Editing {subject}.', 'Status doc revisions.'],
+    reading:  ['Reading Q4 plans.', 'Roadmap revisions.', 'Reviewing the standup.'],
+    bash:     ['$ {subject}', 'Just running scripts.'],
+    thinking: ['Calendar full of nothing.', 'Considering the strategy.', 'Operations are hard.', 'Planning the planning.'],
+    idle:     ['Coffee.', 'Reading.', 'Catching up on Slack.', 'Walking around purposefully.'],
+    'on-call':['Standup with {subject}.', '1:1 with {subject}.'],
+    blocked:  ['Awaiting input from leadership.'],
+  },
+}
+
 const MAX_SUBJECT_LEN = 40
 
 /**
  * Picks a random line for the activity kind.
+ * - When `agentName` matches a known nanobot, prefers their personality lines.
  * - Templates containing {subject} are excluded if `subject` is undefined.
  * - Subject is truncated to 40 chars before substitution.
  * - If the same line was just used (`lastLine`), retries up to a few times.
@@ -26,8 +62,10 @@ export function pickDeadpanLine(
   kind: ActivityKind,
   subject: string | undefined,
   lastLine: string | null,
+  agentName?: string,
 ): string {
-  const all = DEADPAN_LINES[kind] || []
+  const perAgent = agentName ? NANOBOT_LINES[agentName]?.[kind] : undefined
+  const all = perAgent ?? DEADPAN_LINES[kind] ?? []
   const eligible = subject
     ? all
     : all.filter(t => !t.includes('{subject}'))

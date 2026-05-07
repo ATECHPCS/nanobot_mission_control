@@ -401,7 +401,7 @@ export function OfficePanel({ kiosk = false }: { kiosk?: boolean } = {}) {
   const MAX_BUBBLES = 3
 
   const showBubble = useCallback((agentName: string, kind: ActivityKind, subject?: string) => {
-    const text = pickDeadpanLine(kind, subject, lastBubbleByAgent.current[agentName] ?? null)
+    const text = pickDeadpanLine(kind, subject, lastBubbleByAgent.current[agentName] ?? null, agentName)
     if (!text) return
     lastBubbleByAgent.current[agentName] = text
     bubbleIdRef.current += 1
