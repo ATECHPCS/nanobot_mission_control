@@ -366,7 +366,7 @@ function DriftingCrewmate({ seated, crewSize, nameSize, onAgentClick, activityKi
 
   return (
     <button
-      className="relative cursor-pointer group"
+      className={`relative cursor-pointer group${activityKind ? ` activity-${activityKind}` : ''}`}
       style={{
         left: `${drift.x}px`,
         top: `${drift.y}px`,
@@ -745,6 +745,16 @@ export function OfficePanel() {
 
   return (
     <div className="p-3 sm:p-6 space-y-3 sm:space-y-4 h-full">
+      <style jsx>{`
+        @keyframes typing-jitter { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(2px); } }
+        @keyframes reading-bob   { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+        @keyframes blocked-halo  { 0%, 100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.5); } 50% { box-shadow: 0 0 12px 4px rgba(250, 204, 21, 0.5); } }
+        @keyframes error-flash   { 0%, 100% { filter: hue-rotate(0deg); } 50% { filter: hue-rotate(330deg) brightness(1.4); } }
+        .activity-typing  > svg { animation: typing-jitter 0.25s ease-in-out infinite; }
+        .activity-reading > svg { animation: reading-bob 1.6s ease-in-out infinite; }
+        .activity-blocked       { animation: blocked-halo 2.4s ease-in-out infinite; border-radius: 50%; }
+        .activity-error  > svg  { animation: error-flash 0.8s ease-in-out infinite; }
+      `}</style>
       {/* Header */}
       <div className="border-b border-border pb-3 sm:pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
