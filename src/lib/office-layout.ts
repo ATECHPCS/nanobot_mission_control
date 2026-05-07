@@ -1,4 +1,5 @@
 import type { Agent } from '@/store'
+import type { ActivityKind, ActivityState } from './agent-activity'
 
 /* ── Among Us-style office room types ─────────────────────── */
 
@@ -114,8 +115,38 @@ function isLocalSession(agent: Agent): boolean {
   return Boolean((agent.config as any)?.localSession)
 }
 
-function classifyAgent(_agent: Agent): RoomId {
+/** Agent's *home* room (where they live when not doing anything). */
+export function homeRoomFor(agent: Agent): RoomId {
+  if (isGsdAgent(agent)) return 'home-gsd'
+  if (isLocalSession(agent)) return 'home-session'
   return 'home-main'
+}
+
+const ACTIVITY_TO_ROOM: Record<ActivityKind, RoomId | null> = {
+  'reading':    'library',
+  'searching':  'library',
+  'typing':     'workshop',
+  'bash':       'lab',
+  'on-call':    'phone-booth',
+  'in-meeting': 'war-room',
+  'blocked':    'waiting-bench',
+  'idle':       'break-room',
+  'thinking':   null, // stays at home desk
+  'error':      null, // stays at home desk with red flash
+}
+
+/**
+ * Returns the room the agent should currently be standing in,
+ * given their activity state. Falls back to home room if the
+ * activity has no zone.
+ */
+export function classifyAgentByActivity(
+  agent: Agent,
+  state: ActivityState | undefined,
+): RoomId {
+  if (!state) return homeRoomFor(agent)
+  const zone = ACTIVITY_TO_ROOM[state.kind]
+  return zone ?? homeRoomFor(agent)
 }
 
 /* ── Seat assignment within a room ───────────────────────── */
@@ -164,32 +195,32 @@ export function buildOfficeLayout(
   agents: Agent[],
   hideGsd = false,
   nanobotStatus?: Map<string, NanobotAgentStatus>,
+  activities?: Record<string, ActivityState>,
 ): OfficeLayout {
   const buckets = new Map<RoomId, Agent[]>()
   for (const room of ROOM_DEFS) buckets.set(room.id, [])
 
   let gsdCount = 0
-
-  // Track which named nanobot agents are already in the data
   const seenNanobotNames = new Set<string>()
 
   for (const rawAgent of agents) {
     let agent = rawAgent
     if (isNamedNanobotAgent(agent)) {
       seenNanobotNames.add((agent.name || '').trim().toLowerCase())
-      // Override status from nanobot session files if available
       const nbStatus = nanobotStatus?.get(agent.name.toLowerCase())
       if (nbStatus && nbStatus.status === 'busy' && agent.status !== 'busy') {
         agent = { ...agent, status: 'busy', last_activity: nbStatus.activeSession || agent.last_activity }
       }
     }
-    const roomId = classifyAgent(agent)
-    if (roomId === 'home-gsd') gsdCount++
-    if (hideGsd && roomId === 'home-gsd') continue
+
+    const state = activities?.[agent.name]
+    const roomId = classifyAgentByActivity(agent, state)
+    if (homeRoomFor(agent) === 'home-gsd') gsdCount++
+    if (hideGsd && homeRoomFor(agent) === 'home-gsd') continue
     buckets.get(roomId)!.push(agent)
   }
 
-  // Inject virtual agents for named nanobots not present in the data
+  // virtual named nanobots — same as before, but use new room ids and activity classifier
   const nowSec = Math.floor(Date.now() / 1000)
   for (const def of NANOBOT_AGENT_DEFS) {
     if (!seenNanobotNames.has(def.name.toLowerCase())) {
@@ -206,8 +237,8 @@ export function buildOfficeLayout(
         updated_at: nowSec,
         config: {},
       }
-      // Busy nanobot agents go to workshop, idle to main office
-      const roomId: RoomId = isBusy ? 'workshop' : 'home-main'
+      const state = activities?.[virtual.name]
+      const roomId = classifyAgentByActivity(virtual, state)
       buckets.get(roomId)!.push(virtual)
     }
   }

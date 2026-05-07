@@ -608,8 +608,6 @@ export function OfficePanel() {
 
   useEffect(() => { fetchAgents() }, [fetchAgents])
 
-  void officeActivities  // wired in Phase 2
-
   const fetchActivities = useCallback(async () => {
     try {
       const res = await fetch('/api/agents/activity')
@@ -701,7 +699,10 @@ export function OfficePanel() {
   }, [displayAgents, isLocalMode, localSessionFilter])
 
   const nanobotStatus = useMemo(() => new Map(Object.entries(nanobotStatusObj)), [nanobotStatusObj])
-  const layout = useMemo(() => buildOfficeLayout(visibleAgents, hideGsd, nanobotStatus), [visibleAgents, hideGsd, nanobotStatus])
+  const layout = useMemo(
+    () => buildOfficeLayout(visibleAgents, hideGsd, nanobotStatus, officeActivities),
+    [visibleAgents, hideGsd, nanobotStatus, officeActivities]
+  )
 
   const agentsByRoom = useMemo(() => {
     const map = new Map<RoomId, SeatedAgent[]>()
