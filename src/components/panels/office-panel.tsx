@@ -363,6 +363,9 @@ export function OfficePanel({ kiosk = false }: { kiosk?: boolean } = {}) {
 
   const searchParams = useSearchParams()
   const demoMode = searchParams?.get('demo') === '1'
+  const kioskTokenQuery = kiosk
+    ? `?token=${encodeURIComponent(searchParams?.get('token') || '')}`
+    : ''
 
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
   const [hideGsd, setHideGsd] = useState(() => {
@@ -447,9 +450,9 @@ export function OfficePanel({ kiosk = false }: { kiosk?: boolean } = {}) {
 
     try {
       const [agentRes, sessionRes, nanobotRes] = await Promise.all([
-        fetch('/api/agents'),
-        isLocalMode ? fetch('/api/sessions') : Promise.resolve(null),
-        isLocalMode ? fetch('/api/nanobot/status') : Promise.resolve(null),
+        fetch(`/api/agents${kioskTokenQuery}`),
+        isLocalMode ? fetch(`/api/sessions${kioskTokenQuery}`) : Promise.resolve(null),
+        isLocalMode ? fetch(`/api/nanobot/status${kioskTokenQuery}`) : Promise.resolve(null),
       ])
 
       if (isLocalMode && nanobotRes?.ok) {
@@ -534,14 +537,13 @@ export function OfficePanel({ kiosk = false }: { kiosk?: boolean } = {}) {
 
     setLoading(false)
     setOfficeDataFetched(true)
-  }, [isLocalMode, setLocalAgents, setSessionAgents, setNanobotStatusObj, setOfficeDataFetched])
+  }, [isLocalMode, setLocalAgents, setSessionAgents, setNanobotStatusObj, setOfficeDataFetched, kioskTokenQuery])
 
   useEffect(() => { fetchAgents() }, [fetchAgents])
 
   const fetchActivities = useCallback(async () => {
     try {
-      const tokenParam = kiosk ? `?token=${encodeURIComponent(searchParams?.get('token') || '')}` : ''
-      const res = await fetch(`/api/agents/activity${tokenParam}`)
+      const res = await fetch(`/api/agents/activity${kioskTokenQuery}`)
       if (!res.ok) return
       const json = await res.json()
       if (!Array.isArray(json?.agents)) return
@@ -551,7 +553,7 @@ export function OfficePanel({ kiosk = false }: { kiosk?: boolean } = {}) {
       }
       setOfficeActivities(map)
     } catch { /* ignore — fall back to status */ }
-  }, [setOfficeActivities, kiosk, searchParams])
+  }, [setOfficeActivities, kioskTokenQuery])
 
   useEffect(() => { if (!demoMode) fetchActivities() }, [demoMode, fetchActivities])
 
