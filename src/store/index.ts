@@ -592,10 +592,12 @@ interface MissionControlStore {
   officeLocalAgents: Agent[]
   officeNanobotStatus: Record<string, { status: string; lastActivity: number | null; activeSession: string | null }>
   officeDataFetched: boolean
+  officeActivities: Record<string, import('@/lib/agent-activity').ActivityState>
   setOfficeSessionAgents: (agents: Agent[]) => void
   setOfficeLocalAgents: (agents: Agent[]) => void
   setOfficeNanobotStatus: (status: Record<string, { status: string; lastActivity: number | null; activeSession: string | null }>) => void
   setOfficeDataFetched: (fetched: boolean) => void
+  setOfficeActivities: (activities: Record<string, import('@/lib/agent-activity').ActivityState>) => void
 
   // Skills (persisted across tab switches)
   skillsList: { id: string; name: string; source: string; path: string; description?: string; registry_slug?: string | null; security_status?: string | null }[] | null
@@ -932,6 +934,8 @@ export const useMissionControl = create<MissionControlStore>()(
     setOfficeLocalAgents: (agents) => set({ officeLocalAgents: agents }),
     setOfficeNanobotStatus: (status) => set({ officeNanobotStatus: status }),
     setOfficeDataFetched: (fetched) => set({ officeDataFetched: fetched }),
+    officeActivities: {},
+    setOfficeActivities: (activities) => set({ officeActivities: activities }),
 
     // Skills
     skillsList: null,
