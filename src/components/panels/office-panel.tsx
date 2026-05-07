@@ -7,6 +7,8 @@ import { Loader } from '@/components/ui/loader'
 import { useMissionControl, Agent } from '@/store'
 import { WalkingCrewmate } from './office/walking-crewmate'
 import { ActivityGlyph } from './office/activity-glyph'
+import { SpeechBubble } from './office/speech-bubble'
+import { pickDeadpanLine } from '@/lib/office-deadpan'
 import type { ActivityState, ActivityKind } from '@/lib/agent-activity'
 import {
   buildOfficeLayout,
@@ -489,6 +491,62 @@ export function OfficePanel() {
   const dragActiveRef = useRef(false)
   const dragOriginRef = useRef({ x: 0, y: 0 })
   const panStartRef = useRef({ x: 0, y: 0 })
+
+  /* ── Speech bubbles ─────────────────────────────────────── */
+
+  interface ActiveBubble {
+    agentName: string
+    text: string
+    id: number
+  }
+
+  const [bubbles, setBubbles] = useState<ActiveBubble[]>([])
+  const lastBubbleByAgent = useRef<Record<string, string>>({})
+  const lastKindByAgent = useRef<Record<string, ActivityKind>>({})
+  const bubbleIdRef = useRef(0)
+  const MAX_BUBBLES = 3
+
+  const showBubble = useCallback((agentName: string, kind: ActivityKind, subject?: string) => {
+    const text = pickDeadpanLine(kind, subject, lastBubbleByAgent.current[agentName] ?? null)
+    if (!text) return
+    lastBubbleByAgent.current[agentName] = text
+    bubbleIdRef.current += 1
+    const id = bubbleIdRef.current
+    setBubbles(curr => {
+      const next = [...curr, { agentName, text, id }]
+      while (next.length > MAX_BUBBLES) next.shift()
+      return next
+    })
+  }, [])
+
+  // Trigger on activity change
+  useEffect(() => {
+    const newKinds: Record<string, ActivityKind> = {}
+    for (const [name, state] of Object.entries(officeActivities)) {
+      newKinds[name] = state.kind
+      if (lastKindByAgent.current[name] !== state.kind) {
+        showBubble(name, state.kind, state.subject)
+      }
+    }
+    lastKindByAgent.current = newKinds
+  }, [officeActivities, showBubble])
+
+  // Scheduled cadence — every ~35-55s pick a random agent and show a bubble
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      const names = Object.keys(officeActivities)
+      if (names.length === 0) return
+      const pick = names[Math.floor(Math.random() * names.length)]
+      const state = officeActivities[pick]
+      if (!state) return
+      showBubble(pick, state.kind, state.subject)
+    }, 35_000 + Math.floor(Math.random() * 20_000))
+    return () => window.clearInterval(id)
+  }, [officeActivities, showBubble])
+
+  const dismissBubble = useCallback((id: number) => {
+    setBubbles(curr => curr.filter(b => b.id !== id))
+  }, [])
 
   /* ── Data fetching ──────────────────────────────────────── */
 
@@ -1001,6 +1059,21 @@ export function OfficePanel() {
                       activityKind={officeActivities[seated.agent.name]?.kind}
                     />
                   </WalkingCrewmate>
+                )
+              })}
+
+              {/* Speech bubbles */}
+              {bubbles.map(b => {
+                const seated = layout.seated.find(s => s.agent.name === b.agentName)
+                if (!seated) return null
+                return (
+                  <div
+                    key={`bubble-${b.id}`}
+                    className="absolute -translate-x-1/2 -translate-y-1/2 z-20"
+                    style={{ left: `${seated.seat.x}%`, top: `${seated.seat.y}%` }}
+                  >
+                    <SpeechBubble text={b.text} onDismiss={() => dismissBubble(b.id)} />
+                  </div>
                 )
               })}
             </div>
