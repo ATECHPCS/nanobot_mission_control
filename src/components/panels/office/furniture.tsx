@@ -320,6 +320,56 @@ function MagazineTable({ palette, size = 24 }: FurnitureProps) {
   )
 }
 
+function LabBench({ palette, size = 44 }: FurnitureProps) {
+  return (
+    <svg width={size} height={size * 0.6} viewBox="0 0 50 30" fill="none">
+      <rect x="2" y="16" width="46" height="6" rx="1"
+            fill={palette.primary} stroke={OUTLINE_COLOR} strokeWidth="1" />
+      <rect x="4"  y="22" width="3" height="6" fill={palette.detail} />
+      <rect x="43" y="22" width="3" height="6" fill={palette.detail} />
+      <path d="M7 8 L7 11 L4 16 L13 16 L10 11 L10 8 Z"
+            fill={palette.detail} opacity="0.65" stroke={OUTLINE_COLOR} strokeWidth="0.8" />
+      <rect x="16" y="6" width="6" height="10" rx="0.5"
+            fill={palette.accent} opacity="0.55" stroke={OUTLINE_COLOR} strokeWidth="0.8" />
+      <path d="M28 7 L28 10 L25 16 L34 16 L31 10 L31 7 Z"
+            fill={palette.detail} opacity="0.6" stroke={OUTLINE_COLOR} strokeWidth="0.8" />
+      <rect x="38" y="12" width="8" height="4" fill={palette.primary} stroke={OUTLINE_COLOR} strokeWidth="0.8" />
+      <rect x="40" y="6" width="4" height="6" fill={palette.detail} stroke={OUTLINE_COLOR} strokeWidth="0.8" />
+      <circle cx="42" cy="6" r="2" fill={palette.accent} stroke={OUTLINE_COLOR} strokeWidth="0.6" />
+    </svg>
+  )
+}
+
+function LabTerminal({ palette, size = 26 }: FurnitureProps) {
+  return (
+    <svg width={size} height={size * 1.07} viewBox="0 0 30 32" fill="none">
+      <rect x="2" y="2" width="26" height="20" rx="2"
+            fill={palette.primary} stroke={OUTLINE_COLOR} strokeWidth="1.2" />
+      <rect x="5" y="5" width="20" height="14" rx="1.5"
+            fill="#0d2818" stroke={OUTLINE_COLOR} strokeWidth="0.8" />
+      <line x1="6"  y1="9"  x2="14" y2="9"  stroke="#22c55e" strokeWidth="0.6" opacity="0.85" />
+      <line x1="6"  y1="12" x2="20" y2="12" stroke="#22c55e" strokeWidth="0.6" opacity="0.7" />
+      <line x1="6"  y1="15" x2="11" y2="15" stroke="#22c55e" strokeWidth="0.6" opacity="0.85" />
+      <rect x="13" y="22" width="4" height="4" fill={palette.detail} />
+      <rect x="9"  y="26" width="12" height="3" rx="0.5" fill={palette.detail} stroke={OUTLINE_COLOR} strokeWidth="0.8" />
+    </svg>
+  )
+}
+
+function MonitorStack({ palette, size = 26 }: FurnitureProps) {
+  return (
+    <svg width={size} height={size * 0.87} viewBox="0 0 30 26" fill="none">
+      <rect x="3" y="1" width="24" height="10" rx="1"
+            fill={palette.primary} stroke={OUTLINE_COLOR} strokeWidth="1" />
+      <rect x="4" y="2" width="22" height="8" fill={palette.accent} opacity="0.85" />
+      <rect x="3" y="13" width="24" height="10" rx="1"
+            fill={palette.primary} stroke={OUTLINE_COLOR} strokeWidth="1" />
+      <rect x="4" y="14" width="22" height="8" fill={palette.accent} opacity="0.85" />
+      <rect x="14" y="22" width="2" height="3" fill={palette.detail} />
+    </svg>
+  )
+}
+
 export const FURNITURE_COMPONENTS: Record<FurnitureKind, React.FC<FurnitureProps>> = {
   'desk': Desk,
   'whiteboard': Whiteboard,
@@ -338,9 +388,9 @@ export const FURNITURE_COMPONENTS: Record<FurnitureKind, React.FC<FurnitureProps
   'phone-booth': PhoneBooth,
   'bench': Bench,
   'magazine-table': MagazineTable,
-  'lab-bench': Placeholder,
-  'lab-terminal': Placeholder,
-  'monitor-stack': Placeholder,
+  'lab-bench': LabBench,
+  'lab-terminal': LabTerminal,
+  'monitor-stack': MonitorStack,
   'filing-cabinet': Placeholder,
   'cubicle-divider': Placeholder,
   'plant-tall': Placeholder,
