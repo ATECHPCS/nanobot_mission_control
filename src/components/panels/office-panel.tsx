@@ -463,7 +463,7 @@ function OfficeRoom({ room, agents, zoom }: {
 
 /* ── Main Panel ───────────────────────────────────────────── */
 
-export function OfficePanel() {
+export function OfficePanel({ kiosk = false }: { kiosk?: boolean } = {}) {
   const {
     agents, dashboardMode,
     officeSessionAgents: sessionAgents, setOfficeSessionAgents: setSessionAgents,
@@ -653,7 +653,8 @@ export function OfficePanel() {
 
   const fetchActivities = useCallback(async () => {
     try {
-      const res = await fetch('/api/agents/activity')
+      const tokenParam = kiosk ? `?token=${encodeURIComponent(searchParams?.get('token') || '')}` : ''
+      const res = await fetch(`/api/agents/activity${tokenParam}`)
       if (!res.ok) return
       const json = await res.json()
       if (!Array.isArray(json?.agents)) return
@@ -663,7 +664,7 @@ export function OfficePanel() {
       }
       setOfficeActivities(map)
     } catch { /* ignore — fall back to status */ }
-  }, [setOfficeActivities])
+  }, [setOfficeActivities, kiosk, searchParams])
 
   useEffect(() => { if (!demoMode) fetchActivities() }, [demoMode, fetchActivities])
 
@@ -826,6 +827,11 @@ export function OfficePanel() {
 
   const resetView = () => { setMapZoom(1); setMapPan({ x: 0, y: 0 }) }
 
+  const handleAgentClick = useCallback((agent: Agent) => {
+    if (kiosk) return
+    setSelectedAgent(agent)
+  }, [kiosk])
+
   /* ── Render ─────────────────────────────────────────────── */
 
   if ((loading || (isLocalMode && localBootstrapping)) && visibleAgents.length === 0) {
@@ -843,49 +849,56 @@ export function OfficePanel() {
         .activity-reading > svg { animation: reading-bob 1.6s ease-in-out infinite; }
         .activity-blocked       { animation: blocked-halo 2.4s ease-in-out infinite; border-radius: 50%; }
         .activity-error  > svg  { animation: error-flash 0.8s ease-in-out infinite; }
+        .kiosk-bleed {
+          border: none;
+          border-radius: 0;
+          background-color: #06080d;
+        }
       `}</style>
       {/* Header */}
-      <div className="border-b border-border pb-3 sm:pb-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Office</h1>
-            <p className="text-muted-foreground text-sm mt-0.5 sm:mt-1">
-              {layout.seated.length} agent{layout.seated.length !== 1 ? 's' : ''} on the floor
-              {hideGsd && layout.gsdCount > 0 && <span className="text-muted-foreground/60"> (+{layout.gsdCount} GSD hidden)</span>}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-            <div className="flex items-center gap-2 sm:gap-3 text-xs text-muted-foreground">
-              {counts.busy > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400" />{counts.busy} active</span>}
-              {counts.idle > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400" />{counts.idle} idle</span>}
-              {counts.error > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400" />{counts.error} alert</span>}
+      {!kiosk && (
+        <div className="border-b border-border pb-3 sm:pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Office</h1>
+              <p className="text-muted-foreground text-sm mt-0.5 sm:mt-1">
+                {layout.seated.length} agent{layout.seated.length !== 1 ? 's' : ''} on the floor
+                {hideGsd && layout.gsdCount > 0 && <span className="text-muted-foreground/60"> (+{layout.gsdCount} GSD hidden)</span>}
+              </p>
             </div>
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+              <div className="flex items-center gap-2 sm:gap-3 text-xs text-muted-foreground">
+                {counts.busy > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400" />{counts.busy} active</span>}
+                {counts.idle > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400" />{counts.idle} idle</span>}
+                {counts.error > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400" />{counts.error} alert</span>}
+              </div>
 
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              {/* GSD filter toggle */}
-              <Button
-                variant={hideGsd ? 'default' : 'secondary'}
-                size="sm"
-                onClick={() => { const next = !hideGsd; setHideGsd(next); localStorage.setItem('office-hide-gsd', next ? '1' : '0') }}
-                title={hideGsd ? `Show ${layout.gsdCount} GSD agents` : 'Hide GSD agents'}
-                className="text-xs"
-              >
-                {hideGsd ? `Show GSD (${layout.gsdCount})` : `Hide GSD (${layout.gsdCount})`}
-              </Button>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                {/* GSD filter toggle */}
+                <Button
+                  variant={hideGsd ? 'default' : 'secondary'}
+                  size="sm"
+                  onClick={() => { const next = !hideGsd; setHideGsd(next); localStorage.setItem('office-hide-gsd', next ? '1' : '0') }}
+                  title={hideGsd ? `Show ${layout.gsdCount} GSD agents` : 'Hide GSD agents'}
+                  className="text-xs"
+                >
+                  {hideGsd ? `Show GSD (${layout.gsdCount})` : `Hide GSD (${layout.gsdCount})`}
+                </Button>
 
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={refreshing}
-                onClick={async () => { setRefreshing(true); await fetchAgents(); setRefreshing(false) }}
-                className="text-xs"
-              >
-                {refreshing ? 'Refreshing…' : 'Refresh'}
-              </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={refreshing}
+                  onClick={async () => { setRefreshing(true); await fetchAgents(); setRefreshing(false) }}
+                  className="text-xs"
+                >
+                  {refreshing ? 'Refreshing…' : 'Refresh'}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {displayAgents.length === 0 && !hideGsd ? (
         <div className="text-center py-16 text-muted-foreground">
@@ -896,8 +909,9 @@ export function OfficePanel() {
           <p className="text-sm mt-1">Deploy agents to see them appear here</p>
         </div>
       ) : (
-        <div className="flex flex-col xl:grid xl:grid-cols-[220px_1fr] gap-3 sm:gap-4">
+        <div className={kiosk ? 'flex flex-col gap-3 sm:gap-4' : 'flex flex-col xl:grid xl:grid-cols-[220px_1fr] gap-3 sm:gap-4'}>
           {/* Sidebar / Roster */}
+          {!kiosk && (
           <div className="void-panel text-foreground p-3 h-fit max-h-[280px] xl:max-h-[calc(100vh-180px)] flex flex-col">
             <div className="flex items-center justify-between mb-2">
               <div className="text-xs font-semibold font-mono tracking-wider text-cyan-400">ROSTER</div>
@@ -981,11 +995,12 @@ export function OfficePanel() {
               )}
             </div>
           </div>
+          )}
 
           {/* Map viewport */}
           <div
             ref={mapViewportRef}
-            className="relative rounded-lg border border-border overflow-hidden min-h-[320px] sm:min-h-[420px] xl:min-h-[calc(100vh-180px)] cursor-grab active:cursor-grabbing touch-none"
+            className={`relative rounded-lg ${kiosk ? 'kiosk-bleed' : 'border border-border'} overflow-hidden min-h-[320px] sm:min-h-[420px] xl:min-h-[calc(100vh-180px)] cursor-grab active:cursor-grabbing touch-none`}
             style={{
               backgroundColor: '#0a0e17',
               backgroundImage:
@@ -1086,7 +1101,7 @@ export function OfficePanel() {
                       seated={seated}
                       crewSize={crewSize}
                       nameSize={nameSize}
-                      onAgentClick={setSelectedAgent}
+                      onAgentClick={handleAgentClick}
                       activityKind={officeActivities[seated.agent.name]?.kind}
                     />
                   </WalkingCrewmate>
@@ -1163,7 +1178,7 @@ export function OfficePanel() {
       )}
 
       {/* Agent detail modal */}
-      {selectedAgent && (
+      {!kiosk && selectedAgent && (
         <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4" onClick={() => setSelectedAgent(null)}>
           <div className="bg-card border border-border rounded-t-xl sm:rounded-lg max-w-sm w-full p-5 sm:p-6 shadow-2xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-start mb-4">
