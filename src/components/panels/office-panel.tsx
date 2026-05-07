@@ -259,26 +259,20 @@ function ServerRack({ size = 20 }: { size?: number }) {
 
 /** Furniture layout per room type — positions as % within the room */
 const ROOM_FURNITURE: Record<RoomId, { component: 'desk' | 'whiteboard' | 'coffee' | 'plant' | 'server'; x: number; y: number }[]> = {
-  'main-office': [
-    // Desks right in front of where agents sit (3 agents at ~24%, 50%, 76% — y center ~47%)
+  'home-main': [
     { component: 'desk', x: 24, y: 42 },
     { component: 'desk', x: 50, y: 42 },
     { component: 'desk', x: 76, y: 42 },
     { component: 'plant', x: 93, y: 14 },
     { component: 'plant', x: 7, y: 14 },
   ],
-  'conference': [
-    { component: 'whiteboard', x: 50, y: 18 },
-    { component: 'plant', x: 8, y: 14 },
-    { component: 'plant', x: 92, y: 14 },
-  ],
-  'session-pool': [
+  'home-session': [
     { component: 'server', x: 88, y: 22 },
     { component: 'server', x: 88, y: 52 },
     { component: 'desk', x: 24, y: 42 },
     { component: 'desk', x: 55, y: 42 },
   ],
-  'gsd-office': [
+  'home-gsd': [
     { component: 'server', x: 8, y: 18 },
     { component: 'server', x: 92, y: 18 },
     { component: 'desk', x: 20, y: 35 },
@@ -288,6 +282,34 @@ const ROOM_FURNITURE: Record<RoomId, { component: 'desk' | 'whiteboard' | 'coffe
   'break-room': [
     { component: 'coffee', x: 50, y: 35 },
     { component: 'plant', x: 78, y: 18 },
+  ],
+  'library': [
+    { component: 'desk', x: 30, y: 50 },
+    { component: 'desk', x: 70, y: 50 },
+    { component: 'plant', x: 85, y: 20 },
+  ],
+  'workshop': [
+    { component: 'desk', x: 20, y: 50 },
+    { component: 'desk', x: 50, y: 50 },
+    { component: 'desk', x: 80, y: 50 },
+    { component: 'plant', x: 10, y: 20 },
+  ],
+  'lab': [
+    { component: 'server', x: 15, y: 25 },
+    { component: 'desk', x: 60, y: 55 },
+    { component: 'plant', x: 85, y: 20 },
+  ],
+  'phone-booth': [
+    { component: 'desk', x: 30, y: 50 },
+    { component: 'desk', x: 70, y: 50 },
+  ],
+  'war-room': [
+    { component: 'whiteboard', x: 50, y: 22 },
+    { component: 'plant', x: 85, y: 20 },
+  ],
+  'waiting-bench': [
+    { component: 'plant', x: 15, y: 50 },
+    { component: 'plant', x: 85, y: 50 },
   ],
 }
 

@@ -3,11 +3,16 @@ import type { Agent } from '@/store'
 /* ── Among Us-style office room types ─────────────────────── */
 
 export type RoomId =
-  | 'main-office'    // Primary nanobot agents (Stefany, Cody, etc.)
-  | 'gsd-office'     // GSD skill agents (planners, executors, verifiers, etc.)
-  | 'session-pool'   // Active Claude Code / Codex sessions
-  | 'conference'     // Busy/active agents pulled into a meeting
-  | 'break-room'     // Idle agents hanging out
+  | 'home-main'
+  | 'home-gsd'
+  | 'home-session'
+  | 'library'
+  | 'workshop'
+  | 'lab'
+  | 'phone-booth'
+  | 'war-room'
+  | 'waiting-bench'
+  | 'break-room'
 
 export interface RoomDefinition {
   id: RoomId
@@ -42,50 +47,30 @@ export interface OfficeLayout {
 /* ── Room layout — top-down Among Us map ─────────────────── */
 
 export const ROOM_DEFS: RoomDefinition[] = [
-  {
-    id: 'main-office',
-    label: 'Main Office',
-    color: 'border-cyan-500/40 bg-cyan-500/8',
-    wallColor: '#0c1a2e',
-    x: 4, y: 6, w: 42, h: 40,
-  },
-  {
-    id: 'conference',
-    label: 'War Room',
-    color: 'border-amber-500/40 bg-amber-500/8',
-    wallColor: '#1a1408',
-    x: 54, y: 6, w: 42, h: 40,
-  },
-  {
-    id: 'session-pool',
-    label: 'Session Pool',
-    color: 'border-violet-500/40 bg-violet-500/8',
-    wallColor: '#140c24',
-    x: 4, y: 54, w: 42, h: 40,
-  },
-  {
-    id: 'gsd-office',
-    label: 'GSD Wing',
-    color: 'border-emerald-500/40 bg-emerald-500/8',
-    wallColor: '#0c1a14',
-    x: 54, y: 54, w: 42, h: 40,
-  },
-  {
-    id: 'break-room',
-    label: 'Break Room',
-    color: 'border-slate-500/30 bg-slate-500/6',
-    wallColor: '#12141a',
-    x: 46, y: 42, w: 8, h: 16,
-  },
+  // home rooms — left/right edges
+  { id: 'home-main',    label: 'Main Office',  color: 'border-cyan-500/40 bg-cyan-500/8',     wallColor: '#0c1a2e', x:  2, y:  4, w: 22, h: 44 },
+  { id: 'home-session', label: 'Session Pool', color: 'border-violet-500/40 bg-violet-500/8', wallColor: '#140c24', x:  2, y: 52, w: 22, h: 44 },
+  { id: 'home-gsd',     label: 'GSD Wing',     color: 'border-emerald-500/40 bg-emerald-500/8', wallColor: '#0c1a14', x: 76, y:  4, w: 22, h: 44 },
+  { id: 'break-room',   label: 'Break Room',   color: 'border-slate-500/30 bg-slate-500/6',   wallColor: '#12141a', x: 76, y: 52, w: 22, h: 44 },
+
+  // corridor activity zones — center column
+  { id: 'library',      label: 'Library',      color: 'border-amber-500/40 bg-amber-500/8',   wallColor: '#1a1408', x: 28, y:  6, w: 20, h: 22 },
+  { id: 'lab',          label: 'Lab',          color: 'border-rose-500/40 bg-rose-500/8',     wallColor: '#1a0c14', x: 52, y:  6, w: 20, h: 22 },
+  { id: 'phone-booth',  label: 'Phone Booths', color: 'border-sky-500/40 bg-sky-500/8',       wallColor: '#0c1620', x: 28, y: 32, w: 20, h: 18 },
+  { id: 'war-room',     label: 'War Room',     color: 'border-orange-500/40 bg-orange-500/8', wallColor: '#1a1208', x: 52, y: 32, w: 20, h: 18 },
+  { id: 'workshop',     label: 'Workshop',     color: 'border-teal-500/40 bg-teal-500/8',     wallColor: '#0c1a18', x: 28, y: 54, w: 44, h: 24 },
+  { id: 'waiting-bench',label: 'Waiting Bench',color: 'border-yellow-500/40 bg-yellow-500/6', wallColor: '#1a1808', x: 28, y: 82, w: 44, h: 12 },
 ]
 
 /* ── Hallway segments for the corridor between rooms ──────── */
 
 export const HALLWAYS = [
-  // Horizontal corridor
-  { x1: 4, y1: 46, x2: 96, y2: 54 },
-  // Vertical corridor
-  { x1: 46, y1: 6, x2: 54, y2: 94 },
+  // Vertical lane between home rooms and corridor zones (left)
+  { x1: 24, y1:  4, x2: 28, y2: 96 },
+  // Vertical lane on the right
+  { x1: 72, y1:  4, x2: 76, y2: 96 },
+  // Horizontal lane through the middle of the activity grid
+  { x1: 24, y1: 50, x2: 76, y2: 52 },
 ]
 
 /* ── Classification ──────────────────────────────────────── */
@@ -129,17 +114,8 @@ function isLocalSession(agent: Agent): boolean {
   return Boolean((agent.config as any)?.localSession)
 }
 
-function classifyAgent(agent: Agent): RoomId {
-  // Named nanobot agents always live in main-office; go to war room when busy
-  if (isNamedNanobotAgent(agent)) {
-    return agent.status === 'busy' ? 'conference' : 'main-office'
-  }
-  if (isGsdAgent(agent)) return 'gsd-office'
-  if (isLocalSession(agent) && agent.status !== 'busy') return 'session-pool'
-  if (isLocalSession(agent) && agent.status === 'busy') return 'conference'
-  // Other gateway agents
-  if (agent.status === 'busy') return 'conference'
-  return 'main-office'
+function classifyAgent(_agent: Agent): RoomId {
+  return 'home-main'
 }
 
 /* ── Seat assignment within a room ───────────────────────── */
@@ -208,8 +184,8 @@ export function buildOfficeLayout(
       }
     }
     const roomId = classifyAgent(agent)
-    if (roomId === 'gsd-office') gsdCount++
-    if (hideGsd && roomId === 'gsd-office') continue
+    if (roomId === 'home-gsd') gsdCount++
+    if (hideGsd && roomId === 'home-gsd') continue
     buckets.get(roomId)!.push(agent)
   }
 
@@ -230,8 +206,8 @@ export function buildOfficeLayout(
         updated_at: nowSec,
         config: {},
       }
-      // Busy nanobot agents go to conference room, idle to main office
-      const roomId: RoomId = isBusy ? 'conference' : 'main-office'
+      // Busy nanobot agents go to workshop, idle to main office
+      const roomId: RoomId = isBusy ? 'workshop' : 'home-main'
       buckets.get(roomId)!.push(virtual)
     }
   }
