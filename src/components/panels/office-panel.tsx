@@ -5,6 +5,7 @@ import type { WheelEvent, MouseEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Loader } from '@/components/ui/loader'
 import { useMissionControl, Agent } from '@/store'
+import { WalkingCrewmate } from './office/walking-crewmate'
 import type { ActivityState } from '@/lib/agent-activity'
 import {
   buildOfficeLayout,
@@ -363,10 +364,10 @@ function DriftingCrewmate({ seated, crewSize, nameSize, onAgentClick }: {
 
   return (
     <button
-      className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
+      className="relative cursor-pointer group"
       style={{
-        left: `calc(${0}% + ${drift.x}px)`,
-        top: `calc(${0}% + ${drift.y}px)`,
+        left: `${drift.x}px`,
+        top: `${drift.y}px`,
         transition: 'left 2s ease-in-out, top 2s ease-in-out',
       }}
       onClick={(e) => { e.stopPropagation(); onAgentClick(seated.agent) }}
@@ -392,15 +393,12 @@ function DriftingCrewmate({ seated, crewSize, nameSize, onAgentClick }: {
 
 /* ── Room Component ───────────────────────────────────────── */
 
-function OfficeRoom({ room, agents, onAgentClick, zoom }: {
+function OfficeRoom({ room, agents, zoom }: {
   room: RoomDefinition
   agents: SeatedAgent[]
-  onAgentClick: (agent: Agent) => void
   zoom: number
 }) {
   const labelSize = Math.max(8, Math.round(12 / zoom))
-  const crewSize = clamp(Math.round(38 / zoom), 20, 56)
-  const nameSize = Math.max(8, Math.round(10 / zoom))
   const furnitureScale = 36
   const furniture = ROOM_FURNITURE[room.id] || []
 
@@ -443,26 +441,6 @@ function OfficeRoom({ room, agents, onAgentClick, zoom }: {
             style={{ left: `${f.x}%`, top: `${f.y}%` }}
           >
             <Comp size={furnitureScale} />
-          </div>
-        )
-      })}
-
-      {/* Agents as crewmates */}
-      {agents.map((seated) => {
-        const relX = ((seated.seat.x - room.x) / room.w) * 100
-        const relY = ((seated.seat.y - room.y) / room.h) * 100
-        return (
-          <div
-            key={seated.agent.id}
-            className="absolute"
-            style={{ left: `${relX}%`, top: `${relY}%` }}
-          >
-            <DriftingCrewmate
-              seated={seated}
-              crewSize={crewSize}
-              nameSize={nameSize}
-              onAgentClick={onAgentClick}
-            />
           </div>
         )
       })}
@@ -987,10 +965,30 @@ export function OfficePanel() {
                   key={room.id}
                   room={room}
                   agents={agentsByRoom.get(room.id) || []}
-                  onAgentClick={setSelectedAgent}
                   zoom={mapZoom}
                 />
               ))}
+
+              {/* Agents rendered at map level for cross-room pathed motion */}
+              {layout.seated.map(seated => {
+                const crewSize = clamp(Math.round(38 / mapZoom), 20, 56)
+                const nameSize = Math.max(8, Math.round(10 / mapZoom))
+                return (
+                  <WalkingCrewmate
+                    key={`walk-${seated.agent.id}`}
+                    agentId={seated.agent.id}
+                    targetSeat={{ x: seated.seat.x, y: seated.seat.y }}
+                    targetRoom={seated.roomId}
+                  >
+                    <DriftingCrewmate
+                      seated={seated}
+                      crewSize={crewSize}
+                      nameSize={nameSize}
+                      onAgentClick={setSelectedAgent}
+                    />
+                  </WalkingCrewmate>
+                )
+              })}
             </div>
 
             {/* Empty filter overlay */}
