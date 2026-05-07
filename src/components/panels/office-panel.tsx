@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Loader } from '@/components/ui/loader'
 import { useMissionControl, Agent } from '@/store'
 import { WalkingCrewmate } from './office/walking-crewmate'
-import type { ActivityState } from '@/lib/agent-activity'
+import { ActivityGlyph } from './office/activity-glyph'
+import type { ActivityState, ActivityKind } from '@/lib/agent-activity'
 import {
   buildOfficeLayout,
   isGsdAgent,
@@ -354,11 +355,12 @@ function useAgentDrift(agentId: string | number, status: string) {
   return offset
 }
 
-function DriftingCrewmate({ seated, crewSize, nameSize, onAgentClick }: {
+function DriftingCrewmate({ seated, crewSize, nameSize, onAgentClick, activityKind }: {
   seated: SeatedAgent
   crewSize: number
   nameSize: number
   onAgentClick: (agent: Agent) => void
+  activityKind?: ActivityKind
 }) {
   const drift = useAgentDrift(seated.agent.id, seated.agent.status)
 
@@ -373,6 +375,7 @@ function DriftingCrewmate({ seated, crewSize, nameSize, onAgentClick }: {
       onClick={(e) => { e.stopPropagation(); onAgentClick(seated.agent) }}
       title={seated.agent.name}
     >
+      {activityKind ? <ActivityGlyph kind={activityKind} size={Math.round(crewSize * 0.45)} /> : null}
       <Crewmate
         color={crewColor(seated.agent.name)}
         size={crewSize}
@@ -985,6 +988,7 @@ export function OfficePanel() {
                       crewSize={crewSize}
                       nameSize={nameSize}
                       onAgentClick={setSelectedAgent}
+                      activityKind={officeActivities[seated.agent.name]?.kind}
                     />
                   </WalkingCrewmate>
                 )
