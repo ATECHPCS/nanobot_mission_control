@@ -18,7 +18,7 @@ interface CachedPayload {
 }
 
 const CACHE_TTL_MS = 2_000
-let cache: CachedPayload | null = null
+const cacheByWorkspace = new Map<number, CachedPayload>()
 
 function getMeetingThreshold(): number {
   const raw = process.env.MC_OFFICE_MEETING_THRESHOLD
@@ -39,13 +39,15 @@ export async function GET(request: NextRequest) {
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const now = Date.now()
-  if (cache && now - cache.generated_at < CACHE_TTL_MS) {
-    return NextResponse.json(cache.body)
+  const workspaceId = auth.user.workspace_id ?? 1
+
+  const cached = cacheByWorkspace.get(workspaceId)
+  if (cached && now - cached.generated_at < CACHE_TTL_MS) {
+    return NextResponse.json(cached.body)
   }
 
   try {
     const db = getDatabase()
-    const workspaceId = auth.user.workspace_id ?? 1
     const nowS = nowSec()
     const recentSince = nowS - 60
 
@@ -144,11 +146,12 @@ export async function GET(request: NextRequest) {
       generated_at: now,
     }
 
-    cache = { generated_at: now, body }
+    cacheByWorkspace.set(workspaceId, { generated_at: now, body })
     return NextResponse.json(body)
   } catch (error) {
     logger.error({ err: error }, 'GET /api/agents/activity failed')
-    if (cache) return NextResponse.json(cache.body)
+    const lastGood = cacheByWorkspace.get(workspaceId)
+    if (lastGood) return NextResponse.json(lastGood.body)
     return NextResponse.json({ agents: [], generated_at: now }, { status: 200 })
   }
 }
