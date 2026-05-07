@@ -28,16 +28,6 @@ export interface FurnitureProps {
   h?: number
 }
 
-// Placeholder component: a simple box. Tasks 3-11 replace these with real SVGs.
-function Placeholder({ palette, size = 36 }: FurnitureProps) {
-  return (
-    <svg width={size} height={size * 0.7} viewBox="0 0 36 25" fill="none">
-      <rect x="2" y="2" width="32" height="21" rx="2"
-            fill={palette.primary} stroke={OUTLINE_COLOR} strokeWidth="1" />
-    </svg>
-  )
-}
-
 function Desk({ palette, size = 36 }: FurnitureProps) {
   return (
     <svg width={size} height={size * 0.65} viewBox="0 0 40 26" fill="none">
@@ -398,6 +388,48 @@ function CubicleDivider({ palette, size = 36 }: FurnitureProps) {
   )
 }
 
+function WallClock({ palette, size = 18 }: FurnitureProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" fill="#fff" stroke={OUTLINE_COLOR} strokeWidth="1.4" />
+      <line x1="12" y1="3"  x2="12" y2="5"  stroke={OUTLINE_COLOR} strokeWidth="0.8" />
+      <line x1="12" y1="19" x2="12" y2="21" stroke={OUTLINE_COLOR} strokeWidth="0.8" />
+      <line x1="3"  y1="12" x2="5"  y2="12" stroke={OUTLINE_COLOR} strokeWidth="0.8" />
+      <line x1="19" y1="12" x2="21" y2="12" stroke={OUTLINE_COLOR} strokeWidth="0.8" />
+      <line x1="12" y1="12" x2="12" y2="6"  stroke={palette.primary} strokeWidth="1.2" strokeLinecap="round" />
+      <line x1="12" y1="12" x2="17" y2="12" stroke={palette.accent}  strokeWidth="1"   strokeLinecap="round" />
+      <circle cx="12" cy="12" r="0.8" fill={palette.detail} />
+    </svg>
+  )
+}
+
+function Rug({ palette, size = 80, w, h }: FurnitureProps) {
+  const _w = w ?? size
+  const _h = h ?? size * 0.5
+  return (
+    <svg width="100%" height="100%" viewBox={`0 0 ${Math.round(_w * 4)} ${Math.round(_h * 4)}`} preserveAspectRatio="none" fill="none">
+      <rect x="2" y="2" width={Math.round(_w * 4) - 4} height={Math.round(_h * 4) - 4} rx="3"
+            fill={palette.primary} opacity="0.4" stroke={OUTLINE_COLOR} strokeWidth="1.5" />
+      <rect x="6" y="6" width={Math.round(_w * 4) - 12} height={Math.round(_h * 4) - 12} rx="2"
+            fill="none" stroke={palette.accent} strokeWidth="0.8" opacity="0.55" />
+    </svg>
+  )
+}
+
+function Paper({ palette, size = 10 }: FurnitureProps) {
+  return (
+    <svg width={size} height={size * 1.33} viewBox="0 0 12 16" fill="none">
+      <g transform="rotate(-8 6 8)">
+        <rect x="1" y="1" width="10" height="14" rx="0.4"
+              fill="#fff" stroke={OUTLINE_COLOR} strokeWidth="0.6" />
+        <line x1="2.5" y1="5" x2="9.5" y2="5"  stroke={palette.detail} strokeWidth="0.4" />
+        <line x1="2.5" y1="8" x2="9.5" y2="8"  stroke={palette.detail} strokeWidth="0.4" />
+        <line x1="2.5" y1="11" x2="7.5" y2="11" stroke={palette.detail} strokeWidth="0.4" />
+      </g>
+    </svg>
+  )
+}
+
 function PlantTall({ palette, size = 24 }: FurnitureProps) {
   return (
     <svg width={size} height={size * 1.79} viewBox="0 0 28 50" fill="none">
@@ -456,7 +488,7 @@ export const FURNITURE_COMPONENTS: Record<FurnitureKind, React.FC<FurnitureProps
   'cubicle-divider': CubicleDivider,
   'plant-tall': PlantTall,
   'plant-hanging': PlantHanging,
-  'wall-clock': Placeholder,
-  'rug': Placeholder,
-  'paper': Placeholder,
+  'wall-clock': WallClock,
+  'rug': Rug,
+  'paper': Paper,
 }
