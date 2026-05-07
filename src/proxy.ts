@@ -172,25 +172,34 @@ export function proxy(request: NextRequest) {
     }
   }
 
-  // Kiosk: allow /office/tv and /api/agents/activity with valid ?token= to bypass session auth.
-  // Token is read from MC_OFFICE_TV_TOKEN. Compared with constant-time equality via safeCompare.
+  // Strip any client-supplied kiosk auth header — only proxy.ts is allowed to set it.
+  const incomingHeaders = new Headers(request.headers)
+  incomingHeaders.delete('x-mc-kiosk-auth')
+
+  // Kiosk: allow allowlisted office paths with valid ?token= to bypass session auth.
+  // Token is read from MC_OFFICE_TV_TOKEN. Compared with constant-time equality.
   const KIOSK_TOKEN = process.env.MC_OFFICE_TV_TOKEN
   if (KIOSK_TOKEN && KIOSK_TOKEN.length > 0) {
-    const isKioskPath = pathname === '/office/tv' || pathname === '/api/agents/activity'
+    const isKioskPath =
+      pathname === '/office/tv' ||
+      pathname === '/api/agents/activity' ||
+      pathname === '/api/agents' ||
+      pathname === '/api/sessions' ||
+      pathname === '/api/nanobot/status'
     if (isKioskPath) {
       const provided = request.nextUrl.searchParams.get('token') || ''
       if (provided.length === KIOSK_TOKEN.length && safeCompare(provided, KIOSK_TOKEN)) {
-        return NextResponse.next()
+        incomingHeaders.set('x-mc-kiosk-auth', '1')
+        return NextResponse.next({ request: { headers: incomingHeaders } })
       }
     }
   } else if (pathname === '/office/tv') {
-    // Kiosk feature disabled — return 404 instead of redirecting to login.
     return new NextResponse('Not Found', { status: 404 })
   }
 
   // Allow login page, auth API, and docs without session
   if (pathname === '/login' || pathname.startsWith('/api/auth/') || pathname === '/api/docs' || pathname === '/docs') {
-    return addSecurityHeaders(NextResponse.next(), request)
+    return addSecurityHeaders(NextResponse.next({ request: { headers: incomingHeaders } }), request)
   }
 
   // Check for session cookie
@@ -207,7 +216,7 @@ export function proxy(request: NextRequest) {
     const looksLikeAgentApiKey = /^mca_[a-f0-9]{48}$/i.test(apiKey)
 
     if (sessionToken || hasValidApiKey || looksLikeAgentApiKey) {
-      return addSecurityHeaders(NextResponse.next(), request)
+      return addSecurityHeaders(NextResponse.next({ request: { headers: incomingHeaders } }), request)
     }
 
     return addSecurityHeaders(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }), request)
@@ -215,7 +224,7 @@ export function proxy(request: NextRequest) {
 
   // Page routes: redirect to login if no session
   if (sessionToken) {
-    return addSecurityHeaders(NextResponse.next(), request)
+    return addSecurityHeaders(NextResponse.next({ request: { headers: incomingHeaders } }), request)
   }
 
   // Redirect to login
