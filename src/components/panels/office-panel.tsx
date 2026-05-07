@@ -660,8 +660,9 @@ export function OfficePanel({ kiosk = false }: { kiosk?: boolean } = {}) {
 
   const nanobotStatus = useMemo(() => new Map(Object.entries(nanobotStatusObj)), [nanobotStatusObj])
   const layout = useMemo(
-    () => buildOfficeLayout(visibleAgents, hideGsd, nanobotStatus, officeActivities),
-    [visibleAgents, hideGsd, nanobotStatus, officeActivities]
+    // In kiosk mode, GSD agents are hidden by default (no toggle UI on the TV).
+    () => buildOfficeLayout(visibleAgents, kiosk || hideGsd, nanobotStatus, officeActivities),
+    [visibleAgents, kiosk, hideGsd, nanobotStatus, officeActivities]
   )
 
   const agentsByRoom = useMemo(() => {
