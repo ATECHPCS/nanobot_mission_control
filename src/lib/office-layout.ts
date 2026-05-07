@@ -351,6 +351,117 @@ export const ROOM_DOORS: Record<RoomId, Point> = {
 export const CORRIDOR_LEFT: Point = { x: 26, y: 50 }
 export const CORRIDOR_RIGHT: Point = { x: 74, y: 50 }
 
+/* ── Room furniture registry ─────────────────────────────── */
+
+import type { FurnitureKind } from '@/components/panels/office/furniture'
+
+export interface FurnitureEntry {
+  kind: FurnitureKind
+  /** % of room width */
+  x: number
+  /** % of room height */
+  y: number
+  /** Optional: explicit width/height (used by `rug`). % of room. */
+  w?: number
+  h?: number
+}
+
+export const ROOM_FURNITURE: Record<RoomId, FurnitureEntry[]> = {
+  'home-main': [
+    { kind: 'plant',           x:  8, y: 12 },
+    { kind: 'wall-clock',      x: 50, y:  8 },
+    { kind: 'plant',           x: 92, y: 12 },
+    { kind: 'cubicle-divider', x: 25, y: 38 },
+    { kind: 'cubicle-divider', x: 50, y: 38 },
+    { kind: 'cubicle-divider', x: 75, y: 38 },
+    { kind: 'desk',            x: 25, y: 55 },
+    { kind: 'desk',            x: 50, y: 55 },
+    { kind: 'desk',            x: 75, y: 55 },
+    { kind: 'filing-cabinet',  x: 88, y: 78 },
+    { kind: 'plant',           x: 12, y: 82 },
+  ],
+  'home-session': [
+    { kind: 'rug',             x: 50, y: 60, w: 70, h: 30 },
+    { kind: 'server-rack',     x: 18, y: 18 },
+    { kind: 'server-rack',     x: 50, y: 18 },
+    { kind: 'server-rack',     x: 82, y: 18 },
+    { kind: 'desk',            x: 30, y: 60 },
+    { kind: 'monitor-stack',   x: 30, y: 50 },
+    { kind: 'desk',            x: 70, y: 60 },
+    { kind: 'monitor-stack',   x: 70, y: 50 },
+    { kind: 'plant-hanging',   x: 12, y: 12 },
+  ],
+  'home-gsd': [
+    { kind: 'sticky-note-wall', x: 50, y: 12 },
+    { kind: 'whiteboard',       x: 88, y: 30 },
+    { kind: 'desk',             x: 25, y: 50 },
+    { kind: 'desk',             x: 50, y: 50 },
+    { kind: 'desk',             x: 75, y: 50 },
+    { kind: 'plant-tall',       x:  8, y: 75 },
+    { kind: 'paper',            x: 50, y: 80 },
+  ],
+  'break-room': [
+    { kind: 'couch',           x: 30, y: 55 },
+    { kind: 'snack-table',     x: 50, y: 55 },
+    { kind: 'reading-chair',   x: 70, y: 55 },
+    { kind: 'coffee-machine',  x: 25, y: 25 },
+    { kind: 'fridge',          x: 75, y: 25 },
+    { kind: 'floor-lamp',      x: 88, y: 78 },
+    { kind: 'plant-hanging',   x: 50, y: 12 },
+  ],
+  'library': [
+    { kind: 'bookshelf',     x: 20, y: 25 },
+    { kind: 'bookshelf',     x: 50, y: 25 },
+    { kind: 'bookshelf',     x: 80, y: 25 },
+    { kind: 'reading-chair', x: 30, y: 70 },
+    { kind: 'floor-lamp',    x: 50, y: 70 },
+    { kind: 'plant-tall',    x: 80, y: 70 },
+  ],
+  'lab': [
+    { kind: 'lab-bench',     x: 50, y: 50 },
+    { kind: 'lab-terminal',  x: 18, y: 30 },
+    { kind: 'server-rack',   x: 88, y: 30 },
+    { kind: 'plant',         x:  8, y: 80 },
+    { kind: 'poster',        x: 92, y: 80 },
+    { kind: 'paper',         x: 30, y: 78 },
+  ],
+  'phone-booth': [
+    { kind: 'phone-booth',   x: 18, y: 50 },
+    { kind: 'phone-booth',   x: 38, y: 50 },
+    { kind: 'phone-booth',   x: 62, y: 50 },
+    { kind: 'phone-booth',   x: 82, y: 50 },
+    { kind: 'plant',         x: 92, y: 18 },
+  ],
+  'war-room': [
+    { kind: 'whiteboard',         x: 18, y: 22 },
+    { kind: 'sticky-note-wall',   x: 82, y: 22 },
+    { kind: 'conference-table',   x: 50, y: 60 },
+    { kind: 'plant-tall',         x: 92, y: 78 },
+    { kind: 'paper',              x: 50, y: 85 },
+  ],
+  'workshop': [
+    { kind: 'rug',             x: 50, y: 60, w: 60, h: 30 },
+    { kind: 'desk',            x: 18, y: 50 },
+    { kind: 'monitor-stack',   x: 18, y: 40 },
+    { kind: 'desk',            x: 38, y: 50 },
+    { kind: 'monitor-stack',   x: 38, y: 40 },
+    { kind: 'desk',            x: 60, y: 50 },
+    { kind: 'monitor-stack',   x: 60, y: 40 },
+    { kind: 'desk',            x: 82, y: 50 },
+    { kind: 'monitor-stack',   x: 82, y: 40 },
+    { kind: 'whiteboard',      x: 50, y: 12 },
+    { kind: 'poster',          x: 92, y: 22 },
+    { kind: 'plant',           x:  8, y: 82 },
+  ],
+  'waiting-bench': [
+    { kind: 'bench',           x: 50, y: 50 },
+    { kind: 'magazine-table',  x: 18, y: 50 },
+    { kind: 'plant-tall',      x:  8, y: 50 },
+    { kind: 'plant-tall',      x: 92, y: 50 },
+    { kind: 'wall-clock',      x: 50, y: 18 },
+  ],
+}
+
 /* ── Helpers re-exported for the panel ───────────────────── */
 
 export { isGsdAgent, isLocalSession, isNamedNanobotAgent, NANOBOT_AGENT_NAMES, NANOBOT_AGENT_DEFS }

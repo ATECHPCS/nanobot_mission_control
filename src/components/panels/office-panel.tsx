@@ -19,11 +19,13 @@ import {
   NANOBOT_AGENT_DEFS,
   ROOM_DEFS,
   HALLWAYS,
+  ROOM_FURNITURE,
   type RoomId,
   type SeatedAgent,
   type RoomDefinition,
   type NanobotAgentStatus,
 } from '@/lib/office-layout'
+import { FURNITURE_COMPONENTS } from './office/furniture'
 
 /* ── Types ────────────────────────────────────────────────── */
 
@@ -194,136 +196,6 @@ function Crewmate({ color, size = 28, status, animate }: {
   )
 }
 
-/* ── Furniture SVGs ───────────────────────────────────────── */
-
-function Desk({ size = 24 }: { size?: number }) {
-  return (
-    <svg width={size} height={size * 0.6} viewBox="0 0 40 24" fill="none" opacity="0.45">
-      <rect x="2" y="2" width="36" height="16" rx="2" fill="#3b4252" stroke="#4c566a" strokeWidth="1" />
-      <rect x="6" y="4" width="20" height="12" rx="1" fill="#2e3440" /> {/* monitor */}
-      <rect x="13" y="16" width="6" height="4" rx="1" fill="#434c5e" /> {/* stand */}
-      <rect x="28" y="8" width="8" height="6" rx="1" fill="#3b4252" stroke="#4c566a" strokeWidth="0.5" /> {/* keyboard */}
-    </svg>
-  )
-}
-
-function Whiteboard({ size = 30 }: { size?: number }) {
-  return (
-    <svg width={size} height={size * 0.7} viewBox="0 0 48 34" fill="none" opacity="0.4">
-      <rect x="4" y="2" width="40" height="26" rx="2" fill="#2e3440" stroke="#5e81ac" strokeWidth="1.5" />
-      <line x1="10" y1="10" x2="28" y2="10" stroke="#5e81ac" strokeWidth="0.8" opacity="0.6" />
-      <line x1="10" y1="15" x2="34" y2="15" stroke="#88c0d0" strokeWidth="0.8" opacity="0.4" />
-      <line x1="10" y1="20" x2="22" y2="20" stroke="#5e81ac" strokeWidth="0.8" opacity="0.5" />
-      <circle cx="38" cy="10" r="2" fill="#bf616a" opacity="0.5" />
-      <rect x="22" y="28" width="4" height="4" rx="1" fill="#434c5e" /> {/* stand */}
-    </svg>
-  )
-}
-
-function CoffeeMachine({ size = 18 }: { size?: number }) {
-  return (
-    <svg width={size} height={size * 1.2} viewBox="0 0 20 24" fill="none" opacity="0.45">
-      <rect x="3" y="6" width="14" height="16" rx="2" fill="#3b4252" stroke="#4c566a" strokeWidth="1" />
-      <rect x="5" y="8" width="10" height="6" rx="1" fill="#2e3440" />
-      <circle cx="10" cy="11" r="2" fill="#a3be8c" opacity="0.6" /> {/* light */}
-      <rect x="6" y="18" width="8" height="3" rx="1" fill="#434c5e" /> {/* drip tray */}
-      {/* Steam */}
-      <path d="M8 4 Q9 2 10 4 Q11 2 12 4" stroke="#d8dee9" strokeWidth="0.6" opacity="0.3">
-        <animate attributeName="opacity" values="0.3;0.1;0.3" dur="3s" repeatCount="indefinite" />
-      </path>
-    </svg>
-  )
-}
-
-function Plant({ size = 16 }: { size?: number }) {
-  return (
-    <svg width={size} height={size * 1.2} viewBox="0 0 16 20" fill="none" opacity="0.4">
-      <rect x="4" y="12" width="8" height="7" rx="1" fill="#4c566a" /> {/* pot */}
-      <ellipse cx="8" cy="8" rx="5" ry="6" fill="#a3be8c" opacity="0.7" />
-      <ellipse cx="6" cy="6" rx="3" ry="4" fill="#8fbcbb" opacity="0.5" />
-    </svg>
-  )
-}
-
-function ServerRack({ size = 20 }: { size?: number }) {
-  return (
-    <svg width={size} height={size * 1.4} viewBox="0 0 20 28" fill="none" opacity="0.4">
-      <rect x="2" y="2" width="16" height="24" rx="2" fill="#2e3440" stroke="#4c566a" strokeWidth="1" />
-      {[6, 12, 18].map(y => (
-        <g key={y}>
-          <rect x="4" y={y} width="12" height="4" rx="1" fill="#3b4252" />
-          <circle cx="14" cy={y + 2} r="1" fill="#a3be8c" opacity="0.8">
-            <animate attributeName="opacity" values="0.8;0.3;0.8" dur={`${1.5 + y * 0.1}s`} repeatCount="indefinite" />
-          </circle>
-        </g>
-      ))}
-    </svg>
-  )
-}
-
-/** Furniture layout per room type — positions as % within the room */
-const ROOM_FURNITURE: Record<RoomId, { component: 'desk' | 'whiteboard' | 'coffee' | 'plant' | 'server'; x: number; y: number }[]> = {
-  'home-main': [
-    { component: 'desk', x: 24, y: 42 },
-    { component: 'desk', x: 50, y: 42 },
-    { component: 'desk', x: 76, y: 42 },
-    { component: 'plant', x: 93, y: 14 },
-    { component: 'plant', x: 7, y: 14 },
-  ],
-  'home-session': [
-    { component: 'server', x: 88, y: 22 },
-    { component: 'server', x: 88, y: 52 },
-    { component: 'desk', x: 24, y: 42 },
-    { component: 'desk', x: 55, y: 42 },
-  ],
-  'home-gsd': [
-    { component: 'server', x: 8, y: 18 },
-    { component: 'server', x: 92, y: 18 },
-    { component: 'desk', x: 20, y: 35 },
-    { component: 'desk', x: 50, y: 35 },
-    { component: 'desk', x: 80, y: 35 },
-  ],
-  'break-room': [
-    { component: 'coffee', x: 50, y: 35 },
-    { component: 'plant', x: 78, y: 18 },
-  ],
-  'library': [
-    { component: 'desk', x: 30, y: 50 },
-    { component: 'desk', x: 70, y: 50 },
-    { component: 'plant', x: 85, y: 20 },
-  ],
-  'workshop': [
-    { component: 'desk', x: 20, y: 50 },
-    { component: 'desk', x: 50, y: 50 },
-    { component: 'desk', x: 80, y: 50 },
-    { component: 'plant', x: 10, y: 20 },
-  ],
-  'lab': [
-    { component: 'server', x: 15, y: 25 },
-    { component: 'desk', x: 60, y: 55 },
-    { component: 'plant', x: 85, y: 20 },
-  ],
-  'phone-booth': [
-    { component: 'desk', x: 30, y: 50 },
-    { component: 'desk', x: 70, y: 50 },
-  ],
-  'war-room': [
-    { component: 'whiteboard', x: 50, y: 22 },
-    { component: 'plant', x: 85, y: 20 },
-  ],
-  'waiting-bench': [
-    { component: 'plant', x: 15, y: 50 },
-    { component: 'plant', x: 85, y: 50 },
-  ],
-}
-
-const FurnitureComponents = {
-  desk: Desk,
-  whiteboard: Whiteboard,
-  coffee: CoffeeMachine,
-  plant: Plant,
-  server: ServerRack,
-}
 
 /* ── Agent drift — subtle wandering animation ────────────── */
 
@@ -404,8 +276,6 @@ function OfficeRoom({ room, agents, zoom }: {
   zoom: number
 }) {
   const labelSize = Math.max(8, Math.round(12 / zoom))
-  const furnitureScale = 36
-  const furniture = ROOM_FURNITURE[room.id] || []
 
   return (
     <div
@@ -416,6 +286,7 @@ function OfficeRoom({ room, agents, zoom }: {
         width: `${room.w}%`,
         height: `${room.h}%`,
         backgroundColor: room.wallColor,
+        backgroundImage: room.floorPattern ?? undefined,
       }}
     >
       {/* Room label */}
@@ -437,15 +308,32 @@ function OfficeRoom({ room, agents, zoom }: {
       )}
 
       {/* Furniture */}
-      {furniture.map((f, i) => {
-        const Comp = FurnitureComponents[f.component]
+      {(ROOM_FURNITURE[room.id] || []).map((entry, i) => {
+        const Comp = FURNITURE_COMPONENTS[entry.kind]
+        if (entry.kind === 'rug') {
+          return (
+            <div
+              key={`${entry.kind}-${i}`}
+              className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+              style={{
+                left:   `${entry.x}%`,
+                top:    `${entry.y}%`,
+                width:  `${entry.w ?? 40}%`,
+                height: `${entry.h ?? 20}%`,
+                zIndex: 0,
+              }}
+            >
+              <Comp palette={room.palette} w={entry.w} h={entry.h} size={36} />
+            </div>
+          )
+        }
         return (
           <div
-            key={`${f.component}-${i}`}
+            key={`${entry.kind}-${i}`}
             className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-            style={{ left: `${f.x}%`, top: `${f.y}%` }}
+            style={{ left: `${entry.x}%`, top: `${entry.y}%`, zIndex: 1 }}
           >
-            <Comp size={furnitureScale} />
+            <Comp palette={room.palette} size={36} />
           </div>
         )
       })}
