@@ -47,6 +47,15 @@ export const NANOBOT_LINES: Record<string, Partial<Record<ActivityKind, string[]
     'on-call':['Standup with {subject}.', '1:1 with {subject}.'],
     blocked:  ['Awaiting input from leadership.'],
   },
+  Wilson: {
+    typing:   ["Drafting Andy's draft.", 'Following up on follow-ups.', 'Editing {subject}.', 'Updating the tracker.'],
+    reading:  ["Reviewing Andy's notes.", 'Catching up on the doc.', 'This Slack thread again.', 'Reading {subject}.'],
+    bash:     ['$ {subject}', 'Running the export.', 'Just checking the script worked.'],
+    thinking: ['Triple-checking the calendar.', 'Reconciling the action items.', 'There must be a Notion page for this.', 'Mental note. Then real note.'],
+    idle:     ["Coffee. Andy's order too.", 'Inbox almost zero.', 'Calendar Tetris, solved.', 'Refilled the printer.'],
+    'on-call':['Taking notes for Andy.', '1:1 with {subject}.', 'Andy in 5.'],
+    blocked:  ["Awaiting Andy's signoff.", 'Pinged Andy.'],
+  },
 }
 
 const MAX_SUBJECT_LEN = 40
