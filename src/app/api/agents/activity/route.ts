@@ -68,6 +68,7 @@ export async function GET(request: NextRequest) {
       FROM messages
       WHERE created_at >= ?
         AND (from_agent = ? OR to_agent = ?)
+        AND workspace_id = ?
         AND (
           conversation_id LIKE 'a2a:%'
           OR conversation_id LIKE 'coord:%'
@@ -102,7 +103,7 @@ export async function GET(request: NextRequest) {
       const toolRow = toolStmt.get(agent.name, recentSince, workspaceId) as
         | { tool_name: string; error: string | null; created_at: number }
         | undefined
-      const commsRow = commsStmt.get(recentSince, agent.name, agent.name) as
+      const commsRow = commsStmt.get(recentSince, agent.name, agent.name, workspaceId) as
         | { from_agent: string; to_agent: string | null; created_at: number }
         | undefined
       const blockedRow = blockedStmt.get(agent.name, workspaceId) as { title: string } | undefined
