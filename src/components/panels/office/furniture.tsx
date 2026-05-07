@@ -370,6 +370,34 @@ function MonitorStack({ palette, size = 26 }: FurnitureProps) {
   )
 }
 
+function FilingCabinet({ palette, size = 22 }: FurnitureProps) {
+  return (
+    <svg width={size} height={size * 1.64} viewBox="0 0 22 36" fill="none">
+      <rect x="2" y="2" width="18" height="32" rx="1"
+            fill={palette.primary} stroke={OUTLINE_COLOR} strokeWidth="1.2" />
+      <line x1="2" y1="13" x2="20" y2="13" stroke={OUTLINE_COLOR} strokeWidth="0.8" />
+      <line x1="2" y1="23" x2="20" y2="23" stroke={OUTLINE_COLOR} strokeWidth="0.8" />
+      <rect x="9" y="7"  width="4" height="1.5" rx="0.4" fill={palette.detail} />
+      <rect x="9" y="17" width="4" height="1.5" rx="0.4" fill={palette.detail} />
+      <rect x="9" y="27" width="4" height="1.5" rx="0.4" fill={palette.detail} />
+    </svg>
+  )
+}
+
+function CubicleDivider({ palette, size = 36 }: FurnitureProps) {
+  return (
+    <svg width={size} height={size * 0.3} viewBox="0 0 40 12" fill="none">
+      <rect x="3" y="2" width="34" height="6" rx="0.5"
+            fill={palette.primary} stroke={OUTLINE_COLOR} strokeWidth="1" />
+      <line x1="14" y1="2" x2="14" y2="8" stroke={OUTLINE_COLOR} strokeWidth="0.4" opacity="0.5" />
+      <line x1="20" y1="2" x2="20" y2="8" stroke={OUTLINE_COLOR} strokeWidth="0.4" opacity="0.5" />
+      <line x1="26" y1="2" x2="26" y2="8" stroke={OUTLINE_COLOR} strokeWidth="0.4" opacity="0.5" />
+      <rect x="2"  y="3" width="2" height="7" fill={palette.detail} />
+      <rect x="36" y="3" width="2" height="7" fill={palette.detail} />
+    </svg>
+  )
+}
+
 export const FURNITURE_COMPONENTS: Record<FurnitureKind, React.FC<FurnitureProps>> = {
   'desk': Desk,
   'whiteboard': Whiteboard,
@@ -391,8 +419,8 @@ export const FURNITURE_COMPONENTS: Record<FurnitureKind, React.FC<FurnitureProps
   'lab-bench': LabBench,
   'lab-terminal': LabTerminal,
   'monitor-stack': MonitorStack,
-  'filing-cabinet': Placeholder,
-  'cubicle-divider': Placeholder,
+  'filing-cabinet': FilingCabinet,
+  'cubicle-divider': CubicleDivider,
   'plant-tall': Placeholder,
   'plant-hanging': Placeholder,
   'wall-clock': Placeholder,
