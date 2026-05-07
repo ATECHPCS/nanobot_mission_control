@@ -672,6 +672,21 @@ export function OfficePanel({ kiosk = false }: { kiosk?: boolean } = {}) {
     return map
   }, [layout])
 
+  // Defensive dedup: keep one seated entry per agent name. Belt-and-suspenders
+  // against any race where the same agent ends up in layout.seated twice
+  // (e.g., merge winners flipping between fetches, or two different code paths
+  // both injecting the same virtual agent). Lowercased trimmed name is the
+  // canonical identity here — same key the displayAgents merge uses.
+  const seatedUnique = useMemo(() => {
+    const seen = new Map<string, SeatedAgent>()
+    for (const s of layout.seated) {
+      const key = (s.agent.name || '').trim().toLowerCase()
+      if (!key || seen.has(key)) continue
+      seen.set(key, s)
+    }
+    return Array.from(seen.values())
+  }, [layout])
+
   const counts = useMemo(() => {
     const c = { idle: 0, busy: 0, error: 0, offline: 0 }
     for (const a of visibleAgents) c[a.status] = (c[a.status] || 0) + 1
@@ -976,14 +991,18 @@ export function OfficePanel({ kiosk = false }: { kiosk?: boolean } = {}) {
                 />
               ))}
 
-              {/* Agents rendered at map level for cross-room pathed motion */}
-              {layout.seated.map(seated => {
+              {/* Agents rendered at map level for cross-room pathed motion.
+                  Keyed by name (not id) so React reuses the same component
+                  across renders even when the underlying agent's id flips
+                  (e.g., merge winner switches between session and DB row). */}
+              {seatedUnique.map(seated => {
                 const crewSize = clamp(Math.round(38 / mapZoom), 20, 56)
                 const nameSize = Math.max(8, Math.round(10 / mapZoom))
+                const stableKey = (seated.agent.name || '').trim().toLowerCase()
                 return (
                   <WalkingCrewmate
-                    key={`walk-${seated.agent.id}`}
-                    agentId={seated.agent.id}
+                    key={`walk-${stableKey}`}
+                    agentId={stableKey}
                     targetSeat={{ x: seated.seat.x, y: seated.seat.y }}
                     targetRoom={seated.roomId}
                   >
@@ -1051,9 +1070,9 @@ export function OfficePanel({ kiosk = false }: { kiosk?: boolean } = {}) {
                     }}
                   />
                 ))}
-                {layout.seated.map(s => (
+                {seatedUnique.map(s => (
                   <div
-                    key={`mini-a-${s.agent.id}`}
+                    key={`mini-a-${(s.agent.name || '').trim().toLowerCase()}`}
                     className="absolute w-1.5 h-1.5 rounded-full -translate-x-1/2 -translate-y-1/2"
                     style={{
                       left: `${s.seat.x}%`, top: `${s.seat.y}%`,
