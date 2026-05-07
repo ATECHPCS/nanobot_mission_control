@@ -141,14 +141,15 @@ export async function GET(request: NextRequest) {
       states.set(agent.name, inferActivityState(signals, nowS))
     }
 
-    // Synthesize states for the named nanobot agents (Andy/Stefany/Cody),
-    // which are not backed by DB rows. A DB row with the same name wins if
-    // present. Offline nanobots are skipped so they don't render at all.
+    // Synthesize states for the named nanobot agents (Andy/Stefany/Cody).
+    // The on-disk nanobot session data is the authoritative live signal for
+    // these agents — it always wins over any DB-derived state because the
+    // DB rows are typically stale (the nanobots don't update their own row).
+    // Offline nanobots are skipped so they don't render in the wrong room.
     let nanobotStatuses: ReturnType<typeof getNanobotStatuses> = []
     try {
       nanobotStatuses = getNanobotStatuses()
       for (const nb of nanobotStatuses) {
-        if (states.has(nb.name)) continue
         if (nb.status === 'offline') continue
         const isBusy = nb.status === 'busy'
         states.set(nb.name, {
