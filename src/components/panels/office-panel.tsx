@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
 import type { WheelEvent, MouseEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Loader } from '@/components/ui/loader'
@@ -473,6 +474,9 @@ export function OfficePanel() {
   } = useMissionControl()
   const isLocalMode = dashboardMode === 'local'
 
+  const searchParams = useSearchParams()
+  const demoMode = searchParams?.get('demo') === '1'
+
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
   const [hideGsd, setHideGsd] = useState(() => {
     if (typeof window !== 'undefined') return localStorage.getItem('office-hide-gsd') === '1'
@@ -661,12 +665,13 @@ export function OfficePanel() {
     } catch { /* ignore — fall back to status */ }
   }, [setOfficeActivities])
 
-  useEffect(() => { fetchActivities() }, [fetchActivities])
+  useEffect(() => { if (!demoMode) fetchActivities() }, [demoMode, fetchActivities])
 
   useEffect(() => {
+    if (demoMode) return
     const id = setInterval(fetchActivities, 5_000)
     return () => clearInterval(id)
-  }, [fetchActivities])
+  }, [demoMode, fetchActivities])
 
   useEffect(() => {
     if (!isLocalMode) { setLocalBootstrapping(false); return }
@@ -736,6 +741,32 @@ export function OfficePanel() {
       ? displayAgents.filter(a => isInactiveLocalSession(a))
       : displayAgents.filter(a => !isInactiveLocalSession(a))
   }, [displayAgents, isLocalMode, localSessionFilter])
+
+  // Demo-mode activity injector — cycles all ActivityKind values across agents
+  useEffect(() => {
+    if (!demoMode) return
+    const KINDS: ActivityKind[] = [
+      'typing', 'reading', 'searching', 'bash', 'on-call',
+      'in-meeting', 'thinking', 'blocked', 'idle', 'error',
+    ]
+    const id = window.setInterval(() => {
+      const map: Record<string, ActivityState> = {}
+      visibleAgents.forEach((a, i) => {
+        const kind = KINDS[(i + Math.floor(Date.now() / 5000)) % KINDS.length]
+        map[a.name] = {
+          kind,
+          subject: kind === 'typing' ? 'src/foo/bar.ts'
+                 : kind === 'bash'   ? 'pnpm test --watch'
+                 : kind === 'reading'? 'README.md'
+                 : kind === 'on-call'? 'Cody'
+                 : undefined,
+          since: Date.now(),
+        }
+      })
+      setOfficeActivities(map)
+    }, 1500)
+    return () => window.clearInterval(id)
+  }, [demoMode, visibleAgents, setOfficeActivities])
 
   const nanobotStatus = useMemo(() => new Map(Object.entries(nanobotStatusObj)), [nanobotStatusObj])
   const layout = useMemo(
