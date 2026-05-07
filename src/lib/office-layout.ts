@@ -232,6 +232,28 @@ export function buildOfficeLayout(
   return { rooms: ROOM_DEFS, seated, gsdCount, activeCount }
 }
 
+/* ── Doors and corridor waypoints ─────────────────────────── */
+
+export interface Point { x: number; y: number }
+
+/** Each room's door sits on the wall facing the nearest corridor. */
+export const ROOM_DOORS: Record<RoomId, Point> = {
+  'home-main':    { x: 24, y: 26 },
+  'home-session': { x: 24, y: 74 },
+  'home-gsd':     { x: 76, y: 26 },
+  'break-room':   { x: 76, y: 74 },
+  'library':      { x: 38, y: 28 },
+  'lab':          { x: 62, y: 28 },
+  'phone-booth':  { x: 38, y: 50 },
+  'war-room':     { x: 62, y: 50 },
+  'workshop':     { x: 50, y: 54 },
+  'waiting-bench':{ x: 50, y: 82 },
+}
+
+/** Two main corridor turn points used by pathBetween */
+export const CORRIDOR_LEFT: Point = { x: 26, y: 50 }
+export const CORRIDOR_RIGHT: Point = { x: 74, y: 50 }
+
 /* ── Helpers re-exported for the panel ───────────────────── */
 
 export { isGsdAgent, isLocalSession, isNamedNanobotAgent, NANOBOT_AGENT_NAMES, NANOBOT_AGENT_DEFS }
