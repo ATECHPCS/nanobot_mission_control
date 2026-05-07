@@ -230,6 +230,51 @@ function SnackTable({ palette, size = 28 }: FurnitureProps) {
   )
 }
 
+function ConferenceTable({ palette, size = 50 }: FurnitureProps) {
+  return (
+    <svg width={size} height={size * 0.53} viewBox="0 0 60 32" fill="none">
+      {[12, 22, 32, 42, 50].map(x => (
+        <rect key={`top-${x}`} x={x - 3} y="2" width="6" height="5" rx="1" fill={palette.detail} stroke={OUTLINE_COLOR} strokeWidth="0.6" />
+      ))}
+      {[12, 22, 32, 42, 50].map(x => (
+        <rect key={`bot-${x}`} x={x - 3} y="25" width="6" height="5" rx="1" fill={palette.detail} stroke={OUTLINE_COLOR} strokeWidth="0.6" />
+      ))}
+      <ellipse cx="30" cy="16" rx="26" ry="9"
+               fill={palette.primary} stroke={OUTLINE_COLOR} strokeWidth="1.2" />
+      <rect x="20" y="13" width="4" height="3" fill="#fff" stroke={OUTLINE_COLOR} strokeWidth="0.4" />
+      <rect x="38" y="14" width="4" height="3" fill="#fff" stroke={OUTLINE_COLOR} strokeWidth="0.4" />
+    </svg>
+  )
+}
+
+function StickyNoteWall({ palette, size = 32 }: FurnitureProps) {
+  return (
+    <svg width={size} height={size * 0.89} viewBox="0 0 36 32" fill="none">
+      <rect x="1" y="1" width="34" height="30" rx="1"
+            fill="#e7e5e4" opacity="0.4" stroke={OUTLINE_COLOR} strokeWidth="0.8" />
+      <rect x="3"  y="4"  width="10" height="10" rx="0.5" fill="#fde047" stroke={OUTLINE_COLOR} strokeWidth="0.5" transform="rotate(-3 8 9)" />
+      <rect x="15" y="3"  width="10" height="10" rx="0.5" fill="#f9a8d4" stroke={OUTLINE_COLOR} strokeWidth="0.5" transform="rotate(2 20 8)" />
+      <rect x="25" y="6"  width="10" height="10" rx="0.5" fill="#bae6fd" stroke={OUTLINE_COLOR} strokeWidth="0.5" transform="rotate(-2 30 11)" />
+      <rect x="9"  y="17" width="10" height="10" rx="0.5" fill="#bbf7d0" stroke={OUTLINE_COLOR} strokeWidth="0.5" transform="rotate(4 14 22)" />
+      <rect x="22" y="18" width="10" height="10" rx="0.5" fill="#fed7aa" stroke={OUTLINE_COLOR} strokeWidth="0.5" transform="rotate(-1 27 23)" />
+      <rect x="1" y="1" width="34" height="2" fill={palette.accent} opacity="0.4" />
+    </svg>
+  )
+}
+
+function Poster({ palette, size = 22 }: FurnitureProps) {
+  return (
+    <svg width={size} height={size * 1.33} viewBox="0 0 24 32" fill="none">
+      <rect x="1.5" y="1.5" width="21" height="29" rx="0.5"
+            fill={palette.detail} stroke={OUTLINE_COLOR} strokeWidth="1.2" />
+      <rect x="3" y="3" width="18" height="26" rx="0.3" fill="#fff" />
+      <circle cx="9" cy="11" r="4" fill={palette.accent} opacity="0.85" />
+      <rect x="11" y="14" width="8" height="8" fill={palette.primary} opacity="0.85" />
+      <path d="M5 26 L11 18 L17 26 Z" fill={palette.detail} opacity="0.7" />
+    </svg>
+  )
+}
+
 export const FURNITURE_COMPONENTS: Record<FurnitureKind, React.FC<FurnitureProps>> = {
   'desk': Desk,
   'whiteboard': Whiteboard,
@@ -242,9 +287,9 @@ export const FURNITURE_COMPONENTS: Record<FurnitureKind, React.FC<FurnitureProps
   'couch': Couch,
   'fridge': Fridge,
   'snack-table': SnackTable,
-  'conference-table': Placeholder,
-  'sticky-note-wall': Placeholder,
-  'poster': Placeholder,
+  'conference-table': ConferenceTable,
+  'sticky-note-wall': StickyNoteWall,
+  'poster': Poster,
   'phone-booth': Placeholder,
   'bench': Placeholder,
   'magazine-table': Placeholder,
