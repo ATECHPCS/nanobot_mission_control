@@ -417,6 +417,26 @@ export function getUserFromRequest(request: Request): User | null {
     if (resolved) return resolved
   }
 
+  // Kiosk display: trusted header injected by proxy.ts when MC_OFFICE_TV_TOKEN
+  // matched on an allowlisted path. The header is stripped unconditionally
+  // from incoming requests by the proxy, so reaching this branch means the
+  // proxy has already validated the kiosk token.
+  const kioskAuth = request.headers.get('x-mc-kiosk-auth')
+  if (kioskAuth === '1') {
+    return {
+      id: -1,
+      username: 'kiosk',
+      display_name: 'Kiosk Display',
+      role: 'viewer',
+      workspace_id: getDefaultWorkspaceContext().workspaceId,
+      tenant_id: getDefaultWorkspaceContext().tenantId,
+      created_at: 0,
+      updated_at: 0,
+      last_login_at: null,
+      agent_name: agentName,
+    }
+  }
+
   return null
 }
 
