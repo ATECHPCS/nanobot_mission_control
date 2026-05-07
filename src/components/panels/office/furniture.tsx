@@ -398,6 +398,39 @@ function CubicleDivider({ palette, size = 36 }: FurnitureProps) {
   )
 }
 
+function PlantTall({ palette, size = 24 }: FurnitureProps) {
+  return (
+    <svg width={size} height={size * 1.79} viewBox="0 0 28 50" fill="none">
+      <path d="M7 40 L21 40 L19 48 L9 48 Z"
+            fill={palette.detail} stroke={OUTLINE_COLOR} strokeWidth="1" />
+      <line x1="14" y1="40" x2="14" y2="8" stroke="#365314" strokeWidth="1.5" />
+      <ellipse cx="9"  cy="36" rx="4" ry="3" fill="#4ade80" stroke={OUTLINE_COLOR} strokeWidth="0.6" transform="rotate(-25 9 36)" />
+      <ellipse cx="19" cy="30" rx="4" ry="3" fill="#22c55e" stroke={OUTLINE_COLOR} strokeWidth="0.6" transform="rotate(25 19 30)" />
+      <ellipse cx="8"  cy="22" rx="4.5" ry="3.5" fill="#4ade80" stroke={OUTLINE_COLOR} strokeWidth="0.6" transform="rotate(-30 8 22)" />
+      <ellipse cx="20" cy="16" rx="4.5" ry="3.5" fill="#22c55e" stroke={OUTLINE_COLOR} strokeWidth="0.6" transform="rotate(30 20 16)" />
+      <ellipse cx="14" cy="8"  rx="5"   ry="4"   fill="#86efac" stroke={OUTLINE_COLOR} strokeWidth="0.6" />
+    </svg>
+  )
+}
+
+function PlantHanging({ palette, size = 24 }: FurnitureProps) {
+  return (
+    <svg width={size} height={size * 1.29} viewBox="0 0 28 36" fill="none">
+      <line x1="14" y1="2" x2="6"  y2="10" stroke={palette.detail} strokeWidth="0.6" />
+      <line x1="14" y1="2" x2="22" y2="10" stroke={palette.detail} strokeWidth="0.6" />
+      <path d="M5 10 L23 10 L20 18 L8 18 Z"
+            fill={palette.detail} stroke={OUTLINE_COLOR} strokeWidth="1" />
+      <ellipse cx="14" cy="11" rx="9" ry="4" fill="#4ade80" stroke={OUTLINE_COLOR} strokeWidth="0.8" />
+      <path d="M9 14 Q7 22 9 30" stroke="#22c55e" strokeWidth="1.2" fill="none" />
+      <path d="M14 16 Q14 24 12 32" stroke="#16a34a" strokeWidth="1.2" fill="none" />
+      <path d="M19 14 Q21 22 19 30" stroke="#22c55e" strokeWidth="1.2" fill="none" />
+      <ellipse cx="9"  cy="22" rx="1.5" ry="1" fill="#86efac" />
+      <ellipse cx="13" cy="26" rx="1.5" ry="1" fill="#86efac" />
+      <ellipse cx="20" cy="22" rx="1.5" ry="1" fill="#86efac" />
+    </svg>
+  )
+}
+
 export const FURNITURE_COMPONENTS: Record<FurnitureKind, React.FC<FurnitureProps>> = {
   'desk': Desk,
   'whiteboard': Whiteboard,
@@ -421,8 +454,8 @@ export const FURNITURE_COMPONENTS: Record<FurnitureKind, React.FC<FurnitureProps
   'monitor-stack': MonitorStack,
   'filing-cabinet': FilingCabinet,
   'cubicle-divider': CubicleDivider,
-  'plant-tall': Placeholder,
-  'plant-hanging': Placeholder,
+  'plant-tall': PlantTall,
+  'plant-hanging': PlantHanging,
   'wall-clock': Placeholder,
   'rug': Placeholder,
   'paper': Placeholder,
