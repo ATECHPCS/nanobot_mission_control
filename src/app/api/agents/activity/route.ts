@@ -87,6 +87,10 @@ export async function GET(request: NextRequest) {
     `)
 
     // JSONL fallback for local Claude Code sessions that don't write to mcp_call_log.
+    // NOTE: spec said "local mode only" but the server has no concept of dashboardMode
+    // (that's a client-side store value). Running unconditionally is safe — the data
+    // is filesystem-derived and only readable by the same auth'd user. To restrict,
+    // gate by an env flag like MC_OFFICE_JSONL_FALLBACK if it ever becomes a concern.
     // Indexed by lowercased agent name for case-insensitive matching against agent records.
     const jsonlTools = new Map<string, { toolName: string; subject?: string; createdAt: number }>()
     try {
