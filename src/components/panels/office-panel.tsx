@@ -5,6 +5,7 @@ import type { WheelEvent, MouseEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Loader } from '@/components/ui/loader'
 import { useMissionControl, Agent } from '@/store'
+import type { ActivityState } from '@/lib/agent-activity'
 import {
   buildOfficeLayout,
   isGsdAgent,
@@ -463,6 +464,7 @@ export function OfficePanel() {
     officeLocalAgents: localAgents, setOfficeLocalAgents: setLocalAgents,
     officeNanobotStatus: nanobotStatusObj, setOfficeNanobotStatus: setNanobotStatusObj,
     officeDataFetched, setOfficeDataFetched,
+    officeActivities, setOfficeActivities,
   } = useMissionControl()
   const isLocalMode = dashboardMode === 'local'
 
@@ -583,6 +585,29 @@ export function OfficePanel() {
   }, [isLocalMode, setLocalAgents, setSessionAgents, setNanobotStatusObj, setOfficeDataFetched])
 
   useEffect(() => { fetchAgents() }, [fetchAgents])
+
+  void officeActivities  // wired in Phase 2
+
+  const fetchActivities = useCallback(async () => {
+    try {
+      const res = await fetch('/api/agents/activity')
+      if (!res.ok) return
+      const json = await res.json()
+      if (!Array.isArray(json?.agents)) return
+      const map: Record<string, ActivityState> = {}
+      for (const row of json.agents) {
+        if (row?.name && row?.activity) map[row.name] = row.activity
+      }
+      setOfficeActivities(map)
+    } catch { /* ignore — fall back to status */ }
+  }, [setOfficeActivities])
+
+  useEffect(() => { fetchActivities() }, [fetchActivities])
+
+  useEffect(() => {
+    const id = setInterval(fetchActivities, 5_000)
+    return () => clearInterval(id)
+  }, [fetchActivities])
 
   useEffect(() => {
     if (!isLocalMode) { setLocalBootstrapping(false); return }
